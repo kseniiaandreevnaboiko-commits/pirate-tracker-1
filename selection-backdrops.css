@@ -1,0 +1,78 @@
+/* One visual language for screens where the user makes a choice. */
+:root {
+  --selection-pirate-scene: url('reward-shop-pirate-cove-v1.png');
+}
+
+/* The landscape remains visible around every selection dialog. */
+#modal-add-student,
+#modal-transaction,
+#modal-manage-rewards,
+#modal-shop,
+#modal-achievements-manage,
+#modal-award-achievement,
+#modal-teacher-profile {
+  background:
+    linear-gradient(180deg, rgba(1, 10, 18, .54), rgba(1, 12, 21, .76)),
+    var(--selection-pirate-scene) center / cover no-repeat fixed !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+}
+
+/* A translucent navy veil makes the shared scene atmospheric, not noisy. */
+#modal-add-student .add-student-modal,
+#modal-transaction .txn-modal,
+#modal-manage-rewards .rewards-manager-modal,
+#modal-shop .reward-shop-modal,
+#modal-achievements-manage .rewards-cabin,
+#modal-award-achievement .achievement-award-modal,
+#modal-teacher-profile .td-profile-dialog {
+  background:
+    linear-gradient(145deg, rgba(5, 34, 51, .82), rgba(3, 20, 34, .94)),
+    var(--selection-pirate-scene) center 48% / cover no-repeat !important;
+  box-shadow:
+    0 28px 82px rgba(0, 0, 0, .68),
+    inset 0 1px rgba(255, 230, 153, .08) !important;
+}
+
+/* Large creation screens need a little more calm behind dense controls. */
+#modal-manage-rewards .rewards-manager-modal,
+#modal-achievements-manage .rewards-cabin {
+  background:
+    linear-gradient(145deg, rgba(4, 31, 48, .88), rgba(2, 18, 31, .96)),
+    var(--selection-pirate-scene) center 44% / cover no-repeat !important;
+}
+
+#modal-add-student .add-student-form,
+#modal-manage-rewards .reward-create-panel,
+#modal-manage-rewards .rewards-created-panel,
+#modal-teacher-profile .td-profile-preview,
+#modal-achievements-manage .cabin-preview,
+#modal-award-achievement .award-student-option {
+  background-color: rgba(3, 22, 35, .72) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Both the current and legacy student-entry panels use the same backdrop. */
+#login-student-panel.lr-student-login,
+#login-view .login-student-panel {
+  background:
+    linear-gradient(150deg, rgba(5, 39, 53, .78), rgba(3, 22, 34, .93)),
+    var(--selection-pirate-scene) center 45% / cover no-repeat !important;
+  border-color: rgba(239, 190, 73, .82) !important;
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, .7),
+    inset 0 1px rgba(255, 235, 178, .12) !important;
+}
+
+@media (max-width: 620px) {
+  #modal-add-student,
+  #modal-transaction,
+  #modal-manage-rewards,
+  #modal-shop,
+  #modal-achievements-manage,
+  #modal-award-achievement,
+  #modal-teacher-profile {
+    background-position: 58% center !important;
+  }
+}

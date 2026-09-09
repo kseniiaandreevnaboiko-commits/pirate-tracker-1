@@ -1,0 +1,623 @@
+#modal-manage-rewards {
+  padding: 22px;
+  background: rgba(1, 9, 16, .8);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+#modal-manage-rewards .rewards-manager-modal {
+  width: min(1100px, 92vw);
+  max-width: 1100px;
+  max-height: 86vh;
+  padding: 0;
+  overflow: hidden;
+  color: #edf6fc;
+  background: radial-gradient(circle at 88% 4%, rgba(33, 143, 184, .12), transparent 30%), linear-gradient(145deg, #0a2134, #071827 64%, #05131f);
+  border: 1px solid rgba(222, 173, 54, .65);
+  border-radius: 22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.65), 0 0 30px rgba(220,175,55,.08), 0 0 0 1px rgba(255,224,143,.04) inset;
+  animation: rewardsManagerIn .24s ease-out both;
+}
+
+#modal-manage-rewards .rewards-manager-modal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 1px rgba(255, 220, 125, .18);
+}
+
+#modal-manage-rewards .rewards-manager-close {
+  z-index: 3;
+  top: 22px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #f2c45a;
+  font: 400 20px/1 Arial, sans-serif;
+  opacity: 1;
+  background: #071827;
+  border: 1px solid rgba(222, 173, 54, .58);
+  border-radius: 50%;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+#modal-manage-rewards .rewards-manager-close:hover { transform: rotate(4deg) translateY(-1px); background: #0e2b42; border-color: #efc156; }
+
+#modal-manage-rewards .rewards-manager-header {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  min-height: 106px;
+  padding: 22px 88px 20px 28px;
+  border-bottom: 1px solid rgba(222, 173, 54, .22);
+  background: rgba(2, 15, 26, .34);
+}
+
+#modal-manage-rewards .rewards-manager-header-icon {
+  flex: 0 0 56px;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  color: #f0c45b;
+  border: 1px solid rgba(222, 173, 54, .55);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(222,173,54,.2), rgba(222,173,54,.04));
+}
+
+#modal-manage-rewards .rewards-manager-header-icon svg { width: 29px; height: 29px; }
+#modal-manage-rewards .rewards-manager-header h2 { margin: 0 0 6px; color: #f1c65e; font: 700 clamp(25px, 3vw, 32px)/1.12 Georgia, 'Times New Roman', serif; text-align: left; letter-spacing: -.02em; }
+#modal-manage-rewards .rewards-manager-header p { margin: 0; color: #9bb1c2; font: 400 14px/1.45 Arial, sans-serif; }
+
+#modal-manage-rewards .rewards-manager-layout {
+  display: grid;
+  grid-template-columns: minmax(350px, 39%) minmax(0, 61%);
+  height: min(660px, calc(86vh - 106px));
+  min-height: 500px;
+  overflow: hidden;
+}
+
+#modal-manage-rewards .reward-create-panel,
+#modal-manage-rewards .rewards-created-panel { min-width: 0; padding: 24px 26px 26px; overflow-y: auto; }
+#modal-manage-rewards .reward-create-panel { border-right: 1px solid rgba(222, 173, 54, .18); background: rgba(6, 25, 40, .48); }
+#modal-manage-rewards .rewards-created-panel { background: rgba(2, 15, 25, .34); }
+
+#modal-manage-rewards .reward-panel-heading h3,
+#modal-manage-rewards .rewards-created-heading h3 { margin: 0 0 5px; color: #f4f8fb; font: 700 20px/1.2 Georgia, 'Times New Roman', serif; }
+#modal-manage-rewards .reward-panel-heading p,
+#modal-manage-rewards .rewards-created-heading p { margin: 0; color: #7891a4; font: 400 12px/1.4 Arial, sans-serif; }
+#modal-manage-rewards .reward-panel-heading { margin-bottom: 20px; }
+#modal-manage-rewards .form-group { margin: 0 0 17px; }
+#modal-manage-rewards .form-group > label { margin: 0 0 8px; color: #cbd9e3; font: 600 13px/1.2 Arial, sans-serif; }
+
+#modal-manage-rewards #reward-name,
+#modal-manage-rewards .reward-input-shell {
+  width: 100%;
+  height: 48px;
+  color: #f4f8fb;
+  font: 500 14px/1 Arial, sans-serif;
+  background: #051522;
+  border: 1px solid #28485f;
+  border-radius: 11px;
+  box-shadow: none;
+}
+
+#modal-manage-rewards #reward-name { padding: 0 14px; }
+#modal-manage-rewards #reward-name::placeholder { color: #698398; }
+#modal-manage-rewards #reward-name:focus,
+#modal-manage-rewards .reward-input-shell:focus-within { outline: none; border-color: #dbaa3d; box-shadow: 0 0 0 3px rgba(219,170,61,.12); }
+
+#modal-manage-rewards #reward-category { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+#modal-manage-rewards .reward-category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+#modal-manage-rewards .reward-category-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 52px;
+  padding: 7px 10px;
+  cursor: pointer;
+  color: #b8cad7;
+  font: 600 12px/1.15 Arial, sans-serif;
+  text-align: left;
+  background: #081d2d;
+  border: 1px solid #28495f;
+  border-radius: 11px;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+#modal-manage-rewards .reward-category-card:hover { transform: translateY(-1px); border-color: #527087; background: #0c273b; }
+#modal-manage-rewards .reward-category-card.is-selected { color: #f5f8fa; border-color: #e0ad38; background: linear-gradient(145deg, rgba(224,173,56,.13), #092235); box-shadow: 0 0 0 2px rgba(224,173,56,.08), 0 0 18px rgba(224,173,56,.08); }
+#modal-manage-rewards .reward-category-symbol { flex: 0 0 32px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; }
+#modal-manage-rewards .reward-category-symbol svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#modal-manage-rewards .reward-symbol-treat { color: #ff927e; background: rgba(255,111,91,.12); }
+#modal-manage-rewards .reward-symbol-study { color: #55c4d7; background: rgba(50,178,199,.12); }
+#modal-manage-rewards .reward-symbol-prize { color: #efbd4f; background: rgba(222,173,54,.13); }
+#modal-manage-rewards .reward-symbol-privilege { color: #b89af5; background: rgba(144,104,225,.13); }
+
+#modal-manage-rewards .reward-number-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(118px, .65fr); gap: 11px; }
+#modal-manage-rewards .reward-input-shell { display: flex; align-items: center; padding: 0 11px; }
+#modal-manage-rewards .reward-input-shell img { flex: 0 0 27px; width: 27px; height: 27px; object-fit: contain; margin-right: 5px; }
+#modal-manage-rewards .reward-input-shell input { min-width: 0; height: 100%; padding: 0 4px; color: #f7fbff; font: 700 15px/1 Arial, sans-serif; background: transparent; border: 0; box-shadow: none; }
+#modal-manage-rewards .reward-input-shell input:focus { outline: 0; box-shadow: none; }
+#modal-manage-rewards .reward-input-shell > span { color: #6f899d; font: 500 10px/1 Arial, sans-serif; }
+#modal-manage-rewards .reward-limit-field small { display: block; margin-top: 6px; color: #667f92; font: 400 10px/1.2 Arial, sans-serif; }
+#modal-manage-rewards .reward-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 7px; }
+#modal-manage-rewards .reward-presets button { height: 27px; padding: 0; cursor: pointer; color: #9db3c3; font: 600 10px/1 Arial, sans-serif; background: #0a2133; border: 1px solid #29485e; border-radius: 7px; transition: color .15s ease, border-color .15s ease, background .15s ease; }
+#modal-manage-rewards .reward-presets button:hover { color: #f0c258; border-color: #bd9131; background: rgba(222,173,54,.08); }
+
+#modal-manage-rewards .reward-live-preview { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 12px; min-height: 70px; margin: 1px 0 17px; padding: 8px 11px; background: rgba(4,18,30,.75); border: 1px solid rgba(50,85,108,.75); border-radius: 13px; }
+#modal-manage-rewards .reward-preview-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; background: #0c2739; }
+#modal-manage-rewards .reward-preview-icon svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#modal-manage-rewards .reward-live-preview > div { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+#modal-manage-rewards .reward-live-preview small { color: #668095; font: 500 9px/1 Arial, sans-serif; text-transform: uppercase; letter-spacing: .12em; }
+#modal-manage-rewards .reward-live-preview strong { overflow: hidden; color: #f2f7fa; font: 700 14px/1.2 Arial, sans-serif; white-space: nowrap; text-overflow: ellipsis; }
+#modal-manage-rewards .reward-live-preview div > span { color: #efbd4f; font: 600 11px/1.2 Arial, sans-serif; }
+
+#modal-manage-rewards .reward-create-submit { display: flex; align-items: center; justify-content: center; gap: 11px; width: 100%; height: 52px; padding: 0 16px; cursor: pointer; color: #241804; font: 800 13px/1 Arial, sans-serif; background: linear-gradient(180deg, #ffd878, #dfa42e); border: 1px solid #f4ca61; border-radius: 12px; box-shadow: 0 9px 22px rgba(194,129,10,.19), inset 0 1px rgba(255,255,255,.45); transition: transform .18s ease, filter .18s ease, box-shadow .18s ease; }
+#modal-manage-rewards .reward-create-submit svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .18s ease; }
+#modal-manage-rewards .reward-create-submit:hover { transform: translateY(-2px); filter: brightness(1.04); box-shadow: 0 12px 28px rgba(194,129,10,.27); }
+#modal-manage-rewards .reward-create-submit:hover svg { transform: translateX(3px); }
+
+#modal-manage-rewards .rewards-created-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+#modal-manage-rewards #rewards-total { flex: 0 0 auto; padding: 7px 11px; color: #d9b65c; font: 700 11px/1 Arial, sans-serif; background: rgba(222,173,54,.08); border: 1px solid rgba(222,173,54,.32); border-radius: 999px; }
+#modal-manage-rewards .rewards-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; align-content: start; }
+#modal-manage-rewards .reward-manager-item { position: relative; display: grid; grid-template-columns: 48px 1fr 34px; align-items: center; gap: 11px; min-height: 104px; padding: 13px 11px 13px 13px; background: linear-gradient(145deg, rgba(14,43,62,.95), rgba(5,22,35,.96)); border: 1px solid #294a60; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,.15); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+#modal-manage-rewards .reward-manager-item:hover { transform: translateY(-2px); border-color: rgba(222,173,54,.58); box-shadow: 0 12px 24px rgba(0,0,0,.22); }
+#modal-manage-rewards .reward-manager-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; }
+#modal-manage-rewards .reward-manager-icon svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#modal-manage-rewards .reward-manager-copy { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+#modal-manage-rewards .reward-manager-copy strong { overflow: hidden; color: #f1f6f9; font: 700 13px/1.25 Arial, sans-serif; white-space: nowrap; text-overflow: ellipsis; }
+#modal-manage-rewards .reward-manager-category { color: #7691a4; font: 500 10px/1.2 Arial, sans-serif; }
+#modal-manage-rewards .reward-manager-meta { display: flex; flex-wrap: wrap; gap: 5px 9px; margin-top: 3px; color: #b8cad6; font: 600 10px/1.2 Arial, sans-serif; }
+#modal-manage-rewards .reward-manager-meta b { color: #edbd4e; font-weight: 700; }
+#modal-manage-rewards .reward-delete { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; cursor: pointer; color: #688397; background: transparent; border: 1px solid transparent; border-radius: 9px; transition: color .17s ease, background .17s ease, border-color .17s ease; }
+#modal-manage-rewards .reward-delete svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#modal-manage-rewards .reward-delete:hover { color: #e68b83; background: rgba(190,70,61,.1); border-color: rgba(190,70,61,.28); }
+
+#modal-manage-rewards .rewards-empty { grid-column: 1 / -1; display: grid; place-items: center; min-height: 390px; padding: 34px; text-align: center; border: 1px dashed rgba(91,126,149,.4); border-radius: 16px; background: rgba(5,20,32,.42); }
+#modal-manage-rewards .rewards-empty img { width: 150px; height: 120px; object-fit: contain; filter: drop-shadow(0 14px 17px rgba(0,0,0,.38)); opacity: .88; }
+#modal-manage-rewards .rewards-empty strong { margin-top: 4px; color: #e9f0f5; font: 700 20px/1.2 Georgia, 'Times New Roman', serif; }
+#modal-manage-rewards .rewards-empty span { margin-top: 7px; color: #708b9f; font: 400 12px/1.4 Arial, sans-serif; }
+
+@keyframes rewardsManagerIn { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (max-width: 900px) {
+  #modal-manage-rewards .rewards-manager-layout { display: block; height: calc(86vh - 106px); overflow-y: auto; }
+  #modal-manage-rewards .reward-create-panel,
+  #modal-manage-rewards .rewards-created-panel { overflow: visible; }
+  #modal-manage-rewards .reward-create-panel { border-right: 0; border-bottom: 1px solid rgba(222,173,54,.18); }
+}
+
+@media (max-width: 620px) {
+  #modal-manage-rewards { padding: 10px; }
+  #modal-manage-rewards .rewards-manager-modal { width: 100%; border-radius: 18px; }
+  #modal-manage-rewards .rewards-manager-header { min-height: 96px; padding: 17px 68px 16px 17px; }
+  #modal-manage-rewards .rewards-manager-header-icon { flex-basis: 48px; width: 48px; height: 48px; }
+  #modal-manage-rewards .rewards-manager-header h2 { font-size: 23px; }
+  #modal-manage-rewards .rewards-manager-header p { font-size: 11px; }
+  #modal-manage-rewards .rewards-manager-close { top: 16px; right: 15px; width: 40px; height: 40px; }
+  #modal-manage-rewards .rewards-manager-layout { height: calc(86vh - 96px); }
+  #modal-manage-rewards .reward-create-panel,
+  #modal-manage-rewards .rewards-created-panel { padding: 20px 17px 22px; }
+  #modal-manage-rewards .reward-number-row { grid-template-columns: 1fr; }
+  #modal-manage-rewards .rewards-list { grid-template-columns: 1fr; }
+  #modal-manage-rewards .rewards-empty { min-height: 280px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #modal-manage-rewards .rewards-manager-modal,
+  #modal-manage-rewards .reward-category-card,
+  #modal-manage-rewards .reward-create-submit,
+  #modal-manage-rewards .reward-manager-item { animation: none; transition: none; }
+}
+
+/* Reward shop: dense pirate showcase with real reward data. */
+#modal-shop {
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(1, 9, 17, .58), rgba(1, 10, 18, .76)),
+    url('reward-shop-pirate-cove-v1.png') center / cover no-repeat;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+#modal-shop .reward-shop-modal {
+  isolation: isolate;
+  width: min(1180px, calc(100vw - 48px));
+  max-width: none;
+  height: min(760px, calc(100vh - 32px));
+  min-height: min(640px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  padding: 0 26px 24px;
+  overflow: hidden;
+  color: #eef7fc;
+  background:
+    linear-gradient(180deg, rgba(3, 18, 31, .66), rgba(3, 22, 38, .88)),
+    url('reward-shop-pirate-cove-v1.png') center 48% / cover no-repeat;
+  border: 1px solid rgba(232, 177, 67, .62);
+  border-radius: 26px;
+  box-shadow: 0 28px 80px rgba(0,0,0,.68), 0 0 30px rgba(227,174,57,.10), inset 0 1px rgba(255,238,184,.08);
+  animation: rewardShopIn .24s ease-out both;
+}
+
+#modal-shop .reward-shop-modal::before,
+#modal-shop .reward-shop-modal::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+#modal-shop .reward-shop-modal::before {
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 4% 42%, rgba(255,171,52,.18), transparent 24%),
+    radial-gradient(circle at 96% 72%, rgba(255,185,55,.13), transparent 27%),
+    linear-gradient(90deg, rgba(1,12,23,.36), transparent 18% 82%, rgba(1,12,23,.38));
+  box-shadow: inset 0 1px rgba(255,224,143,.15);
+}
+
+#modal-shop .reward-shop-modal::after {
+  right: -48px;
+  bottom: -70px;
+  width: 260px;
+  height: 235px;
+  opacity: .10;
+  background: url('reward-treasure-chest.png') center / contain no-repeat;
+  filter: saturate(.8) drop-shadow(0 0 25px #d98d22);
+}
+
+#modal-shop .reward-shop-close {
+  z-index: 8;
+  top: 20px;
+  right: 22px;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #f3c75d;
+  font: 400 21px/1 Arial, sans-serif;
+  opacity: 1;
+  background: rgba(3, 18, 31, .92);
+  border: 1px solid rgba(239, 191, 78, .72);
+  border-radius: 50%;
+  box-shadow: inset 0 1px rgba(255,255,255,.05), 0 8px 20px rgba(0,0,0,.3);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+#modal-shop .reward-shop-close:hover {
+  color: #ffe39a;
+  background: #102f45;
+  border-color: #ffd471;
+  box-shadow: 0 0 18px rgba(242,190,68,.24);
+  transform: translateY(-1px) rotate(4deg);
+}
+
+#modal-shop .reward-shop-header {
+  flex: 0 0 124px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 76px 8px;
+  text-align: center;
+}
+
+#modal-shop .reward-shop-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+}
+
+#modal-shop .reward-shop-title-icon {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  color: #f0bf4e;
+  background: linear-gradient(145deg, rgba(240,190,73,.18), rgba(240,190,73,.03));
+  border: 1px solid rgba(235,184,62,.46);
+  border-radius: 13px;
+  box-shadow: 0 0 18px rgba(230,173,48,.12);
+}
+
+#modal-shop .reward-shop-title-icon svg { width: 25px; height: 25px; }
+
+#modal-shop .reward-shop-header h2 {
+  margin: 0;
+  color: #f1c35a;
+  font: 800 clamp(34px, 3vw, 48px)/1 Georgia, 'Times New Roman', serif;
+  letter-spacing: -.035em;
+  text-shadow: 0 2px 0 rgba(113,66,9,.68), 0 7px 15px rgba(0,0,0,.36);
+}
+
+#modal-shop .reward-shop-balance {
+  min-height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: rgba(239,247,252,.94);
+  font: 600 17px/1.2 Arial, sans-serif;
+}
+
+#modal-shop .reward-shop-balance img {
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}
+
+#modal-shop .reward-shop-balance strong { color: #ffd259; font-size: 20px; font-weight: 800; }
+
+#modal-shop .shop-categories {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 11px;
+  margin: 0 0 14px;
+  padding-bottom: 0;
+  overflow: visible;
+}
+
+#modal-shop .shop-cat-btn {
+  min-width: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 12px;
+  color: rgba(243,248,252,.94);
+  background: linear-gradient(180deg, rgba(12,43,70,.96), rgba(6,29,50,.98));
+  border: 1px solid rgba(91,146,184,.42);
+  border-radius: 14px;
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
+  font: 700 14px/1 Arial, sans-serif;
+  white-space: nowrap;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+#modal-shop .shop-cat-btn:hover { transform: translateY(-1px); border-color: rgba(113,181,224,.68); }
+#modal-shop .shop-cat-btn.active {
+  color: #2a1d08;
+  background: linear-gradient(180deg, #f4ce68 0%, #b47627 100%);
+  border-color: rgba(255,226,151,.90);
+  box-shadow: 0 0 20px rgba(237,188,71,.28), inset 0 1px rgba(255,255,255,.32);
+}
+
+#modal-shop .shop-cat-icon { width: 21px; height: 21px; flex: 0 0 21px; display: grid; place-items: center; }
+#modal-shop .shop-cat-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+#modal-shop .shop-grid {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-content: start;
+  gap: 14px;
+  margin: 0;
+  padding: 1px 4px 4px 1px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #bd8731 rgba(3,19,32,.65);
+}
+
+#modal-shop .shop-grid::-webkit-scrollbar { width: 8px; }
+#modal-shop .shop-grid::-webkit-scrollbar-track { background: rgba(3,19,32,.65); border-radius: 10px; }
+#modal-shop .shop-grid::-webkit-scrollbar-thumb { background: linear-gradient(#e1b64f,#8f5c22); border-radius: 10px; }
+
+#modal-shop .shop-item {
+  position: relative;
+  min-width: 0;
+  min-height: 255px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 12px 13px 13px;
+  overflow: hidden;
+  color: #f6fbfe;
+  background: linear-gradient(180deg, rgba(8,39,65,.97), rgba(4,22,40,.99));
+  border: 1px solid rgba(75,145,199,.42);
+  border-radius: 17px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.04);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+#modal-shop .shop-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 25%, rgba(45,159,211,.12), transparent 42%);
+}
+
+#modal-shop .shop-item:hover {
+  z-index: 2;
+  transform: translateY(-3px);
+  border-color: rgba(232,181,71,.68);
+  box-shadow: 0 14px 26px rgba(0,0,0,.34), 0 0 17px rgba(222,168,54,.12), inset 0 1px rgba(255,255,255,.06);
+}
+
+#modal-shop .shop-item-picture {
+  position: relative;
+  z-index: 1;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -3px 0 5px;
+}
+
+#modal-shop .shop-item-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 8px rgba(0,0,0,.48));
+  transition: transform .2s ease, filter .2s ease;
+}
+
+#modal-shop .shop-item:hover .shop-item-picture img { transform: scale(1.045); filter: drop-shadow(0 9px 10px rgba(0,0,0,.52)) drop-shadow(0 0 7px rgba(246,190,65,.18)); }
+
+#modal-shop .shop-item-name {
+  position: relative;
+  z-index: 1;
+  min-height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: #f8fbfd;
+  font: 700 15px/1.2 Arial, sans-serif;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+#modal-shop .shop-item-price {
+  position: relative;
+  z-index: 1;
+  min-height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 3px 0 4px;
+  color: #f5c54f;
+  font: 800 18px/1 Arial, sans-serif;
+}
+
+#modal-shop .shop-item-price .coin-sm { width: 23px; height: 23px; display: block; object-fit: contain; background: none; border: 0; border-radius: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,.52)); }
+#modal-shop .shop-item-price span { color: #f5c54f; font-size: inherit; }
+#modal-shop .shop-item-count { min-height: 14px; margin: -1px 0 5px; color: #9db4c4; font: 500 10px/1.2 Arial, sans-serif; text-align: center; }
+
+#modal-shop .shop-item .btn {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 40px;
+  margin-top: auto;
+  padding: 7px 9px;
+  color: #2a1c06;
+  background: linear-gradient(180deg, #f1c85d 0%, #b47725 100%);
+  border: 1px solid rgba(255,219,137,.72);
+  border-radius: 11px;
+  box-shadow: inset 0 1px rgba(255,255,255,.28), 0 5px 12px rgba(0,0,0,.2);
+  font: 800 13px/1.15 Arial, sans-serif;
+  transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+}
+
+#modal-shop .shop-item .btn:not(:disabled):hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: inset 0 1px rgba(255,255,255,.34), 0 8px 16px rgba(0,0,0,.28), 0 0 14px rgba(238,188,66,.2); }
+#modal-shop .shop-item .btn:disabled { color: #aebbc2; background: linear-gradient(180deg,#345267,#223c50); border-color: rgba(113,148,171,.42); opacity: .82; cursor: not-allowed; box-shadow: inset 0 1px rgba(255,255,255,.04); }
+
+#modal-shop .shop-empty {
+  grid-column: 1 / -1;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9eb5c5;
+  text-align: center;
+}
+
+#modal-shop .shop-empty img { width: 150px; height: 120px; object-fit: contain; opacity: .84; filter: drop-shadow(0 10px 12px rgba(0,0,0,.5)); }
+#modal-shop .shop-empty strong { margin-top: 4px; color: #f0ca6b; font: 700 20px/1.2 Georgia, serif; }
+#modal-shop .shop-empty span { margin-top: 7px; font: 500 12px/1.4 Arial, sans-serif; }
+
+@keyframes rewardShopIn { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (max-width: 1399px) {
+  #modal-shop .reward-shop-modal { width: min(1080px, calc(100vw - 36px)); }
+  #modal-shop .shop-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 999px) {
+  #modal-shop .reward-shop-modal { width: calc(100vw - 26px); padding-inline: 18px; border-radius: 21px; }
+  #modal-shop .reward-shop-header { flex-basis: 116px; }
+  #modal-shop .reward-shop-header h2 { font-size: 34px; }
+  #modal-shop .shop-categories { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #modal-shop .shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 699px) {
+  #modal-shop { padding: 7px; }
+  #modal-shop .reward-shop-modal { width: 100%; height: calc(100vh - 14px); min-height: 0; padding: 0 12px 15px; border-radius: 17px; }
+  #modal-shop .reward-shop-close { top: 13px; right: 13px; width: 42px; height: 42px; }
+  #modal-shop .reward-shop-header { flex-basis: 120px; padding: 14px 48px 7px 8px; align-items: flex-start; text-align: left; }
+  #modal-shop .reward-shop-title-row { justify-content: flex-start; gap: 9px; }
+  #modal-shop .reward-shop-title-icon { width: 36px; height: 36px; flex: 0 0 36px; }
+  #modal-shop .reward-shop-header h2 { font-size: clamp(25px, 8vw, 32px); }
+  #modal-shop .reward-shop-balance { justify-content: flex-start; margin-left: 2px; font-size: 14px; }
+  #modal-shop .reward-shop-balance strong { font-size: 17px; }
+  #modal-shop .shop-categories { display: flex; gap: 8px; margin-bottom: 11px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  #modal-shop .shop-categories::-webkit-scrollbar { display: none; }
+  #modal-shop .shop-cat-btn { flex: 0 0 auto; height: 45px; padding-inline: 12px; font-size: 12px; }
+  #modal-shop .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  #modal-shop .shop-item { min-height: 242px; padding: 10px; border-radius: 14px; }
+  #modal-shop .shop-item-picture { height: 88px; }
+  #modal-shop .shop-item-name { font-size: 13px; }
+}
+
+@media (max-width: 430px) {
+  #modal-shop .shop-grid { grid-template-columns: 1fr; }
+  #modal-shop .shop-item { min-height: 250px; }
+  #modal-shop .shop-item-picture { height: 104px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #modal-shop .reward-shop-modal,
+  #modal-shop .shop-cat-btn,
+  #modal-shop .shop-item,
+  #modal-shop .shop-item-picture img,
+  #modal-shop .shop-item .btn { animation: none; transition: none; }
+}
+/* Purchase confirmation follows the same parchment and brass visual system as the shop. */
+#modal-confirm{background:rgba(1,10,17,.82);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+#modal-confirm .modal{position:relative;width:min(610px,calc(100vw - 34px));max-width:none;padding:52px 66px 52px;overflow:visible;color:#38230e;background:linear-gradient(rgba(255,240,193,.88),rgba(229,191,116,.92)),url('свиток.png') center/100% 100% no-repeat;border:0;border-radius:12px;box-shadow:0 25px 70px rgba(0,0,0,.72),0 0 30px rgba(233,177,54,.16);text-align:center}
+#modal-confirm .modal:before{content:none;display:none}
+#modal-confirm #confirm-title{margin:0;color:#3a240f!important;font:800 34px/1.05 Georgia,serif;text-shadow:0 1px rgba(255,255,255,.5)}
+#modal-confirm .confirm-text{max-width:470px;margin:22px auto 28px;color:#563718;font:600 18px/1.55 Georgia,serif}
+
+/* Use one highly legible type system throughout rewards and the reward shop. */
+#modal-manage-rewards .rewards-manager-modal,#modal-manage-rewards .rewards-manager-modal *,
+#modal-shop .reward-shop-modal,#modal-shop .reward-shop-modal *{font-family:Manrope,'Segoe UI Variable','Segoe UI',Arial,sans-serif!important}
+#modal-manage-rewards .rewards-manager-header h2,#modal-shop .reward-shop-header h2{font-weight:800!important;line-height:1.15!important;letter-spacing:-.035em!important}
+#modal-manage-rewards .rewards-manager-header p,#modal-shop .reward-shop-header p{font-size:14px!important;line-height:1.5!important}
+#modal-manage-rewards .reward-panel-heading h3,#modal-manage-rewards .rewards-created-heading h3{font-size:20px!important;line-height:1.25!important;font-weight:800!important;letter-spacing:-.02em!important}
+#modal-manage-rewards .reward-panel-heading p,#modal-manage-rewards .rewards-created-heading p{font-size:13px!important;line-height:1.45!important}
+#modal-manage-rewards .form-group>label{font-size:13px!important;line-height:1.35!important}
+#modal-manage-rewards #reward-name,#modal-manage-rewards .reward-input-shell{font-size:14px!important}
+#modal-manage-rewards .reward-category-card{font-size:13px!important;line-height:1.3!important}
+#modal-manage-rewards .reward-input-shell>span,#modal-manage-rewards .reward-limit-field small,#modal-manage-rewards .reward-presets button{font-size:11px!important;line-height:1.3!important}
+#modal-manage-rewards .reward-live-preview small{font-size:10px!important}
+#modal-manage-rewards .reward-live-preview strong{font-size:15px!important}
+#modal-manage-rewards .reward-live-preview div>span,#modal-manage-rewards #rewards-total{font-size:12px!important}
+#modal-manage-rewards .reward-create-submit{font-size:14px!important}
+#modal-manage-rewards .reward-manager-copy strong{font-size:14px!important;line-height:1.35!important}
+#modal-manage-rewards .reward-manager-category,#modal-manage-rewards .reward-manager-meta{font-size:11px!important;line-height:1.35!important}
+#modal-manage-rewards .rewards-empty strong{font-size:19px!important;line-height:1.3!important}
+#modal-manage-rewards .rewards-empty span{font-size:13px!important;line-height:1.5!important}
+
+#modal-shop .shop-cat-btn,#modal-shop button,#modal-shop input,#modal-shop select{font-size:13px!important}
+#modal-shop .shop-item-name{font-size:15px!important;line-height:1.35!important;font-weight:800!important}
+#modal-shop .shop-item-count{font-size:12px!important;line-height:1.4!important}
+#modal-shop .shop-empty strong{font-size:19px!important;line-height:1.3!important;font-weight:800!important}
+#modal-shop .shop-empty span{font-size:13px!important;line-height:1.5!important}
+#modal-confirm .modal,#modal-confirm .modal *{font-family:Manrope,'Segoe UI Variable','Segoe UI',Arial,sans-serif!important}
+#modal-confirm #confirm-title{font-size:31px!important;line-height:1.2!important;font-weight:800!important;letter-spacing:-.035em!important}
+#modal-confirm .confirm-text{font-size:17px!important;line-height:1.55!important;font-weight:600!important}
+#modal-confirm .confirm-buttons{gap:14px}
+#modal-confirm .confirm-buttons .btn{min-width:132px;min-height:50px;border-radius:11px;font-size:16px;font-weight:800}
+#modal-confirm #confirm-yes{color:#291a06;background:linear-gradient(#ffe084,#e5aa2e);border:1px solid #b67d16;box-shadow:inset 0 1px #fff1b5,0 7px 15px rgba(90,53,7,.25)}
+#modal-confirm .btn-red{color:#fbe9d2;background:linear-gradient(#754331,#4a271e);border:1px solid #9d614b;box-shadow:inset 0 1px rgba(255,255,255,.12),0 7px 15px rgba(60,25,15,.22)}
+@media(max-width:560px){#modal-confirm .modal{padding:54px 26px 40px}#modal-confirm #confirm-title{font-size:29px}#modal-confirm .confirm-text{font-size:16px}#modal-confirm .confirm-buttons .btn{min-width:112px}}

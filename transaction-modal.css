@@ -1,0 +1,66 @@
+#modal-transaction{--txn-accent:#45dc8b;--txn-accent-rgb:69,220,139;background:rgba(0,8,15,.8);backdrop-filter:blur(12px)}
+#modal-transaction[data-mode="expense"]{--txn-accent:#ff766e;--txn-accent-rgb:255,118,110}
+#modal-transaction .txn-modal{width:min(570px,calc(100vw - 28px));max-height:94vh;padding:0;overflow:auto;color:#edf7fb;background:radial-gradient(circle at 82% 0,rgba(var(--txn-accent-rgb),.13),transparent 30%),linear-gradient(155deg,#0a3147 0%,#061e2f 48%,#041724 100%);border:1px solid rgba(72,159,196,.55);border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.7),inset 0 1px rgba(255,255,255,.05);scrollbar-width:thin}
+#modal-transaction .txn-modal:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,transparent,var(--txn-accent),transparent);opacity:.9}
+#modal-transaction .txn-close{z-index:2;top:20px;right:20px;width:38px;height:38px;display:grid;place-items:center;color:#a9c2d0;background:rgba(2,19,29,.68);border:1px solid #315c70;border-radius:12px;transition:.2s}
+#modal-transaction .txn-close:hover{color:#fff;border-color:#56829a;background:#12394d;transform:rotate(4deg)}
+.txn-header{display:flex;align-items:center;gap:14px;padding:25px 70px 20px 26px;border-bottom:1px solid rgba(73,126,151,.28)}
+.txn-header-icon{width:48px;height:48px;display:grid;place-items:center;flex:0 0 48px;color:#ffd75e;background:linear-gradient(145deg,#123f55,#082638);border:1px solid #916f24;border-radius:15px;box-shadow:inset 0 0 18px rgba(255,207,70,.08)}
+.txn-header-icon svg{width:27px;height:27px}.txn-eyebrow{display:block;margin-bottom:3px;color:#88aaba;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+#modal-transaction #transaction-title{margin:0!important;color:#fff!important;text-align:left!important;font:800 25px/1.2 Manrope,'Segoe UI',sans-serif!important;letter-spacing:-.04em}
+.txn-student{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin:20px 24px 15px;padding:12px 14px;background:linear-gradient(120deg,rgba(20,65,86,.72),rgba(8,37,53,.78));border:1px solid #24566f;border-radius:15px}
+.txn-avatar-wrap{width:48px;height:48px;overflow:hidden;background:radial-gradient(circle at 50% 34%,#2b819e,#0a2c40 68%);border:1px solid #3d7891;border-radius:13px}.txn-avatar-wrap img{width:100%;height:100%;object-fit:contain}
+.txn-student-copy{min-width:0}.txn-student-copy strong{display:block;overflow:hidden;color:#f6fbfd;font-size:14px;white-space:nowrap;text-overflow:ellipsis}.txn-student-copy span{display:block;margin-top:3px;color:#87adbf;font-size:10px;font-weight:700}
+.txn-current{text-align:right}.txn-current>span{display:block;margin-bottom:3px;color:#82a4b5;font-size:9px}.txn-current strong{display:flex;align-items:center;justify-content:flex-end;gap:4px;color:#ffd759;font-size:20px}.txn-current strong img{width:23px;height:23px;object-fit:contain}.txn-current strong b{font:800 20px/1 Manrope,sans-serif}
+.txn-type-switch{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 24px 19px;padding:5px;background:#041725;border:1px solid #214a60;border-radius:15px}
+.txn-type-switch button{height:59px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 12px;color:#86a6b8;background:transparent;border:1px solid transparent;border-radius:11px;text-align:left;transition:.2s}.txn-type-switch button:hover{color:#dcecf3;background:#0c2c3e}.txn-type-switch button.active{color:#effff7;background:linear-gradient(145deg,rgba(var(--txn-accent-rgb),.24),rgba(var(--txn-accent-rgb),.1));border-color:rgba(var(--txn-accent-rgb),.72);box-shadow:0 4px 16px rgba(var(--txn-accent-rgb),.12),inset 0 1px rgba(255,255,255,.07)}
+.txn-type-icon{width:29px;height:29px;display:grid;place-items:center;flex:0 0 29px;color:#a4bdc9;background:#153a4d;border-radius:9px;font-size:21px;font-weight:700;line-height:1}.txn-type-switch button.active .txn-type-icon{color:#062016;background:var(--txn-accent)}
+.txn-type-switch strong,.txn-type-switch small{display:block}.txn-type-switch strong{font-size:12px}.txn-type-switch small{margin-top:2px;color:#7899aa;font-size:8px}.txn-type-switch button.active small{color:#b6d2c6}
+.txn-amount-section{margin:0 24px;padding:18px 18px 17px;text-align:center;background:linear-gradient(150deg,rgba(5,25,38,.94),rgba(7,36,51,.86));border:1px solid #1f4b60;border-radius:17px}.txn-amount-section>label{display:block;margin-bottom:10px;color:#9fb9c7;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.txn-amount-control{height:68px;display:flex;align-items:center;justify-content:center;gap:7px}.txn-amount-control>span{color:var(--txn-accent);font-size:34px;font-weight:500;line-height:1}
+#modal-transaction #txn-amount{width:145px!important;height:64px!important;padding:0!important;color:#fff!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;outline:0;text-align:center;font:800 48px/1 Manrope,'Segoe UI',sans-serif!important;letter-spacing:-.07em;appearance:textfield}#modal-transaction #txn-amount::-webkit-inner-spin-button,#modal-transaction #txn-amount::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.txn-amount-control img{width:45px;height:45px;object-fit:contain;filter:drop-shadow(0 5px 7px rgba(0,0,0,.5))}
+#modal-transaction .quick-amounts{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:13px 0 0}#modal-transaction .quick-amounts button{height:34px;padding:0;color:#b9d0dc;background:#0b3044;border:1px solid #2a5b72;border-radius:9px;font-size:11px;font-weight:800;transition:.18s}#modal-transaction .quick-amounts button:hover{color:#071e19;background:var(--txn-accent);border-color:var(--txn-accent);transform:translateY(-1px)}
+.txn-comment-field{margin:18px 24px 0}.txn-comment-field>label{display:flex;align-items:center;gap:7px;margin-bottom:7px;color:#d7e7ee;font-size:11px;font-weight:800}.txn-comment-field label small{color:#688da0;font-size:9px;font-weight:600}.txn-comment-field>div{position:relative}.txn-comment-field svg{position:absolute;top:13px;left:13px;width:18px;height:18px;color:#648da1}
+#modal-transaction #txn-comment{height:44px!important;padding:0 14px 0 40px!important;color:#eef7fa!important;background:#061b29!important;border:1px solid #2a5267!important;border-radius:11px!important;outline:0;font-size:11px!important;transition:.2s}#modal-transaction #txn-comment:focus{border-color:rgba(var(--txn-accent-rgb),.72)!important;box-shadow:0 0 0 3px rgba(var(--txn-accent-rgb),.1)}#modal-transaction #txn-comment::placeholder{color:#607f8f}
+.txn-balance-preview{display:flex;align-items:center;justify-content:space-between;margin:14px 24px 0;padding:10px 13px;color:#8faebd;background:rgba(8,40,55,.55);border:1px dashed #2c5d71;border-radius:11px;font-size:10px}.txn-balance-preview strong{color:#eaf5f8}.txn-balance-preview strong b{color:var(--txn-accent);font-size:15px}.txn-balance-preview strong small{font-size:9px;font-weight:600}
+.txn-balance-preview.insufficient{color:#ffaaa5;background:rgba(100,32,35,.2);border-color:rgba(255,118,110,.55)}
+.txn-actions{display:grid;grid-template-columns:126px 1fr;gap:9px;padding:20px 24px 24px}.txn-actions button{height:47px;border-radius:11px;font-size:11px;font-weight:800;transition:.2s}.txn-cancel{color:#adc2cd;background:#0a293a;border:1px solid #31596c}.txn-cancel:hover{color:#fff;background:#10374a}.txn-submit{display:flex;align-items:center;justify-content:center;gap:8px;color:#052016;background:linear-gradient(135deg,var(--txn-accent),color-mix(in srgb,var(--txn-accent) 76%,#fff));border:1px solid rgba(255,255,255,.25);box-shadow:0 8px 22px rgba(var(--txn-accent-rgb),.18)}.txn-submit svg{width:17px;height:17px}.txn-submit:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 10px 26px rgba(var(--txn-accent-rgb),.28)}
+.txn-submit:disabled{cursor:not-allowed;filter:saturate(.2);opacity:.48;transform:none;box-shadow:none}
+@media(max-width:520px){#modal-transaction{padding:8px}#modal-transaction .txn-modal{width:100%;border-radius:20px}.txn-header{padding:20px 60px 16px 18px}.txn-header-icon{width:42px;height:42px;flex-basis:42px}#modal-transaction #transaction-title{font-size:20px!important}.txn-student,.txn-type-switch,.txn-amount-section,.txn-comment-field,.txn-balance-preview{margin-left:16px;margin-right:16px}.txn-current>span{display:none}.txn-type-switch button{padding:0 7px}.txn-type-switch small{display:none!important}#modal-transaction #txn-amount{width:120px!important;font-size:43px!important}.txn-actions{grid-template-columns:105px 1fr;padding:17px 16px 20px}}@media(prefers-reduced-motion:reduce){#modal-transaction *{transition:none!important}}
+
+/* Compact viewport-safe layout: the complete operation stays on one screen. */
+#modal-transaction{padding:10px!important}
+#modal-transaction .txn-modal{width:min(620px,calc(100vw - 20px));max-height:calc(100vh - 20px)!important;overflow:hidden!important;border-radius:22px}
+#modal-transaction .txn-close{top:14px;right:16px;width:38px;height:38px}
+.txn-header{gap:12px;padding:15px 64px 13px 20px}
+.txn-header-icon{width:42px;height:42px;flex-basis:42px;border-radius:13px}.txn-header-icon svg{width:24px;height:24px}
+.txn-eyebrow{margin-bottom:2px;font-size:9px}#modal-transaction #transaction-title{font-size:23px!important}
+.txn-student{margin:12px 20px 10px;padding:8px 12px;border-radius:13px}.txn-avatar-wrap{width:43px;height:43px}.txn-student-copy strong{font-size:13px}.txn-student-copy span{font-size:10px}.txn-current>span{font-size:9px}.txn-current strong b{font-size:19px}
+.txn-type-switch{gap:6px;margin:0 20px 12px;padding:4px;border-radius:13px}.txn-type-switch button{height:50px}.txn-type-icon{width:27px;height:27px;flex-basis:27px;font-size:19px}.txn-type-switch strong{font-size:13px}.txn-type-switch small{font-size:9px}
+.txn-amount-section{margin:0 20px;padding:11px 15px 12px;border-radius:15px}.txn-amount-section>label{margin-bottom:4px;font-size:10px}.txn-amount-control{height:52px}.txn-amount-control>span{font-size:31px}#modal-transaction #txn-amount{width:128px!important;height:52px!important;font-size:43px!important}.txn-amount-control img{width:39px;height:39px}
+#modal-transaction .quick-amounts{gap:7px;margin-top:7px}#modal-transaction .quick-amounts button{height:31px;font-size:11px}
+.txn-comment-field{margin:11px 20px 0}.txn-comment-field>label{margin-bottom:5px}.txn-comment-field svg{top:11px}#modal-transaction #txn-comment{height:40px!important}
+.txn-balance-preview{margin:9px 20px 0;padding:8px 12px;min-height:37px}.txn-balance-preview strong b{font-size:14px}
+.txn-actions{grid-template-columns:125px 1fr;gap:9px;padding:12px 20px 16px}.txn-actions button{height:44px;font-size:13px}
+
+/* Debit labels use a clean system sans everywhere they appear. */
+#modal-transaction[data-mode="expense"] #txn-type-sub strong,
+#modal-transaction[data-mode="expense"] .txn-submit,
+#modal-transaction[data-mode="expense"] #txn-submit-label{font-family:Arial,'Segoe UI',sans-serif!important;font-style:normal!important;letter-spacing:0!important}
+
+@media(max-height:700px){
+  #modal-transaction .txn-modal{border-radius:18px}
+  .txn-header{padding-block:10px}.txn-header-icon{width:38px;height:38px;flex-basis:38px}.txn-eyebrow{display:none}#modal-transaction #transaction-title{font-size:21px!important}
+  .txn-student{margin-top:8px;margin-bottom:8px;padding-block:6px}.txn-avatar-wrap{width:38px;height:38px}
+  .txn-type-switch{margin-bottom:8px}.txn-type-switch button{height:44px}.txn-type-switch small{display:none}
+  .txn-amount-section{padding-block:7px}.txn-amount-control{height:45px}#modal-transaction #txn-amount{height:45px!important;font-size:39px!important}.txn-amount-control img{width:35px;height:35px}
+  #modal-transaction .quick-amounts{margin-top:5px}#modal-transaction .quick-amounts button{height:28px}
+  .txn-comment-field{margin-top:8px}.txn-comment-field>label{margin-bottom:3px}#modal-transaction #txn-comment{height:37px!important}.txn-comment-field svg{top:9px}
+  .txn-balance-preview{margin-top:7px;min-height:33px;padding-block:6px}.txn-actions{padding-top:8px;padding-bottom:10px}.txn-actions button{height:40px}
+}
+
+@media(max-width:520px){
+  #modal-transaction{padding:6px!important}#modal-transaction .txn-modal{width:100%;max-height:calc(100vh - 12px)!important}
+  .txn-header{padding-left:14px}.txn-student,.txn-type-switch,.txn-amount-section,.txn-comment-field,.txn-balance-preview{margin-left:12px;margin-right:12px}.txn-actions{padding-left:12px;padding-right:12px;grid-template-columns:100px 1fr}
+}

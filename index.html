@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Трекер Прогресса — Финансовая грамотность</title>
+<style>
+:root {
+  --bg-dark: #0a1628;
+  --bg-sea: #1e3a5f;
+  --parchment-light: #f4e4c1;
+  --parchment-dark: #d4c4a1;
+  --gold: #ffd700;
+  --gold-dark: #b8960c;
+  --wood: #3e2723;
+  --card-bg: linear-gradient(135deg, #f5e6c8, #e8d5a8);
+  --card-border: #c4a44a;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --blue: #3498db;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Merriweather', serif;
+  background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-sea) 100%);
+  color: #f0e6d3;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+#stars-container {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: #fff;
+  border-radius: 50%;
+  animation: twinkle 3s infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+#waves-container {
+  position: fixed;
+  bottom: 0; left: 0;
+  width: 100%; height: 120px;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0; left: -100%;
+  width: 300%; height: 100%;
+}
+
+.wave-1 { animation: waveMove 8s linear infinite; opacity: 0.3; }
+.wave-2 { animation: waveMove 12s linear infinite reverse; opacity: 0.2; bottom: -10px; }
+
+@keyframes waveMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(33.33%); }
+}
+
+#floating-icons {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floating-icon {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.15;
+  animation: floatUp 15s linear infinite;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.15; }
+  90% { opacity: 0.15; }
+  100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+.bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: bubbleRise 8s ease-in infinite;
+}
+
+@keyframes bubbleRise {
+  0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+  10% { opacity: 0.3; }
+  100% { transform: translateY(-100px) scale(1.2); opacity: 0; }
+}
+
+.view { display: none; position: relative; z-index: 10; }
+.view.active { display: block; }
+
+.btn {
+  font-family: 'Merriweather', serif;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.2s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+
+.btn-gold {
+  background: linear-gradient(135deg, #ffd700, #b8960c);
+  color: var(--wood);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.btn-gold:hover { box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5); }
+
+.btn-red {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.btn-blue {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-small { padding: 8px 16px; font-size: 12px; min-height: 36px; }
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
+
+.modal {
+  background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+  border: 3px solid var(--gold-dark);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  color: var(--wood);
+  animation: modalIn 0.3s;
+  position: relative;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+.modal-close {
+  position: absolute;
+  top: 15px; right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--wood);
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.modal-close:hover { opacity: 1; }
+
+.modal h2 {
+  font-family: 'Pirata One', cursive;
+  color: var(--wood);
+  margin-bottom: 20px;
+  font-size: 28px;
+  text-align: center;
+}
+
+.modal h3 {
+  font-family: 'Pirata One', cursive;
+  color: var(--wood);
+  margin: 15px 0 10px;
+  font-size: 20px;
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--wood);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--gold-dark);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Merriweather', serif;
+  background: rgba(255,255,255,0.8);
+  color: var(--wood);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+#login-view {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+#login-view.active { display: flex; }
+
+.login-header { margin-bottom: 40px; }
+
+.login-anchor {
+  font-size: 64px;
+  display: inline-block;
+  animation: anchorSwing 3s ease-in-out infinite;
+}
+
+@keyframes anchorSwing {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+.login-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 10px 0;
+}
+
+.login-title {
+  font-family: 'Pirata One', cursive;
+  font-size: 48px;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 4px 8px rgba(0,0,0,0.5);
+  display: inline-block;
+}
+
+.login-subtitle { font-size: 16px; color: #a0c4e8; margin-bottom: 8px; }
+.login-slogan { font-size: 18px; color: var(--gold); font-weight: 700; }
+
+.login-cards {
+  display: flex;
+  gap: 24px;
+  max-width: 700px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.login-card {
+  background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+  border: 3px solid var(--gold-dark);
+  border-radius: 20px;
+  padding: 30px 24px;
+  width: 300px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 50px rgba(255, 215, 0, 0.3);
+  border-color: var(--gold);
+}
+
+.login-card:active { transform: translateY(-2px) scale(1); }
+
+.login-card-icon { font-size: 64px; margin-bottom: 12px; display: block; }
+
+/* ═══════════════════════════════════════════
+   КОРРЕКТНОЕ ВЫРАВНИВАНИЕ ЗАГОЛОВКОВ ПО ЦЕНТРУ
+   ═══════════════════════════════════════════ */
+.login-card-title {
+  font-family: 'Pirata One', cursive;
+  font-size: 28px;
+  color: var(--wood);
+  margin-bottom: 8px;
+  text-align: center;
+  display: block;
+}
+
+.login-card-desc {
+  font-size: 13px;
+  color: #7a6a4f;
+  line-height: 1.4;
+  text-align: center;
+  display: block;
+}
+
+.login-card-arrow {
+  position: absolute;
+  bottom: 12px; right: 16px;
+  font-size: 24px;
+  color: var(--gold-dark);
+  opacity: 0.5;
+  transition: all 0.3s;
+}
+
+.login-card:hover .login-card-arrow { opacity: 1; transform: translateX(4px); }
+
+.login-student-panel {
+  display: none;
+  background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+  border: 3px solid var(--gold-dark);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  margin-top: 24px;
+  animation: modalIn 0.3s;
+}
+
+.login-student-panel.active { display: block; }
+
+.login-student-panel h3 {
+  font-family: 'Pirata One', cursive;
+  color: var(--wood);
+  font-size: 22px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.login-student-panel select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--gold-dark);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Merriweather', serif;
+  background: rgba(255,255,255,0.8);
+  color: var(--wood);
+  margin-bottom: 12px;
+}
+
+.login-student-panel .btn { width: 100%; margin-top: 8px; }
+
+.login-back-btn {
+  background: none;
+  border: none;
+  color: var(--wood);
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.6;
+  margin-top: 12px;
+  font-family: 'Merriweather', serif;
+}
+
+.login-back-btn:hover { opacity: 1; }
+
+#teacher-view { padding: 20px; padding-bottom: 140px; }
+
+.teacher-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 16px;
+ border: 1px solid rgba(255, 215, 0, 0.2);
+}
+.teacher-header h1 {
+  font-family: 'Pirata One', cursive;
+  color: var(--gold);
+  font-size: 28px;
+  flex: 1;
+  text-align: center;
+}
+.teacher-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.teacher-header select {
+  padding: 8px 12px;
+  border: 2px solid var(--gold-dark);
+  border-radius: 8px;
+  font-family: 'Merriweather', serif;
+  background: rgba(255,255,255,0.1);
+  color: #f0e6d3;
+  font-size: 14px;
+}
+
+.teacher-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.teacher-actions .btn { position: relative; }
+
+.badge {
+  position: absolute;
+  top: -6px; right: -6px;
+  background: var(--red);
+  color: white;
+  border-radius: 50%;
+  width: 22px; height: 22px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.students-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.student-card {
+  background: var(--card-bg);
+  border: 3px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.student-card:hover { transform: translateY(-3px); }
+
+.student-card.leader {
+  border-color: var(--gold);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 4px 20px rgba(0,0,0,0.3);
+  animation: leaderGlow 2s ease-in-out infinite;
+}
+
+@keyframes leaderGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 4px 20px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 4px 20px rgba(0,0,0,0.3); }
+}
+
+.leader-crown {
+  position: absolute;
+  top: -15px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 28px;
+  animation: crownBounce 2s ease-in-out infinite;
+}
+
+@keyframes crownBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+.spark {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.spark:nth-child(1) { top: 10px; left: 20px; animation-delay: 0s; }
+.spark:nth-child(2) { top: 30px; right: 25px; animation-delay: 0.5s; }
+.spark:nth-child(3) { bottom: 40px; left: 40px; animation-delay: 1s; }
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-avatar-name { display: flex; align-items: center; gap: 10px; }
+.card-avatar { font-size: 32px; }
+
+.card-name {
+  font-family: 'Pirata One', cursive;
+  font-size: 22px;
+  color: var(--wood);
+}
+
+.rank-badge {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--wood);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.card-delete {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  color: var(--red);
+}
+
+.card-delete:hover { opacity: 1; }
+
+.card-chest { text-align: center; margin: 16px 0; }
+
+.card-balance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.coin-icon {
+  width: 52px; height: 52px;
+  background: radial-gradient(circle, #ffd700, #b8960c);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--wood);
+  border: 3px solid #b8960c;
+  box-shadow: 0 2px 10px rgba(255, 215, 0, 0.4);
+}
+
+.balance-amount {
+  font-family: 'Pirata One', cursive;
+  font-size: 42px;
+  color: var(--wood);
+  transition: transform 0.3s;
+}
+
+.balance-amount.bump { animation: bump 0.3s; }
+
+@keyframes bump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.card-balance-label {
+  text-align: center;
+  font-size: 13px;
+  color: #7a6a4f;
+  margin-bottom: 12px;
+}
+
+.card-progress { margin: 12px 0; }
+
+.card-progress-text {
+  font-size: 13px;
+  color: #5a4a2f;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), #ffed4a);
+  border-radius: 4px;
+  transition: width 0.5s;
+}
+
+.card-achievements {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+  justify-content: center;
+}
+
+.achievement-icon {
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.achievement-icon:hover { transform: scale(1.3); }
+
+.card-action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-add-coin {
+  flex: 1;
+  min-width: 140px;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-family: 'Pirata One', cursive;
+  background: linear-gradient(135deg, #ffd700, #e6b800);
+  color: var(--wood);
+  border: 2px solid #b8960c;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  transition: all 0.2s;
+  min-height: 56px;
+}
+
+.btn-add-coin:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+}
+
+.btn-sub-coin {
+  flex: 1;
+  min-width: 140px;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-family: 'Pirata One', cursive;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: 2px solid #922b21;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  transition: all 0.2s;
+  min-height: 56px;
+}
+
+.btn-sub-coin:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+}
+
+.card-bottom-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-detail {
+  flex: 1;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-family: 'Pirata One', cursive;
+  background: linear-gradient(135deg, #ffd700, #e6b800);
+  color: var(--wood);
+  border: 2px solid #b8960c;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  transition: all 0.2s;
+  min-height: 52px;
+}
+
+.btn-detail:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+}
+
+.btn-achieve {
+  padding: 14px 20px;
+  font-size: 20px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: 2px solid #1a5276;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+  transition: all 0.2s;
+  min-height: 52px;
+}
+
+.btn-achieve:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+}
+
+.card-history-link { text-align: center; margin-top: 12px; }
+
+.card-history-link a {
+  color: var(--wood);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  opacity: 0.7;
+  font-family: 'Pirata One', cursive;
+}
+
+.card-history-link a:hover { opacity: 1; }
+
+#student-view { padding: 20px; padding-bottom: 140px; }
+
+.student-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.student-header h1 {
+  font-family: 'Pirata One', cursive;
+  color: var(--gold);
+  font-size: 28px;
+  flex: 1;
+  text-align: center;
+}
+.profile-card {
+  background: var(--card-bg);
+  border: 3px solid var(--card-border);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.profile-avatar { font-size: 64px; margin-bottom: 10px; }
+
+.profile-name {
+  font-family: 'Pirata One', cursive;
+  font-size: 32px;
+  color: var(--wood);
+  margin-bottom: 8px;
+}
+
+.profile-rank {
+  font-size: 18px;
+  color: var(--gold-dark);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.profile-balance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.student-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.leaderboard {
+  background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+  border: 3px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.leaderboard h3 {
+  font-family: 'Pirata One', cursive;
+  color: var(--wood);
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 22px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  transition: background 0.2s;
+}
+
+.leaderboard-item.current {
+  border: 2px solid var(--gold);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.lb-rank {
+  font-family: 'Pirata One', cursive;
+  font-size: 18px;
+  width: 30px;
+  color: var(--wood);
+}
+
+.lb-avatar { font-size: 24px; margin-right: 10px; }
+
+.lb-name {
+  flex: 1;
+  font-weight: 700;
+  color: var(--wood);
+  font-size: 14px;
+}
+
+.lb-balance {
+  font-family: 'Pirata One', cursive;
+  font-size: 18px;
+  color: var(--gold-dark);
+}
+
+.my-achievements {
+  background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+  border: 3px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.my-achievements h3 {
+  font-family: 'Pirata One', cursive;
+  color: var(--wood);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.achievement-card {
+  background: rgba(255,255,255,0.5);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.achievement-card .emoji { font-size: 32px; margin-bottom: 6px; }
+.achievement-card .name { font-size: 12px; font-weight: 700; color: var(--wood); }
+.achievement-card .desc { font-size: 10px; color: #7a6a4f; margin-top: 4px; }
+
+.student-journal {
+  background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+  border: 3px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.student-journal h3 {
+  font-family: 'Pirata One', cursive;
+  color: var(--wood);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.history-list { max-height: 400px; overflow-y: auto; }
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.history-item.income { background: rgba(46, 204, 113, 0.15); border-left: 4px solid var(--green); }
+.history-item.expense { background: rgba(231, 76, 60, 0.15); border-left: 4px solid var(--red); }
+
+.history-icon { font-size: 24px; }
+.history-details { flex: 1; }
+.history-desc { font-size: 13px; font-weight: 700; color: var(--wood); }
+.history-date { font-size: 11px; color: #7a6a4f; }
+
+.history-amount { font-family: 'Pirata One', cursive; font-size: 20px; }
+.history-amount.positive { color: var(--green); }
+.history-amount.negative { color: var(--red); }
+
+.shop-categories {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.shop-cat-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--gold-dark);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.3);
+  color: var(--wood);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Merriweather', serif;
+  transition: all 0.2s;
+}
+
+.shop-cat-btn.active { background: var(--gold); color: var(--wood); }
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.shop-item {
+  background: rgba(255,255,255,0.5);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.shop-item-name {
+  font-weight: 700;
+  color: var(--wood);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.shop-item-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.shop-item-price .coin-sm {
+  width: 24px; height: 24px;
+  background: radial-gradient(circle, #ffd700, #b8960c);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 2px solid #b8960c;
+}
+
+.shop-item-price span {
+  font-family: 'Pirata One', cursive;
+  font-size: 20px;
+  color: var(--wood);
+}
+
+.shop-item-count { font-size: 11px; color: #7a6a4f; margin-bottom: 8px; }
+
+.shop-item .btn { width: 100%; font-size: 12px; padding: 8px; }
+.shop-item .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.request-card {
+  background: rgba(255,255,255,0.5);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.request-info { flex: 1; }
+.request-student { font-weight: 700; color: var(--wood); font-size: 14px; }
+.request-reward { font-size: 13px; color: #7a6a4f; }
+.request-date { font-size: 11px; color: #999; }
+.request-actions { display: flex; gap: 6px; }
+
+.analytics-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+
+.analytics-tab {
+  padding: 8px 16px;
+  border: 2px solid var(--gold-dark);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.3);
+  color: var(--wood);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Merriweather', serif;
+  font-size: 13px;
+}
+
+.analytics-tab.active { background: var(--gold); }
+
+.analytics-content { display: none; }
+.analytics-content.active { display: block; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  background: rgba(255,255,255,0.5);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'Pirata One', cursive;
+  font-size: 32px;
+  color: var(--gold-dark);
+}
+
+.stat-label { font-size: 12px; color: #7a6a4f; margin-top: 4px; }
+
+.chart-container {
+  background: rgba(255,255,255,0.3);
+  border-radius: 12px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.top-list { list-style: none; }
+.top-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.3);
+}
+
+.top-list .top-rank {
+  font-family: 'Pirata One', cursive;
+  font-size: 18px;
+  color: var(--gold-dark);
+  width: 30px;
+}
+
+.top-list .top-name { flex: 1; font-weight: 700; color: var(--wood); }
+.top-list .top-value { font-family: 'Pirata One', cursive; color: var(--gold-dark); }
+
+#toast-container {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+  border: 2px solid var(--gold-dark);
+  border-radius: 12px;
+  padding: 14px 20px;
+  color: var(--wood);
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  animation: toastIn 0.3s, toastOut 0.3s 2.7s forwards;
+  max-width: 300px;
+}
+
+@keyframes toastIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(100px); } }
+
+@media (max-width: 768px) {
+  .students-grid { grid-template-columns: 1fr; }
+  .login-title { font-size: 36px; }
+  .teacher-header { flex-direction: column; text-align: center; }
+  .teacher-actions { justify-content: center; }
+  .shop-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: 1fr; }
+  .card-action-buttons { flex-direction: column; }
+  .btn-add-coin, .btn-sub-coin { min-width: 100%; }
+  .login-cards { flex-direction: column; align-items: center; }
+  .login-card { width: 100%; max-width: 320px; }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .students-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1400px) {
+  .students-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 4px; }
+
+.avatar-picker, .emoji-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.avatar-option, .emoji-option {
+  font-size: 32px;
+  padding: 8px;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255,255,255,0.3);
+}
+
+.avatar-option:hover, .emoji-option:hover { background: rgba(255, 215, 0, 0.2); }
+.avatar-option.selected, .emoji-option.selected {
+  border-color: var(--gold);
+  background: rgba(255, 215, 0, 0.3);
+  transform: scale(1.1);
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.reward-info { flex: 1; }
+.reward-name { font-weight: 700; color: var(--wood); }
+.reward-meta { font-size: 12px; color: #7a6a4f; }
+
+.transaction-modal-amount { text-align: center; margin: 20px 0; }
+
+.transaction-modal-amount input {
+  width: 120px;
+  text-align: center;
+  font-family: 'Pirata One', cursive;
+  font-size: 36px;
+  border: 3px solid var(--gold-dark);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255,255,255,0.8);
+  color: var(--wood);
+}
+
+.quick-amounts {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.quick-amounts .btn { padding: 8px 14px; font-size: 14px; }
+
+.confirm-text {
+  text-align: center;
+  font-size: 16px;
+  color: var(--wood);
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.confirm-buttons { display: flex; gap: 12px; justify-content: center; }
+
+.coin-btn-icon {
+  width: 28px; height: 28px;
+  background: radial-gradient(circle, #ffd700, #b8960c);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 2px solid #b8960c;
+  flex-shrink: 0;
+}
+
+.coin-btn-icon.red {
+  background: radial-gradient(circle, #e74c3c, #922b21);
+  border-color: #922b21;
+}
+</style>
+<link rel="stylesheet" href="redesign.css">
+<link rel="stylesheet" href="teacher.css?v=15">
+<link rel="stylesheet" href="login.css?v=5">
+<link rel="stylesheet" href="pin-login.css?v=5">
+<link rel="stylesheet" href="student-modal.css">
+<link rel="stylesheet" href="reward-modal.css?v=4">
+<link rel="stylesheet" href="achievement-cabin.css?v=1">
+<link rel="stylesheet" href="analytics.css?v=1">
+<link rel="stylesheet" href="sound.css?v=2">
+<link rel="stylesheet" href="student-dashboard.css?v=15">
+<link rel="stylesheet" href="transaction-modal.css?v=2">
+<link rel="stylesheet" href="history-modal.css?v=1">
+<link rel="stylesheet" href="selection-backdrops.css?v=1">
+<link rel="stylesheet" href="typography.css?v=1">
+</head>
+<body>
+
+<div id="stars-container"></div>
+<div id="floating-icons"></div>
+
+<div id="waves-container">
+  <svg class="wave wave-1" viewBox="0 0 1200 120" preserveAspectRatio="none">
+    <path d="M0,60 C200,120 400,0 600,60 C800,120 1000,0 1200,60 L1200,120 L0,120 Z" fill="rgba(30,58,95,0.6)"/>
+  </svg>
+  <svg class="wave wave-2" viewBox="0 0 1200 120" preserveAspectRatio="none">
+    <path d="M0,80 C150,20 350,100 500,50 C650,0 850,100 1000,50 C1100,20 1150,80 1200,60 L1200,120 L0,120 Z" fill="rgba(30,58,95,0.4)"/>
+  </svg>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- ЭКРАН 1: ВХОД -->
+<div id="login-view" class="view active">
+  <div class="login-header">
+    <div class="login-title-wrapper">
+      <span class="login-anchor">&#x2693;</span>
+      <h1 class="login-title">Трекер Прогресса</h1>
+    </div>
+    <p class="login-subtitle">Индивидуальный трекер по финансовой грамотности</p>
+    <p class="login-slogan">&#x2693; Собирай финкоины, повышай ранг!</p>
+  </div>
+
+  <div class="login-cards" id="login-cards">
+    <div class="login-card" onclick="loginAsTeacher()">
+      <span class="login-card-icon">&#x1F468;&#x200D;&#x1F3EB;</span>
+      <div class="login-card-title">Панель Учителя</div>
+      <div class="login-card-desc">Управление классом, начисление монет, награды и аналитика</div>
+      <span class="login-card-arrow">&#x2192;</span>
+    </div>
+
+    <div class="login-card" onclick="showStudentLogin()">
+      <span class="login-card-icon">&#x1F3F4;&#x200D;&#x2620;&#xFE0F;</span>
+      <div class="login-card-title">Панель Ученика</div>
+      <div class="login-card-desc">Мой прогресс, магазин наград, лидерборд и достижения</div>
+      <span class="login-card-arrow">&#x2192;</span>
+    </div>
+  </div>
+
+  <div id="login-student-panel" class="login-student-panel">
+    <h3>&#x1F3F4;&#x200D;&#x2620;&#xFE0F; Вход ученика</h3>
+    <select id="login-class-select" onchange="onLoginClassChange()">
+      <option value="">Выберите класс...</option>
+    </select>
+    <select id="login-student-select">
+      <option value="">Выберите ученика...</option>
+    </select>
+    <button class="btn btn-gold" onclick="loginAsStudent()">&#x2693; Войти</button>
+    <button class="login-back-btn" onclick="hideStudentLogin()">&#x2190; Назад</button>
+  </div>
+</div>
+
+<!-- ЭКРАН 2: ПАНЕЛЬ УЧИТЕЛЯ -->
+<div id="teacher-view" class="view">
+  <div class="teacher-header">
+    <h1>&#x2693; Панель Учителя</h1>
+    <div class="teacher-header-controls">
+      <select id="teacher-class-select" onchange="switchClass()"></select>
+      <button class="btn btn-small btn-gold" onclick="openModal('modal-add-class')">+ Класс</button>
+    </div>
+  </div>
+
+  <div class="teacher-actions">
+    <button class="btn btn-gold" onclick="openModal('modal-add-student')">&#x2795; Ученик</button>
+    <button class="btn btn-gold" onclick="openModal('modal-manage-rewards')">&#x1F3EA; Награды</button>
+    <button class="btn btn-gold" onclick="openModal('modal-requests')">
+      &#x1F4CB; Заявки <span id="requests-badge" class="badge" style="display:none">0</span>
+    </button>
+    <button class="btn btn-gold" onclick="openModal('modal-achievements-manage')">&#x1F3C6; Достижения</button>
+    <button class="btn btn-blue" onclick="openModal('modal-analytics')">&#x1F4C8; Аналитика</button>
+    <button class="btn btn-gold" onclick="confirmNewSeason()">&#x1F504; Новый сезон</button>
+    <button class="btn btn-red" onclick="logout()">&#x1F6AA; Выйти</button>
+  </div>
+
+  <div id="students-grid" class="students-grid"></div>
+</div>
+
+<!-- ЭКРАН 3: ЛИЧНЫЙ КАБИНЕТ УЧЕНИКА -->
+<div id="student-view" class="view">
+  <div class="student-header">
+    <h1>&#x2693; Мой Прогресс</h1>
+    <button class="btn btn-small btn-red" onclick="logout()">&#x1F6AA; Выйти</button>
+  </div>
+
+  <div id="student-profile-card" class="profile-card"></div>
+
+  <div class="student-actions">
+    <button class="btn btn-gold" onclick="openShop()">&#x1F3EA; Магазин</button>
+    <button class="btn btn-blue" onclick="renderStudentView()">&#x1F504; Обновить</button>
+  </div>
+
+  <div id="student-leaderboard" class="leaderboard"></div>
+  <div id="student-achievements-section" class="my-achievements"></div>
+  <div id="student-journal" class="student-journal"></div>
+</div>
+
+<!-- МОДАЛКИ -->
+<div id="modal-add-class" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-class')">&#x2715;</button>
+    <h2>&#x1F3EB; Новый класс</h2>
+    <div class="form-group">
+      <label>Название класса</label>
+      <input type="text" id="new-class-name" placeholder="Например: 6А">
+    </div>
+    <button class="btn btn-gold" style="width:100%" onclick="addClass()">Создать класс</button>
+  </div>
+</div>
+
+<div id="modal-add-student" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal add-student-modal" role="dialog" aria-modal="true" aria-labelledby="add-student-title">
+    <button class="modal-close add-student-close" type="button" onclick="closeModal('modal-add-student')" aria-label="Закрыть">&#x2715;</button>
+    <header class="add-student-header">
+      <span class="add-student-header-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0M19 8v6m-3-3h6"/></svg>
+      </span>
+      <div><h2 id="add-student-title">Новый участник экипажа</h2><p>Добавьте ученика в выбранный класс</p></div>
+    </header>
+    <div class="add-student-form">
+      <div class="form-group add-student-name-field">
+        <label for="new-student-name">Имя ученика</label>
+        <input type="text" id="new-student-name" placeholder="Введите имя ученика" autocomplete="off" maxlength="60">
+      </div>
+      <div class="form-group add-student-pin-field">
+        <label for="new-student-pin">Личный PIN-код</label>
+        <input type="password" id="new-student-pin" placeholder="4 цифры" inputmode="numeric" pattern="[0-9]{4}" autocomplete="new-password" maxlength="4">
+        <small>PIN понадобится ученику для входа.</small>
+      </div>
+      <div class="form-group add-student-avatar-field">
+        <div class="add-student-field-heading"><label id="avatar-picker-label">Выберите аватар</label><span>8 вариантов</span></div>
+        <div class="avatar-picker" id="avatar-picker" role="radiogroup" aria-labelledby="avatar-picker-label"></div>
+      </div>
+      <section class="selected-student-preview" aria-label="Предпросмотр ученика">
+        <div id="selected-avatar-preview" class="selected-student-avatar"></div>
+        <div class="selected-student-copy"><strong id="selected-student-name">Новый ученик</strong><span>Новый член экипажа</span></div>
+        <b>Юнга</b>
+      </section>
+      <button class="add-student-submit" type="button" onclick="addStudent()"><span>Добавить в экипаж</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-student-pin" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal student-pin-modal" role="dialog" aria-modal="true" aria-labelledby="student-pin-title">
+    <button class="modal-close" type="button" onclick="closeModal('modal-student-pin')" aria-label="Закрыть">&#x2715;</button>
+    <header class="student-pin-modal-header">
+      <span aria-hidden="true">🔐</span>
+      <div><h2 id="student-pin-title">Личный PIN ученика</h2><p id="student-pin-student-name">Ученик</p></div>
+    </header>
+    <div class="student-pin-modal-body">
+      <label for="student-pin-input">Новый PIN-код</label>
+      <input id="student-pin-input" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="4 цифры">
+      <p id="student-pin-error" role="alert"></p>
+      <div><button type="button" onclick="closeModal('modal-student-pin')">Отмена</button><button type="button" onclick="saveStudentPin()">Сохранить PIN</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-transaction" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal txn-modal" role="dialog" aria-modal="true" aria-labelledby="transaction-title">
+    <button class="modal-close txn-close" type="button" onclick="closeModal('modal-transaction')" aria-label="Закрыть">&#x2715;</button>
+    <header class="txn-header">
+      <span class="txn-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M9.5 9.2c.7-1.5 4.8-1.2 4.8.8 0 2.6-5.1 1.1-5.1 3.7 0 2.1 4.3 2.3 5.2.5M12 6.7v10.6"/></svg></span>
+      <div><span class="txn-eyebrow">Операция с балансом</span><h2 id="transaction-title">Финкоины ученика</h2></div>
+    </header>
+    <section class="txn-student" aria-label="Выбранный ученик">
+      <div class="txn-avatar-wrap"><img id="txn-student-avatar" src="student-avatar-captain-boy.png" alt=""></div>
+      <div class="txn-student-copy"><strong id="txn-student-name">Ученик</strong><span id="txn-student-rank">Юнга</span></div>
+      <div class="txn-current"><span>Сейчас на счету</span><strong><img src="Монета.png" alt=""> <b id="txn-current-balance">0</b></strong></div>
+    </section>
+    <div class="txn-type-switch" role="group" aria-label="Тип операции">
+      <button type="button" id="txn-type-add" onclick="setTxnType('income')" aria-pressed="true"><span class="txn-type-icon">+</span><span><strong>Начислить</strong><small>Пополнить баланс</small></span></button>
+      <button type="button" id="txn-type-sub" onclick="setTxnType('expense')" aria-pressed="false"><span class="txn-type-icon">−</span><span><strong>Списать</strong><small>Уменьшить баланс</small></span></button>
+    </div>
+    <section class="txn-amount-section">
+      <label for="txn-amount">Количество финкоинов</label>
+      <div class="txn-amount-control"><span id="txn-amount-sign">+</span><input type="number" id="txn-amount" value="1" min="1" inputmode="numeric" aria-describedby="txn-balance-preview"><img src="Монета.png" alt="финкоинов"></div>
+      <div class="quick-amounts" aria-label="Быстрый выбор суммы">
+        <button type="button" onclick="setTxnAmount(1)">+1</button><button type="button" onclick="setTxnAmount(5)">+5</button><button type="button" onclick="setTxnAmount(10)">+10</button><button type="button" onclick="setTxnAmount(25)">+25</button><button type="button" onclick="setTxnAmount(50)">+50</button>
+      </div>
+    </section>
+    <div class="txn-comment-field">
+      <label for="txn-comment"><span>Комментарий</span><small>необязательно</small></label>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg><input type="text" id="txn-comment" placeholder="Например, за отличную работу на уроке" maxlength="120"></div>
+    </div>
+    <div class="txn-balance-preview" id="txn-balance-preview"><span>Баланс после операции</span><strong><b id="txn-result-balance">1</b> <small>финкоин</small></strong></div>
+    <footer class="txn-actions">
+      <button class="txn-cancel" type="button" onclick="closeModal('modal-transaction')">Отмена</button>
+      <button class="txn-submit" id="txn-submit" type="button" onclick="executeTransaction()"><span id="txn-submit-label">Начислить 1</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>
+    </footer>
+  </div>
+</div>
+
+<div id="modal-history" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal history-modal" role="dialog" aria-modal="true" aria-labelledby="history-title">
+    <button class="modal-close history-close" type="button" onclick="closeModal('modal-history')" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <header class="history-header">
+      <span class="history-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg></span>
+      <div><span>История баланса</span><h2 id="history-title">Журнал операций</h2><p id="history-student-name">Все начисления и списания ученика</p></div>
+    </header>
+    <section class="history-summary" aria-label="Сводка операций">
+      <div><span>Операций</span><strong id="history-total">0</strong></div>
+      <div class="history-summary-income"><span>Начислено</span><strong id="history-income">+0</strong></div>
+      <div class="history-summary-expense"><span>Списано</span><strong id="history-expense">−0</strong></div>
+    </section>
+    <div id="history-list" class="history-list"></div>
+  </div>
+</div>
+
+<div id="modal-manage-rewards" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal rewards-manager-modal" role="dialog" aria-modal="true" aria-labelledby="rewards-manager-title">
+    <button class="modal-close rewards-manager-close" type="button" onclick="closeModal('modal-manage-rewards')" aria-label="Закрыть">&#x2715;</button>
+    <header class="rewards-manager-header">
+      <span class="rewards-manager-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v11H4zM2 6h20v4H2zM12 6v15M12 6H7.5a2.5 2.5 0 1 1 2.4-3c.45 1.7 2.1 3 2.1 3Zm0 0h4.5a2.5 2.5 0 1 0-2.4-3C13.65 4.7 12 6 12 6Z"/></svg></span>
+      <div><h2 id="rewards-manager-title">Управление наградами</h2><p>Создавайте награды, которые ученики смогут обменять на финкоины</p></div>
+    </header>
+    <div class="rewards-manager-layout">
+      <section class="reward-create-panel">
+        <div class="reward-panel-heading"><h3>Создать награду</h3><p>Добавьте новый предмет в сундук наград</p></div>
+        <div class="form-group"><label for="reward-name">Название награды</label><input type="text" id="reward-name" placeholder="Например: Шоколадка" autocomplete="off" maxlength="80"></div>
+        <div class="form-group reward-category-field">
+          <label id="reward-category-label">Категория</label>
+          <select id="reward-category" tabindex="-1" aria-hidden="true">
+            <option value="&#x1F36C; Вкусняшки">Вкусняшки</option><option value="&#x1F4DA; Учёба">Учёба</option><option value="&#x1F381; Призы">Призы</option><option value="&#x2B50; Привилегии">Привилегии</option>
+          </select>
+          <div class="reward-category-grid" role="radiogroup" aria-labelledby="reward-category-label">
+            <button type="button" class="reward-category-card is-selected" data-category="&#x1F36C; Вкусняшки" aria-pressed="true"><span class="reward-category-symbol reward-symbol-treat"><svg viewBox="0 0 24 24"><path d="m8 8 8 8M5 5l3 3-3 3-3-3Zm14 8 3 3-3 3-3-3ZM9 7l8 8M7 9l8 8"/></svg></span><span>Вкусняшки</span></button>
+            <button type="button" class="reward-category-card" data-category="&#x1F4DA; Учёба" aria-pressed="false"><span class="reward-category-symbol reward-symbol-study"><svg viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4zM20 4h-4a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h4z"/></svg></span><span>Учёба</span></button>
+            <button type="button" class="reward-category-card" data-category="&#x1F381; Призы" aria-pressed="false"><span class="reward-category-symbol reward-symbol-prize"><svg viewBox="0 0 24 24"><path d="M4 10h16v11H4zM2 6h20v4H2zM12 6v15M12 6H8a2 2 0 1 1 2-2c0 1.1 2 2 2 2Zm0 0h4a2 2 0 1 0-2-2c0 1.1-2 2-2 2Z"/></svg></span><span>Призы</span></button>
+            <button type="button" class="reward-category-card" data-category="&#x2B50; Привилегии" aria-pressed="false"><span class="reward-category-symbol reward-symbol-privilege"><svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 11H5zM5 21h14"/></svg></span><span>Привилегии</span></button>
+          </div>
+        </div>
+        <div class="reward-number-row">
+          <div class="form-group reward-price-field"><label for="reward-price">Цена</label><div class="reward-input-shell"><img src="Монета.png" alt=""><input type="number" id="reward-price" value="10" min="1"><span>финкоинов</span></div><div class="reward-presets" aria-label="Быстрый выбор цены"><button type="button" onclick="setRewardPrice(10)">10</button><button type="button" onclick="setRewardPrice(25)">25</button><button type="button" onclick="setRewardPrice(50)">50</button><button type="button" onclick="setRewardPrice(100)">100</button><button type="button" onclick="setRewardPrice(200)">200</button></div></div>
+          <div class="form-group reward-limit-field"><label for="reward-limit">Лимит покупок</label><div class="reward-input-shell"><input type="number" id="reward-limit" value="0" min="0"></div><small>0 = без ограничений</small></div>
+        </div>
+        <div class="reward-live-preview"><span id="reward-preview-icon" class="reward-preview-icon"></span><div><small>Предпросмотр</small><strong id="reward-preview-name">Новая награда</strong><span id="reward-preview-price">10 финкоинов</span></div></div>
+        <button class="reward-create-submit" type="button" onclick="addReward()"><span>Добавить в сундук наград</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+      </section>
+      <section class="rewards-created-panel">
+        <div class="rewards-created-heading"><div><h3>Созданные награды</h3><p>Предметы, доступные ученикам</p></div><span id="rewards-total">Всего: 0</span></div>
+        <div id="rewards-list" class="rewards-list"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="modal-shop" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal reward-shop-modal" role="dialog" aria-modal="true" aria-labelledby="reward-shop-title">
+    <button class="modal-close reward-shop-close" type="button" onclick="closeModal('modal-shop')" aria-label="Закрыть магазин">&#x2715;</button>
+    <header class="reward-shop-header">
+      <div class="reward-shop-title-row"><span class="reward-shop-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v11H4zM2 6h20v4H2zM12 6v15M12 6H7.5a2.5 2.5 0 1 1 2.4-3c.45 1.7 2.1 3 2.1 3Zm0 0h4.5a2.5 2.5 0 1 0-2.4-3C13.65 4.7 12 6 12 6Z"/></svg></span><h2 id="reward-shop-title">Магазин наград</h2></div>
+      <div id="shop-balance" class="reward-shop-balance"></div>
+    </header>
+    <div id="shop-categories" class="shop-categories" role="tablist" aria-label="Категории наград"></div>
+    <div id="shop-grid" class="shop-grid"></div>
+  </div>
+</div>
+
+<div id="modal-requests" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal requests-modal" role="dialog" aria-modal="true" aria-labelledby="requests-title">
+    <button class="modal-close requests-close" type="button" onclick="closeModal('modal-requests')" aria-label="Закрыть заявки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <header class="requests-header"><span class="requests-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h10v4H7zM6 5H4v17h16V5h-2M8 11h8M8 15h8M8 19h5"/></svg></span><div><h2 id="requests-title">Заявки на награды</h2><p>Проверяйте покупки учеников и управляйте выдачей наград</p></div></header>
+    <section class="requests-section requests-pending-section"><div class="requests-section-heading"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>Ожидают подтверждения</h3><b id="pending-requests-count">0</b></div><div id="pending-requests" class="requests-list"></div></section>
+    <section class="requests-section requests-history-section"><div class="requests-section-heading"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span><h3>История заявок</h3></div><div id="processed-requests" class="requests-list requests-history-list"></div></section>
+  </div>
+</div>
+
+<div id="modal-achievements-manage" class="modal-overlay rewards-cabin-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal rewards-cabin" role="dialog" aria-modal="true" aria-labelledby="rewards-cabin-title">
+    <button class="modal-close rewards-cabin-close" type="button" onclick="closeModal('modal-achievements-manage')" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <header class="rewards-cabin-header"><span class="cabin-trophy" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 13v4m-4 3h8"/></svg></span><div><h2 id="rewards-cabin-title">Каюта достижений</h2><p>Создавайте особые знаки отличия для своего экипажа</p></div></header>
+    <section class="cabin-form" aria-label="Создание достижения">
+      <div class="cabin-form-row">
+        <div class="cabin-field cabin-title-field"><label for="ach-name">Название достижения</label><input id="ach-name" type="text" minlength="2" maxlength="60" placeholder="Например: Финансовый навигатор"><small id="ach-name-error" class="cabin-error"></small></div>
+        <div class="cabin-field cabin-coin-field"><label for="ach-coins">Бонус <small>необязательно</small></label><div class="cabin-coin-input"><img src="Монета.png" alt=""><span>+</span><input id="ach-coins" type="number" min="0" max="50" value="0" inputmode="numeric"><span>финкоинов</span></div></div>
+      </div>
+      <div class="cabin-field"><label for="ach-desc">Описание</label><textarea id="ach-desc" maxlength="180" rows="2" placeholder="Например: За пять верных финансовых решений подряд"></textarea><small id="ach-desc-error" class="cabin-error"></small></div>
+      <fieldset class="cabin-rarity"><legend>Редкость</legend><div id="achievement-rarity-options" class="cabin-rarity-grid"></div></fieldset>
+      <div class="cabin-section-heading"><h3>Выберите бейдж достижения</h3><span>20 медальонов</span></div>
+      <div id="achievement-icon-grid" class="cabin-icon-grid" role="radiogroup" aria-label="Бейдж достижения"></div>
+      <section class="cabin-preview" aria-labelledby="cabin-preview-title"><h3 id="cabin-preview-title">Предпросмотр</h3><div class="cabin-preview-content"><img id="achievement-preview-icon" alt=""><div class="cabin-preview-copy"><strong id="achievement-preview-name">Название достижения</strong><p id="achievement-preview-description">Описание появится здесь</p><div><span id="achievement-preview-rarity" class="cabin-badge rarity-common">Обычная</span><span id="achievement-preview-coins" class="cabin-coin-badge" hidden></span></div></div></div></section>
+      <div class="cabin-submit-row"><button id="achievement-submit" class="cabin-submit" type="button" onclick="addManualAchievement()" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg><span>Создать достижение</span></button><button id="achievement-cancel-edit" class="cabin-cancel-edit" type="button" onclick="cancelAchievementEdit()" hidden>Отменить редактирование</button></div>
+    </section>
+    <section class="cabin-created"><div class="cabin-section-heading"><div><h3>Достижения вашего экипажа</h3><p>Особые знаки отличия текущего класса</p></div><button id="achievement-show-all" type="button" onclick="toggleAchievementCards()">Показать все (0) →</button></div><div id="manual-achievements-list" class="cabin-achievement-list"></div></section>
+  </div>
+</div>
+
+<div id="modal-award-achievement" class="modal-overlay achievement-award-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal achievement-award-modal" role="dialog" aria-modal="true" aria-labelledby="award-dialog-title">
+    <button class="modal-close" type="button" onclick="closeModal('modal-award-achievement')" aria-label="Закрыть">&#x2715;</button>
+    <header><img id="award-achievement-icon" alt=""><div><span>Выдать достижение</span><h2 id="award-dialog-title">Достижение</h2></div></header>
+    <div class="award-select-heading"><label>Кому выдать?</label><button type="button" onclick="toggleAllAwardStudents()">Выбрать всех</button></div>
+    <div id="award-achievements-list" class="award-students-list"></div>
+    <label class="award-comment-label" for="award-comment">Комментарий учителя <small>необязательно</small></label><textarea id="award-comment" maxlength="180" rows="3" placeholder="Добавьте несколько добрых слов"></textarea>
+    <div class="award-actions"><button type="button" class="award-cancel" onclick="closeModal('modal-award-achievement')">Отмена</button><button id="award-submit" type="button" class="award-submit" onclick="submitAchievementAward()" disabled>Выдать достижение</button></div>
+  </div>
+</div>
+
+<div id="modal-analytics" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal analytics-modal" role="dialog" aria-modal="true" aria-labelledby="analytics-title">
+    <button class="modal-close analytics-close" onclick="closeModal('modal-analytics')" aria-label="Закрыть">&#x2715;</button>
+    <header class="analytics-header"><span class="analytics-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg></span><div><h2 id="analytics-title">Аналитика класса</h2><p id="analytics-subtitle">Данные об успехах и активности экипажа</p></div></header>
+    <div class="analytics-tabs" role="tablist" aria-label="Разделы аналитики">
+      <button class="analytics-tab active" role="tab" aria-selected="true" onclick="switchAnalyticsTab('class',this)"><svg viewBox="0 0 24 24"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg><span>Обзор</span></button>
+      <button class="analytics-tab" role="tab" aria-selected="false" onclick="switchAnalyticsTab('dynamics',this)"><svg viewBox="0 0 24 24"><path d="m3 17 5-5 4 3 8-9M16 6h4v4"/></svg><span>Динамика</span></button>
+      <button class="analytics-tab" role="tab" aria-selected="false" onclick="switchAnalyticsTab('top',this)"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Zm0 2H3v2a4 4 0 0 0 4 4m10-6h4v2a4 4 0 0 1-4 4"/></svg><span>Рейтинг</span></button>
+      <div class="analytics-export"><label for="analytics-export-target">Отчёт</label><select id="analytics-export-target" aria-label="Выберите отчёт"></select><button id="analytics-export-button" type="button" onclick="exportAnalyticsPdf()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 19h14"/></svg><span>Скачать PDF</span></button></div>
+    </div>
+    <div id="analytics-class" class="analytics-content active"></div>
+    <div id="analytics-dynamics" class="analytics-content"></div>
+    <div id="analytics-top" class="analytics-content"></div>
+  </div>
+</div>
+
+<div id="modal-confirm" class="modal-overlay" onclick="closeModalOverlay(event)">
+  <div class="modal">
+    <h2 id="confirm-title">Подтверждение</h2>
+    <p id="confirm-text" class="confirm-text"></p>
+    <div class="confirm-buttons">
+      <button class="btn btn-gold" id="confirm-yes">Да</button>
+      <button class="btn btn-red" onclick="closeModal('modal-confirm')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/html2canvas.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="pin-auth.js?v=2"></script>
+<script>
+const AVATARS = ['\u{1F3F4}\u200D\u2620\uFE0F', '\u26F5', '\u{1F6A2}', '\u{1F6F6}', '\u{1F99C}', '\u{1F419}', '\u{1F988}', '\u{1F420}', '\u{1F30A}', '\u{1F5E1}\uFE0F'];
+const STUDENT_AVATARS = [
+  { id: 'captain-boy', src: 'student-avatar-captain-boy.png', label: 'Юный капитан' },
+  { id: 'green-scarf-boy', src: 'student-avatar-green-scarf-boy.png', label: 'Юнга в зелёном' },
+  { id: 'red-scarf-boy', src: 'student-avatar-red-scarf-boy.png', label: 'Юнга в красной бандане' },
+  { id: 'brunette-girl', src: 'student-avatar-brunette-girl.png', label: 'Пиратка с тёмными волосами' },
+  { id: 'blue-bandana-boy', src: 'student-avatar-blue-bandana-boy.png', label: 'Юнга в синей бандане' },
+  { id: 'black-hat-boy', src: 'student-avatar-black-hat-boy.png', label: 'Пират в чёрной шляпе' },
+  { id: 'redhead-girl', src: 'student-avatar-redhead-girl.png', label: 'Рыжая пиратка' },
+  { id: 'teal-bandana-girl', src: 'student-avatar-teal-bandana-girl.png', label: 'Пиратка в бирюзовой бандане' }
+];
+const RANKS = [
+  { min: 0, max: 49, name: '\u042E\u043D\u0433\u0430', emoji: '\u{1F41A}' },
+  { min: 50, max: 99, name: '\u041C\u0430\u0442\u0440\u043E\u0441', emoji: '\u26F5' },
+  { min: 100, max: 199, name: '\u0411\u043E\u0446\u043C\u0430\u043D', emoji: '\u{1F9ED}' },
+  { min: 200, max: 299, name: '\u041A\u0430\u043F\u0438\u0442\u0430\u043D', emoji: '\u{1F3F4}\u200D\u2620\uFE0F' },
+  { min: 300, max: 499, name: '\u0410\u0434\u043C\u0438\u0440\u0430\u043B', emoji: '\u2693' },
+  { min: 500, max: Infinity, name: '\u041A\u043E\u0440\u043E\u043B\u044C \u041F\u0438\u0440\u0430\u0442\u043E\u0432', emoji: '\u{1F451}' }
+];
+
+const AUTO_ACHIEVEMENTS = [
+  { id: 'first_coin', name: '\u041F\u0435\u0440\u0432\u044B\u0439 \u0444\u0438\u043D\u043A\u043E\u0438\u043D', desc: '\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043F\u0435\u0440\u0432\u0443\u044E \u043C\u043E\u043D\u0435\u0442\u0443', emoji: '\u{1F4B0}' },
+  { id: 'balance_50', name: '\u041A\u043E\u043F\u0438\u043B\u043A\u0430', desc: '\u041D\u0430\u043A\u043E\u043F\u0438\u0442\u044C 50 \u0444\u0438\u043D\u043A\u043E\u0438\u043D\u043E\u0432', emoji: '\u{1F437}' },
+  { id: 'balance_100', name: '\u0421\u043E\u0441\u0442\u043E\u044F\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u043F\u0438\u0440\u0430\u0442', desc: '\u041D\u0430\u043A\u043E\u043F\u0438\u0442\u044C 100 \u0444\u0438\u043D\u043A\u043E\u0438\u043D\u043E\u0432', emoji: '\u{1F48E}' },
+  { id: 'balance_300', name: '\u0410\u0434\u043C\u0438\u0440\u0430\u043B\u044C\u0441\u043A\u0438\u0435 \u0430\u043C\u0431\u0438\u0446\u0438\u0438', desc: '\u041D\u0430\u043A\u043E\u043F\u0438\u0442\u044C 300 \u0444\u0438\u043D\u043A\u043E\u0438\u043D\u043E\u0432', emoji: '\u{1F3C6}' },
+  { id: 'first_purchase', name: '\u041F\u0435\u0440\u0432\u0430\u044F \u043F\u043E\u043A\u0443\u043F\u043A\u0430', desc: '\u041A\u0443\u043F\u0438\u0442\u044C \u043F\u0435\u0440\u0432\u0443\u044E \u043D\u0430\u0433\u0440\u0430\u0434\u0443', emoji: '\u{1F6D2}' },
+  { id: 'five_purchases', name: '\u0428\u043E\u043F\u043F\u0438\u043D\u0433', desc: '\u0421\u043E\u0432\u0435\u0440\u0448\u0438\u0442\u044C 5 \u043F\u043E\u043A\u0443\u043F\u043E\u043A', emoji: '\u{1F6CD}\uFE0F' }
+];
+
+let appData = { classes: [], currentClassId: null, currentUser: null };
+let selectedAvatar = STUDENT_AVATARS[0];
+let currentTxnStudentId = null;
+let currentTxnType = 'income';
+let currentShopCategory = 'all';
+let pinSetupStudentId = null;
+
+function loadData() {
+  const raw = localStorage.getItem('pirateTracker');
+  if (raw) {
+    try { appData = JSON.parse(raw); } catch(e) { console.error('Ошибка загрузки данных', e); }
+  }
+  if (!appData.classes) appData.classes = [];
+  const session = window.PinAuth?.getSession();
+  appData.currentUser = session ? { role: session.role, classId: session.classId, studentId: session.studentId } : null;
+}
+
+function exportPersistentData() {
+  return JSON.parse(JSON.stringify({ ...appData, currentUser: null }));
+}
+
+function saveData() {
+  const persistentData = exportPersistentData();
+  localStorage.setItem('pirateTracker', JSON.stringify(persistentData));
+  window.PirateCloud?.save(persistentData);
+}
+
+window.PirateCloudBridge = {
+  exportState: exportPersistentData,
+  importState(remoteData) {
+    if (!remoteData || !Array.isArray(remoteData.classes)) return;
+    const session = window.PinAuth?.getSession();
+    appData = {
+      ...appData,
+      ...JSON.parse(JSON.stringify(remoteData)),
+      classes: JSON.parse(JSON.stringify(remoteData.classes)),
+      currentUser: session ? { role: session.role, classId: session.classId, studentId: session.studentId } : null
+    };
+    if (appData.currentClassId && !appData.classes.some(item => item.id === appData.currentClassId)) {
+      appData.currentClassId = appData.classes[0]?.id || null;
+    }
+    localStorage.setItem('pirateTracker', JSON.stringify(exportPersistentData()));
+    window.dispatchEvent(new CustomEvent('pirate-data-synced'));
+    if (appData.currentUser?.role === 'teacher') renderTeacherView();
+    if (appData.currentUser?.role === 'student') renderStudentView();
+  }
+};
+
+function generateId(prefix) { return prefix + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6); }
+
+function getCurrentClass() { return appData.classes.find(c => c.id === appData.currentClassId) || null; }
+
+function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+
+function getRank(balance) { for (let i = RANKS.length - 1; i >= 0; i--) { if (balance >= RANKS[i].min) return RANKS[i]; } return RANKS[0]; }
+function getNextRank(balance) { for (let i = 0; i < RANKS.length; i++) { if (balance < RANKS[i].min) return RANKS[i]; } return null; }
+function getProgressPercent(balance) { const current = getRank(balance); const next = getNextRank(balance); if (!next) return 100; return Math.min(100, Math.round(((balance - current.min) / (next.min - current.min)) * 100)); }
+
+function showView(viewId) {
+  const session = window.PinAuth?.getSession();
+  if (viewId === 'teacher-view' && session?.role !== 'teacher') { window.LoginRoutes?.teacher(); return; }
+  if (viewId === 'student-view' && session?.role !== 'student') { window.LoginRoutes?.student(); return; }
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+}
+
+function loginAsTeacher(authenticated = false) {
+  const session = window.PinAuth?.getSession();
+  if (!authenticated || session?.role !== 'teacher') { window.LoginRoutes?.teacher(); return; }
+  appData.currentUser = { role: 'teacher' };
+  if (appData.classes.length > 0 && !appData.currentClassId) appData.currentClassId = appData.classes[0].id;
+  saveData();
+  showView('teacher-view');
+  renderTeacherView();
+}
+
+function showStudentLogin() {
+  window.LoginRoutes?.student();
+}
+
+function hideStudentLogin() {
+  window.LoginRoutes?.home();
+}
+
+function populateLoginClasses() {
+  const sel = document.getElementById('login-class-select');
+  sel.innerHTML = '<option value="">Выберите класс...</option>';
+  appData.classes.forEach(c => {
+    if (c.students.length > 0) {
+      const opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.name;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function onLoginClassChange() {
+  const classId = document.getElementById('login-class-select').value;
+  const studentSel = document.getElementById('login-student-select');
+  studentSel.innerHTML = '<option value="">Выберите ученика...</option>';
+  if (!classId) return;
+  const cls = appData.classes.find(c => c.id === classId);
+  if (!cls) return;
+  cls.students.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.flag + ' ' + s.name;
+    studentSel.appendChild(opt);
+  });
+}
+
+function loginAsStudent(authenticated = false, classId = '', studentId = '') {
+  const session = window.PinAuth?.getSession();
+  if (!authenticated || session?.role !== 'student' || session.classId !== classId || session.studentId !== studentId) { window.LoginRoutes?.student(); return; }
+  appData.currentUser = { role: 'student', classId, studentId };
+  appData.currentClassId = classId;
+  saveData();
+  showView('student-view');
+  renderStudentView();
+}
+
+function logout() {
+  window.PinAuth?.clearSession();
+  appData.currentUser = null;
+  saveData();
+  window.LoginRoutes?.home();
+}
+
+function openModal(id) {
+  const overlay = document.getElementById(id);
+  if (!overlay) return;
+  overlay.classList.add('active');
+  const dialog = overlay.querySelector('[role="dialog"], .modal');
+  if (dialog) { dialog.setAttribute('role', 'dialog'); dialog.setAttribute('aria-modal', 'true'); }
+  window.PirateSound?.play('modal');
+  if (id === 'modal-add-student') initAvatarPicker();
+  if (id === 'modal-achievements-manage') initEmojiPicker();
+  if (id === 'modal-manage-rewards') { initRewardsManager(); renderRewardsList(); }
+  if (id === 'modal-requests') renderRequests();
+  if (id === 'modal-analytics') renderAnalytics();
+  requestAnimationFrame(() => overlay.querySelector('button, input, select, textarea')?.focus());
+}
+
+function closeModal(id) { document.getElementById(id)?.classList.remove('active'); }
+
+function closeModalOverlay(event) {
+  if (event.target.classList.contains('modal-overlay')) event.target.classList.remove('active');
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  const overlay = [...document.querySelectorAll('.modal-overlay.active')].pop();
+  if (overlay) closeModal(overlay.id);
+});
+
+function showToast(message) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function addClass() {
+  const name = document.getElementById('new-class-name').value.trim();
+  if (!name) { showToast('Введите название класса!'); return; }
+  const newClass = { id: generateId('class'), name, students: [], transactions: [], rewards: [], requests: [], achievements: [], createdAt: new Date().toISOString() };
+  appData.classes.push(newClass);
+  appData.currentClassId = newClass.id;
+  saveData();
+  closeModal('modal-add-class');
+  document.getElementById('new-class-name').value = '';
+  renderTeacherView();
+  window.PirateSound?.play('success');
+  showToast('Класс «' + name + '» создан!');
+}
+
+function switchClass() { appData.currentClassId = document.getElementById('teacher-class-select').value; saveData(); renderTeacherView(); }
+
+function avatarLooksLikeImage(value) {
+  return typeof value === 'string' && /\.(png|jpe?g|webp|gif)(?:[?#].*)?$/i.test(value.trim());
+}
+
+function getStudentAvatar(student) {
+  if (student && avatarLooksLikeImage(student.avatarSrc)) {
+    return { src: student.avatarSrc, tone: (student.avatarId || '').split('-').pop() };
+  }
+  if (student && avatarLooksLikeImage(student.flag)) {
+    return { src: student.flag, tone: (student.avatarId || '').split('-').pop() };
+  }
+  return null;
+}
+
+function renderStudentAvatar(student, className = '') {
+  const avatar = getStudentAvatar(student);
+  if (avatar) {
+    const toneClass = avatar.tone && STUDENT_AVATARS.some(item => item.tone === avatar.tone) ? ' avatar-tone-' + avatar.tone : '';
+    return `<img src="${escapeHtml(avatar.src)}" class="student-avatar-image${toneClass}${className ? ' ' + className : ''}" alt="Аватар: ${escapeHtml((student && student.name) || 'Ученик')}">`;
+  }
+  if (student && student.flag) return `<span class="student-avatar-legacy${className ? ' ' + className : ''}" aria-label="Аватар">${escapeHtml(student.flag)}</span>`;
+  return `<img src="${STUDENT_AVATARS[0].src}" class="student-avatar-image${className ? ' ' + className : ''}" alt="Аватар ученика">`;
+}
+
+function updateStudentPreview() {
+  const nameInput = document.getElementById('new-student-name');
+  const previewName = document.getElementById('selected-student-name');
+  const previewAvatar = document.getElementById('selected-avatar-preview');
+  const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'Новый ученик';
+  if (previewName) previewName.textContent = name;
+  if (previewAvatar) previewAvatar.innerHTML = renderStudentAvatar({ name, avatarId: selectedAvatar.id, avatarSrc: selectedAvatar.src });
+}
+
+function initAvatarPicker() {
+  selectedAvatar = STUDENT_AVATARS[0];
+  const picker = document.getElementById('avatar-picker');
+  const nameInput = document.getElementById('new-student-name');
+  picker.innerHTML = '';
+  STUDENT_AVATARS.forEach((avatar, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'avatar-option' + (index === 0 ? ' selected' : '');
+    button.setAttribute('role', 'radio');
+    button.setAttribute('aria-checked', index === 0 ? 'true' : 'false');
+    button.setAttribute('aria-label', avatar.label);
+    button.innerHTML = renderStudentAvatar({ name: avatar.label, avatarId: avatar.id, avatarSrc: avatar.src }) + '<span class="avatar-check" aria-hidden="true">✓</span>';
+    button.onclick = () => {
+      selectedAvatar = avatar;
+      picker.querySelectorAll('.avatar-option').forEach(item => { item.classList.remove('selected'); item.setAttribute('aria-checked', 'false'); });
+      button.classList.add('selected');
+      button.setAttribute('aria-checked', 'true');
+      updateStudentPreview();
+    };
+    picker.appendChild(button);
+  });
+  if (nameInput) {
+    nameInput.removeEventListener('input', updateStudentPreview);
+    nameInput.addEventListener('input', updateStudentPreview);
+    setTimeout(() => nameInput.focus(), 80);
+  }
+  updateStudentPreview();
+}
+
+async function addStudent() {
+  const name = document.getElementById('new-student-name').value.trim();
+  const pinInput = document.getElementById('new-student-pin');
+  const pin = pinInput.value.trim();
+  if (!name) { showToast('Введите имя ученика!'); return; }
+  if (!/^\d{4}$/.test(pin)) { showToast('PIN ученика должен состоять из 4 цифр'); pinInput.focus(); return; }
+  const cls = getCurrentClass();
+  if (!cls) { showToast('Сначала создайте класс!'); return; }
+  const avatar = selectedAvatar && selectedAvatar.src ? selectedAvatar : STUDENT_AVATARS[0];
+  const pinAuth = await window.PinAuth.createRecord(pin);
+  cls.students.push({ id: generateId('stu'), name, flag: avatar.src, avatarId: avatar.id, avatarSrc: avatar.src, pinAuth, fincoins_balance: 0, achievements: [], createdAt: new Date().toISOString() });
+  saveData();
+  closeModal('modal-add-student');
+  document.getElementById('new-student-name').value = '';
+  pinInput.value = '';
+  renderTeacherView();
+  window.PirateSound?.play('success');
+  showToast('Ученик «' + name + '» добавлен!');
+}
+
+function openStudentPinSetup(studentId) {
+  if (window.PinAuth?.getSession()?.role !== 'teacher') { window.LoginRoutes?.teacher(); return; }
+  const cls = getCurrentClass();
+  const student = cls?.students.find(item => item.id === studentId);
+  if (!student) return;
+  pinSetupStudentId = studentId;
+  document.getElementById('student-pin-student-name').textContent = student.name;
+  document.getElementById('student-pin-input').value = '';
+  document.getElementById('student-pin-error').textContent = '';
+  openModal('modal-student-pin');
+  setTimeout(() => document.getElementById('student-pin-input')?.focus(), 80);
+}
+
+async function saveStudentPin() {
+  const input = document.getElementById('student-pin-input');
+  const error = document.getElementById('student-pin-error');
+  const pin = input.value.trim();
+  if (!/^\d{4}$/.test(pin)) { error.textContent = 'Введите ровно 4 цифры'; input.focus(); return; }
+  const student = getCurrentClass()?.students.find(item => item.id === pinSetupStudentId);
+  if (!student) { error.textContent = 'Ученик не найден'; return; }
+  student.pinAuth = await window.PinAuth.createRecord(pin);
+  saveData();
+  closeModal('modal-student-pin');
+  renderTeacherView();
+  window.PirateSound?.play('success');
+  showToast('PIN ученика «' + student.name + '» сохранён');
+}
+
+['new-student-pin', 'student-pin-input'].forEach(id => {
+  const input = document.getElementById(id);
+  input?.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(0, 4);
+    if (id === 'student-pin-input') document.getElementById('student-pin-error').textContent = '';
+  });
+});
+
+function deleteStudent(studentId) {
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const student = cls.students.find(s => s.id === studentId);
+  if (!student) return;
+  showConfirm('Удалить ученика?', 'Ученик «' + student.name + '» будет удалён вместе с его транзакциями и заявками.', () => {
+    cls.students = cls.students.filter(s => s.id !== studentId);
+    cls.transactions = cls.transactions.filter(t => t.student_id !== studentId);
+    cls.requests = cls.requests.filter(r => r.student_id !== studentId);
+    cls.achievements.forEach(a => { if (a.awarded_to) a.awarded_to = a.awarded_to.filter(id => id !== studentId); });
+    saveData();
+    renderTeacherView();
+    showToast('Ученик удалён');
+  });
+}
+
+function openTransactionModal(studentId, type) {
+  currentTxnStudentId = studentId;
+  currentTxnType = type || 'income';
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const student = cls.students.find(s => s.id === studentId);
+  if (!student) return;
+  document.getElementById('txn-amount').value = 1;
+  document.getElementById('txn-comment').value = '';
+  document.getElementById('txn-student-name').textContent = student.name;
+  document.getElementById('txn-student-rank').textContent = getRank(student.fincoins_balance).name;
+  document.getElementById('txn-current-balance').textContent = student.fincoins_balance.toLocaleString('ru-RU');
+  const studentIndex = cls.students.indexOf(student);
+  const storedAvatar = student.avatarSrc || student.flag;
+  document.getElementById('txn-student-avatar').src = storedAvatar && /\.(png|jpe?g|webp|gif|svg)$/i.test(storedAvatar) ? storedAvatar : STUDENT_AVATARS[studentIndex % STUDENT_AVATARS.length].src;
+  updateTxnTypeButtons();
+  openModal('modal-transaction');
+  requestAnimationFrame(() => document.getElementById('txn-amount').select());
+}
+
+function setTxnType(type) { currentTxnType = type; updateTxnTypeButtons(); }
+
+function updateTxnTypeButtons() {
+  const addBtn = document.getElementById('txn-type-add');
+  const subBtn = document.getElementById('txn-type-sub');
+  const isIncome = currentTxnType === 'income';
+  addBtn.classList.toggle('active', isIncome);
+  subBtn.classList.toggle('active', !isIncome);
+  addBtn.setAttribute('aria-pressed', String(isIncome));
+  subBtn.setAttribute('aria-pressed', String(!isIncome));
+  document.getElementById('modal-transaction').dataset.mode = isIncome ? 'income' : 'expense';
+  document.getElementById('transaction-title').textContent = isIncome ? 'Начисление финкоинов' : 'Списание финкоинов';
+  document.getElementById('txn-amount-sign').textContent = isIncome ? '+' : '−';
+  document.querySelectorAll('#modal-transaction .quick-amounts button').forEach(button => {
+    button.textContent = (isIncome ? '+' : '−') + button.textContent.replace(/[^0-9]/g, '');
+  });
+  updateTxnPreview();
+}
+
+function setTxnAmount(val) {
+  document.getElementById('txn-amount').value = val;
+  updateTxnPreview();
+}
+
+function updateTxnPreview() {
+  const cls = getCurrentClass();
+  const student = cls && cls.students.find(s => s.id === currentTxnStudentId);
+  if (!student) return;
+  const amount = Math.max(0, parseInt(document.getElementById('txn-amount').value) || 0);
+  const isIncome = currentTxnType === 'income';
+  const result = Math.max(0, student.fincoins_balance + (isIncome ? amount : -amount));
+  const insufficient = !isIncome && amount > student.fincoins_balance;
+  document.getElementById('txn-result-balance').textContent = result.toLocaleString('ru-RU');
+  const preview = document.getElementById('txn-balance-preview');
+  preview.classList.toggle('insufficient', insufficient);
+  preview.querySelector('span').textContent = insufficient ? 'Недостаточно финкоинов' : 'Баланс после операции';
+  const submit = document.getElementById('txn-submit');
+  submit.disabled = amount < 1 || insufficient;
+  document.getElementById('txn-submit-label').textContent = insufficient ? 'Уменьшите сумму' : (isIncome ? 'Начислить ' : 'Списать ') + (amount || '—');
+}
+
+document.getElementById('txn-amount').addEventListener('input', updateTxnPreview);
+document.getElementById('txn-amount').addEventListener('keydown', event => {
+  if (event.key === 'Enter') executeTransaction();
+});
+
+function executeTransaction() {
+  const amount = parseInt(document.getElementById('txn-amount').value);
+  const comment = document.getElementById('txn-comment').value.trim();
+  if (!amount || amount <= 0) { showToast('Введите корректную сумму!'); return; }
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const student = cls.students.find(s => s.id === currentTxnStudentId);
+  if (!student) return;
+  if (currentTxnType === 'expense' && amount > student.fincoins_balance) { showToast('На балансе недостаточно финкоинов'); return; }
+  const finalAmount = currentTxnType === 'income' ? amount : -amount;
+  student.fincoins_balance += finalAmount;
+  if (student.fincoins_balance < 0) student.fincoins_balance = 0;
+  cls.transactions.push({ id: generateId('txn'), student_id: currentTxnStudentId, amount: finalAmount, type: finalAmount > 0 ? 'income' : 'expense', description: comment || (finalAmount > 0 ? 'Начисление' : 'Списание'), timestamp: new Date().toISOString() });
+  checkAutoAchievements(student, cls);
+  saveData();
+  closeModal('modal-transaction');
+  renderTeacherView();
+  window.PirateSound?.play(finalAmount > 0 ? 'coin' : 'debit');
+  showToast((finalAmount > 0 ? '+' : '') + finalAmount + ' финкоинов ' + (finalAmount > 0 ? 'начислено' : 'списано'));
+}
+
+function openHistory(studentId) {
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const student = cls.students.find(s => s.id === studentId);
+  if (!student) return;
+  const transactions = cls.transactions.filter(t => t.student_id === studentId).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const credited = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+  const debited = Math.abs(transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
+  document.getElementById('history-student-name').textContent = student.name + ' · текущий баланс ' + student.fincoins_balance.toLocaleString('ru-RU');
+  document.getElementById('history-total').textContent = transactions.length.toLocaleString('ru-RU');
+  document.getElementById('history-income').textContent = '+' + credited.toLocaleString('ru-RU');
+  document.getElementById('history-expense').textContent = '−' + debited.toLocaleString('ru-RU');
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  if (transactions.length === 0) {
+    list.innerHTML = '<div class="history-empty"><span><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg></span><strong>Операций пока нет</strong><small>Начисления и списания появятся здесь</small></div>';
+  } else {
+    transactions.forEach(txn => {
+      const item = document.createElement('div');
+      item.className = 'history-item ' + (txn.amount > 0 ? 'income' : 'expense');
+      const icon = document.createElement('span');
+      icon.className = 'history-icon';
+      icon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>';
+      const details = document.createElement('div');
+      details.className = 'history-details';
+      const desc = document.createElement('div');
+      desc.className = 'history-desc';
+      desc.textContent = txn.amount > 0 ? 'Начислено' : 'Списано';
+      const commentEl = document.createElement('div');
+      commentEl.className = 'history-date';
+      commentEl.textContent = txn.description + ' \u2022 ' + formatDate(txn.timestamp);
+      details.appendChild(desc);
+      details.appendChild(commentEl);
+      const amount = document.createElement('span');
+      amount.className = 'history-amount ' + (txn.amount > 0 ? 'positive' : 'negative');
+      amount.textContent = (txn.amount > 0 ? '+' : '') + txn.amount;
+      item.appendChild(icon);
+      item.appendChild(details);
+      item.appendChild(amount);
+      list.appendChild(item);
+    });
+  }
+  openModal('modal-history');
+}
+
+function formatDate(isoStr) { const d = new Date(isoStr); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
+
+const REWARD_CATEGORY_UI = {
+  '\u{1F36C} Вкусняшки': { label: 'Вкусняшки', type: 'treat' },
+  '\u{1F4DA} Учёба': { label: 'Учёба', type: 'study' },
+  '\u{1F381} Призы': { label: 'Призы', type: 'prize' },
+  '\u2B50 Привилегии': { label: 'Привилегии', type: 'privilege' }
+};
+
+function getRewardCategoryUi(category) {
+  return REWARD_CATEGORY_UI[category] || { label: String(category || 'Награда').replace(/^[^А-Яа-яЁёA-Za-z]+\s*/u, ''), type: 'prize' };
+}
+
+function getRewardCategoryIcon(category) {
+  const type = getRewardCategoryUi(category).type;
+  const icons = {
+    treat: '<svg viewBox="0 0 24 24"><path d="m8 8 8 8M5 5l3 3-3 3-3-3Zm14 8 3 3-3 3-3-3ZM9 7l8 8M7 9l8 8"/></svg>',
+    study: '<svg viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4zM20 4h-4a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h4z"/></svg>',
+    prize: '<svg viewBox="0 0 24 24"><path d="M4 10h16v11H4zM2 6h20v4H2zM12 6v15M12 6H8a2 2 0 1 1 2-2c0 1.1 2 2 2 2Zm0 0h4a2 2 0 1 0-2-2c0 1.1-2 2-2 2Z"/></svg>',
+    privilege: '<svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 11H5zM5 21h14"/></svg>'
+  };
+  return icons[type] || icons.prize;
+}
+
+function syncRewardCategoryUi() {
+  const select = document.getElementById('reward-category');
+  if (!select) return;
+  document.querySelectorAll('#modal-manage-rewards .reward-category-card').forEach(button => {
+    const selected = button.dataset.category === select.value;
+    button.classList.toggle('is-selected', selected);
+    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  });
+  updateRewardPreview();
+}
+
+function setRewardPrice(value) {
+  const input = document.getElementById('reward-price');
+  if (!input) return;
+  input.value = value;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function updateRewardPreview() {
+  const nameInput = document.getElementById('reward-name');
+  const priceInput = document.getElementById('reward-price');
+  const categorySelect = document.getElementById('reward-category');
+  const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'Новая награда';
+  const price = Math.max(0, parseInt(priceInput && priceInput.value) || 0);
+  const category = categorySelect ? categorySelect.value : '\u{1F381} Призы';
+  const ui = getRewardCategoryUi(category);
+  const previewName = document.getElementById('reward-preview-name');
+  const previewPrice = document.getElementById('reward-preview-price');
+  const previewIcon = document.getElementById('reward-preview-icon');
+  if (previewName) previewName.textContent = name;
+  if (previewPrice) previewPrice.textContent = price + ' финкоинов';
+  if (previewIcon) { previewIcon.className = 'reward-preview-icon reward-symbol-' + ui.type; previewIcon.innerHTML = getRewardCategoryIcon(category); }
+}
+
+function initRewardsManager() {
+  const modal = document.getElementById('modal-manage-rewards');
+  const categorySelect = document.getElementById('reward-category');
+  if (!modal || !categorySelect) return;
+  if (!modal.dataset.managerReady) {
+    modal.querySelectorAll('.reward-category-card').forEach(button => button.addEventListener('click', () => {
+      categorySelect.value = button.dataset.category;
+      categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }));
+    categorySelect.addEventListener('change', syncRewardCategoryUi);
+    document.getElementById('reward-name').addEventListener('input', updateRewardPreview);
+    document.getElementById('reward-price').addEventListener('input', updateRewardPreview);
+    modal.dataset.managerReady = 'true';
+  }
+  syncRewardCategoryUi();
+}
+
+function addReward() {
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const name = document.getElementById('reward-name').value.trim();
+  const category = document.getElementById('reward-category').value;
+  const price = parseInt(document.getElementById('reward-price').value);
+  const limit = parseInt(document.getElementById('reward-limit').value);
+  if (!name) { showToast('Введите название награды!'); return; }
+  if (!price || price <= 0) { showToast('Введите корректную цену!'); return; }
+  cls.rewards.push({ id: generateId('rew'), name, category, price, limit: limit || 0, image: SHOP_REWARD_IMAGES[cls.rewards.length % SHOP_REWARD_IMAGES.length], createdAt: new Date().toISOString() });
+  saveData();
+  document.getElementById('reward-name').value = '';
+  document.getElementById('reward-price').value = '10';
+  document.getElementById('reward-limit').value = '0';
+  renderRewardsList();
+  updateRewardPreview();
+  window.PirateSound?.play('reward');
+  showToast('Награда «' + name + '» добавлена!');
+}
+
+function deleteReward(rewardId) { const cls = getCurrentClass(); if (!cls) return; cls.rewards = cls.rewards.filter(r => r.id !== rewardId); saveData(); renderRewardsList(); window.PirateSound?.play('reject'); }
+
+function renderRewardsList() {
+  const cls = getCurrentClass();
+  const list = document.getElementById('rewards-list');
+  const total = document.getElementById('rewards-total');
+  list.innerHTML = '';
+  const rewards = cls && Array.isArray(cls.rewards) ? cls.rewards : [];
+  if (total) total.textContent = 'Всего: ' + rewards.length;
+  if (rewards.length === 0) {
+    list.innerHTML = '<div class="rewards-empty"><img src="Сундук закрытый.png" alt=""><strong>Сундук пока пуст</strong><span>Создайте первую награду для учеников</span></div>';
+    return;
+  }
+  list.innerHTML = rewards.map(r => {
+    const ui = getRewardCategoryUi(r.category);
+    const limit = Number(r.limit) > 0 ? 'Лимит: ' + Number(r.limit) : 'Без лимита';
+    return `<article class="reward-manager-item"><span class="reward-manager-icon reward-symbol-${ui.type}">${getRewardCategoryIcon(r.category)}</span><div class="reward-manager-copy"><strong title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</strong><span class="reward-manager-category">${escapeHtml(ui.label)}</span><span class="reward-manager-meta"><b>${Number(r.price) || 0} финкоинов</b><span>${limit}</span></span></div><button class="reward-delete" type="button" onclick="deleteReward('${r.id}')" aria-label="Удалить награду ${escapeHtml(r.name)}"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7m4 4v6m4-6v6"/></svg></button></article>`;
+  }).join('');
+}
+
+const SHOP_REWARD_IMAGES = [
+  'reward-compass.png',
+  'reward-anchor-medal.png',
+  'reward-wheel.png',
+  'reward-pirate-hat.png',
+  'reward-scroll.png',
+  'reward-spyglass.png',
+  'reward-lighthouse.png',
+  'reward-treasure-map.png',
+  'reward-treasure-chest.png',
+  'reward-coin-bag.png'
+];
+
+const SHOP_CATEGORIES = [
+  { id: 'all', label: 'Все', type: 'all' },
+  { id: 'appearance', label: 'Внешний вид', type: 'appearance' },
+  { id: 'study', label: 'Учёба', type: 'study' },
+  { id: 'hints', label: 'Подсказки', type: 'hints' },
+  { id: 'privileges', label: 'Привилегии', type: 'privileges' }
+];
+
+function getShopCategoryIcon(type) {
+  const icons = {
+    all: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    appearance: '<svg viewBox="0 0 24 24"><path d="M3 15c3.5-1.2 5.4-4.3 6.1-9h5.8c.7 4.7 2.6 7.8 6.1 9-3.2 2.7-14.8 2.7-18 0Z"/><path d="M8.5 6 12 3l3.5 3M6 17c2.8 2.2 9.2 2.2 12 0"/></svg>',
+    study: '<svg viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4zM20 4h-4a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h4z"/></svg>',
+    hints: '<svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.3 14.8A7 7 0 1 1 15.7 14.8C14.5 15.7 14 16.6 14 18h-4c0-1.4-.5-2.3-1.7-3.2Z"/></svg>',
+    privileges: '<svg viewBox="0 0 24 24"><path d="m12 2 3 6.2 6.8 1-4.9 4.8 1.2 6.8-6.1-3.2-6.1 3.2 1.2-6.8-4.9-4.8 6.8-1Z"/></svg>'
+  };
+  return icons[type] || icons.all;
+}
+
+function getShopFilterForReward(reward) {
+  const type = getRewardCategoryUi(reward && reward.category).type;
+  if (type === 'study') return 'study';
+  if (type === 'privilege') return 'privileges';
+  if (type === 'treat') return 'hints';
+  return 'appearance';
+}
+
+function getShopRewardImage(reward, index) {
+  return reward && reward.image ? reward.image : SHOP_REWARD_IMAGES[index % SHOP_REWARD_IMAGES.length];
+}
+
+function openShop() { currentShopCategory = 'all'; renderShop(); openModal('modal-shop'); }
+
+function renderShop() {
+  const cls = getCurrentClass();
+  const student = getCurrentStudent();
+  if (!cls || !student) return;
+  document.getElementById('shop-balance').innerHTML = '<img src="Монета.png" alt=""><span>Ваш баланс:</span><strong>' + Number(student.fincoins_balance || 0) + '</strong><span>финкоинов</span>';
+  const cats = document.getElementById('shop-categories');
+  cats.innerHTML = '';
+  SHOP_CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'shop-cat-btn' + (currentShopCategory === cat.id ? ' active' : '');
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', currentShopCategory === cat.id ? 'true' : 'false');
+    btn.innerHTML = '<span class="shop-cat-icon" aria-hidden="true">' + getShopCategoryIcon(cat.type) + '</span><span>' + cat.label + '</span>';
+    btn.onclick = () => { currentShopCategory = cat.id; renderShop(); };
+    cats.appendChild(btn);
+  });
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = '';
+  let rewards = (Array.isArray(cls.rewards) ? cls.rewards : []).map((reward, index) => ({ reward, index }));
+  if (currentShopCategory !== 'all') rewards = rewards.filter(entry => getShopFilterForReward(entry.reward) === currentShopCategory);
+  if (rewards.length === 0) { grid.innerHTML = '<div class="shop-empty"><img src="Сундук закрытый.png" alt=""><strong>В этой категории пока пусто</strong><span>Новые сокровища скоро появятся на витрине</span></div>'; return; }
+  rewards.forEach(entry => {
+    const r = entry.reward;
+    const item = document.createElement('article');
+    item.className = 'shop-item';
+    const picture = document.createElement('div');
+    picture.className = 'shop-item-picture';
+    const rewardImage = document.createElement('img');
+    rewardImage.src = getShopRewardImage(r, entry.index);
+    rewardImage.alt = '';
+    rewardImage.loading = 'lazy';
+    rewardImage.decoding = 'async';
+    picture.appendChild(rewardImage);
+    const nameEl = document.createElement('div');
+    nameEl.className = 'shop-item-name';
+    nameEl.textContent = r.name;
+    const priceDiv = document.createElement('div');
+    priceDiv.className = 'shop-item-price';
+    priceDiv.innerHTML = '<img class="coin-sm" src="Монета.png" alt=""><span>' + Number(r.price || 0) + '</span>';
+    item.appendChild(picture);
+    item.appendChild(nameEl);
+    item.appendChild(priceDiv);
+    const purchased = cls.requests.filter(req => req.reward_id === r.id && req.student_id === student.id && req.status === 'approved').length;
+    const pendingReq = cls.requests.find(req => req.reward_id === r.id && req.student_id === student.id && req.status === 'pending');
+    if (r.limit > 0) {
+      const countEl = document.createElement('div');
+      countEl.className = 'shop-item-count';
+      countEl.textContent = 'Куплено: ' + purchased + '/' + r.limit;
+      item.appendChild(countEl);
+    }
+    const buyBtn = document.createElement('button');
+    if (pendingReq) { buyBtn.className = 'btn btn-small btn-blue'; buyBtn.textContent = 'Ожидает подтверждения'; buyBtn.disabled = true; }
+    else if (student.fincoins_balance < r.price) { buyBtn.className = 'btn btn-small btn-gold'; buyBtn.textContent = 'Недостаточно'; buyBtn.disabled = true; }
+    else if (r.limit > 0 && purchased >= r.limit) { buyBtn.className = 'btn btn-small btn-gold'; buyBtn.textContent = 'Лимит достигнут'; buyBtn.disabled = true; }
+    else { buyBtn.className = 'btn btn-small btn-gold'; buyBtn.textContent = 'Купить'; buyBtn.onclick = () => buyReward(r.id); }
+    item.appendChild(buyBtn);
+    grid.appendChild(item);
+  });
+}
+
+function buyReward(rewardId) {
+  const cls = getCurrentClass();
+  const student = getCurrentStudent();
+  if (!cls || !student) return;
+  const reward = cls.rewards.find(r => r.id === rewardId);
+  if (!reward) return;
+  showConfirm('Купить награду?', 'Вы хотите купить «' + reward.name + '» за ' + reward.price + ' финкоинов. Заявка будет отправлена учителю на подтверждение.', () => {
+    cls.requests.push({ id: generateId('req'), student_id: student.id, reward_id: rewardId, status: 'pending', createdAt: new Date().toISOString(), processedAt: null });
+    saveData();
+    renderShop();
+    showToast('Заявка отправлена! Ожидайте подтверждения.');
+  });
+}
+
+function renderRequests() {
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const pending = cls.requests.filter(r => r.status === 'pending').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const processed = cls.requests.filter(r => r.status !== 'pending').sort((a, b) => new Date(b.processedAt || b.createdAt) - new Date(a.processedAt || a.createdAt)).slice(0, 10);
+  const pendingDiv = document.getElementById('pending-requests');
+  const pendingCount = document.getElementById('pending-requests-count');
+  if (pendingCount) pendingCount.textContent = pending.length;
+  pendingDiv.innerHTML = '';
+  if (pending.length === 0) {
+    pendingDiv.innerHTML = '<div class="requests-empty"><span><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span><strong>Новых заявок нет</strong><small>Здесь появятся покупки, ожидающие вашего решения</small></div>';
+  }
+  else {
+    pending.forEach(req => {
+      const student = cls.students.find(s => s.id === req.student_id);
+      const reward = cls.rewards.find(r => r.id === req.reward_id);
+      if (!student || !reward) return;
+      const card = document.createElement('div');
+      card.className = 'request-card request-card-pending';
+      const rewardIndex = Math.max(0, cls.rewards.findIndex(item => item.id === reward.id));
+      card.innerHTML = '<div class="request-avatar">' + renderStudentAvatar(student) + '</div>' +
+        '<div class="request-info"><div class="request-student-row"><strong class="request-student">' + escapeHtml(student.name) + '</strong><time class="request-date">' + formatDate(req.createdAt) + '</time></div>' +
+        '<div class="request-reward"><span class="request-reward-picture"><img src="' + getShopRewardImage(reward, rewardIndex) + '" alt=""></span><div><strong>' + escapeHtml(reward.name) + '</strong><small><img src="Монета.png" alt="">' + Number(reward.price || 0) + ' финкоинов</small></div></div></div>' +
+        '<div class="request-actions"><button class="request-action request-approve" type="button" aria-label="Одобрить заявку" title="Одобрить"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></button><button class="request-action request-reject" type="button" aria-label="Отклонить заявку" title="Отклонить"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>';
+      card.querySelector('.request-approve').onclick = () => approveRequest(req.id);
+      card.querySelector('.request-reject').onclick = () => rejectRequest(req.id);
+      pendingDiv.appendChild(card);
+    });
+  }
+  const processedDiv = document.getElementById('processed-requests');
+  processedDiv.innerHTML = '';
+  if (processed.length === 0) {
+    processedDiv.innerHTML = '<div class="requests-empty compact"><strong>История пока пуста</strong><small>Обработанные заявки появятся в этом разделе</small></div>';
+  }
+  else {
+    processed.forEach(req => {
+      const student = cls.students.find(s => s.id === req.student_id);
+      const reward = cls.rewards.find(r => r.id === req.reward_id);
+      if (!student || !reward) return;
+      const card = document.createElement('div');
+      const approved = req.status === 'approved';
+      const rewardIndex = Math.max(0, cls.rewards.findIndex(item => item.id === reward.id));
+      card.className = 'request-card request-card-processed';
+      card.innerHTML = '<div class="request-avatar">' + renderStudentAvatar(student) + '</div>' +
+        '<div class="request-info"><div class="request-student-row"><strong class="request-student">' + escapeHtml(student.name) + '</strong><time class="request-date">' + formatDate(req.processedAt || req.createdAt) + '</time></div>' +
+        '<div class="request-reward"><span class="request-reward-picture"><img src="' + getShopRewardImage(reward, rewardIndex) + '" alt=""></span><div><strong>' + escapeHtml(reward.name) + '</strong><small><img src="Монета.png" alt="">' + Number(reward.price || 0) + ' финкоинов</small></div></div></div>' +
+        '<span class="request-status ' + (approved ? 'approved' : 'rejected') + '"><svg viewBox="0 0 24 24">' + (approved ? '<path d="m5 12 4 4L19 6"/>' : '<path d="m6 6 12 12M18 6 6 18"/>') + '</svg>' + (approved ? 'Одобрено' : 'Отклонено') + '</span>';
+      processedDiv.appendChild(card);
+    });
+  }
+  updateRequestsBadge();
+}
+
+function approveRequest(requestId) {
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const req = cls.requests.find(r => r.id === requestId);
+  if (!req || req.status !== 'pending') return;
+  const student = cls.students.find(s => s.id === req.student_id);
+  const reward = cls.rewards.find(r => r.id === req.reward_id);
+  if (!student || !reward) return;
+  student.fincoins_balance -= reward.price;
+  if (student.fincoins_balance < 0) student.fincoins_balance = 0;
+  cls.transactions.push({ id: generateId('txn'), student_id: student.id, amount: -reward.price, type: 'expense', description: 'Покупка: ' + reward.name, timestamp: new Date().toISOString() });
+  req.status = 'approved';
+  req.processedAt = new Date().toISOString();
+  checkAutoAchievements(student, cls);
+  saveData();
+  renderRequests();
+  renderTeacherView();
+  window.PirateSound?.play('confirm');
+  showToast('Заявка одобрена!');
+}
+
+function rejectRequest(requestId) {
+  const cls = getCurrentClass();
+  if (!cls) return;
+  const req = cls.requests.find(r => r.id === requestId);
+  if (!req) return;
+  req.status = 'rejected';
+  req.processedAt = new Date().toISOString();
+  saveData();
+  renderRequests();
+  renderTeacherView();
+  window.PirateSound?.play('reject');
+  showToast('Заявка отклонена');
+}
+
+function updateRequestsBadge() {
+  const cls = getCurrentClass();
+  const badge = document.getElementById('requests-badge');
+  if (!cls) { badge.style.display = 'none'; return; }
+  const count = cls.requests.filter(r => r.status === 'pending').length;
+  if (count > 0) { badge.textContent = count; badge.style.display = 'flex'; }
+  else { badge.style.display = 'none'; }
+}
+
+function checkAutoAchievements(student, cls) {
+  const newAchs = [];
+  if (student.fincoins_balance > 0 && !student.achievements.includes('first_coin')) { student.achievements.push('first_coin'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'first_coin')); }
+  if (student.fincoins_balance >= 50 && !student.achievements.includes('balance_50')) { student.achievements.push('balance_50'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'balance_50')); }
+  if (student.fincoins_balance >= 100 && !student.achievements.includes('balance_100')) { student.achievements.push('balance_100'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'balance_100')); }
+  if (student.fincoins_balance >= 300 && !student.achievements.includes('balance_300')) { student.achievements.push('balance_300'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'balance_300')); }
+  const purchaseCount = cls.transactions.filter(t => t.student_id === student.id && t.type === 'expense' && t.description.startsWith('Покупка:')).length;
+  if (purchaseCount >= 1 && !student.achievements.includes('first_purchase')) { student.achievements.push('first_purchase'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'first_purchase')); }
+  if (purchaseCount >= 5 && !student.achievements.includes('five_purchases')) { student.achievements.push('five_purchases'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'five_purchases')); }
+  if (newAchs.length > 0) { saveData(); newAchs.forEach(a => { showToast('Достижение «' + a.name + '» открыто!'); }); }
+}
+
+function analyticsIcon(name) {
+  const paths = {
+    coin: '<circle cx="12" cy="12" r="8"/><path d="M12 7v10m3-8.2c-.8-.8-1.8-1.2-3-1.2-1.7 0-3 .9-3 2.1 0 3.2 6 1.6 6 4.6 0 1.2-1.3 2.1-3 2.1-1.2 0-2.3-.4-3-1.2"/>',
+    users: '<path d="M16 20v-1.7c0-2.4-2-4.3-4.5-4.3h-5C4 14 2 15.9 2 18.3V20m7-9a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 1c2.8 0 5 1.8 5 4v2m-6-15a4 4 0 0 1 0 7.8"/>',
+    gift: '<path d="M4 10h16v10H4V10Zm-1-4h18v4H3V6Zm9 0v14M12 6C9 6 7 5 7 3.5S8.2 1 9.5 1C11.2 1 12 3.2 12 6Zm0 0c3 0 5-1 5-2.5S15.8 1 14.5 1C12.8 1 12 3.2 12 6Z"/>',
+    file: '<path d="M6 3h8l4 4v14H6V3Zm8 0v5h4M9 12h6m-6 4h6"/>',
+    trophy: '<path d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0V4Zm0 2H3v2a4 4 0 0 0 4 4m10-6h4v2a4 4 0 0 1-4 4"/>',
+    chart: '<path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/>',
+    bag: '<path d="M7 8h10l2 13H5L7 8Zm2 0c0-3 1-5 3-5s3 2 3 5"/>'
+  };
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.chart}</svg>`;
+}
+
+function renderAnalytics() {
+  const cls = getCurrentClass();
+  document.getElementById('analytics-subtitle').textContent = cls ? `${cls.name} · данные об успехах и активности экипажа` : 'Данные об успехах и активности экипажа';
+  renderAnalyticsExportOptions(cls);
+  renderAnalyticsClass(); renderAnalyticsDynamics(); renderAnalyticsTop();
+}
+
+function renderAnalyticsExportOptions(cls) {
+  const select=document.getElementById('analytics-export-target'), button=document.getElementById('analytics-export-button');
+  if(!select||!button)return;
+  const previous=select.value;
+  select.innerHTML='<option value="all">Весь класс</option>'+(cls?.students||[]).map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('');
+  if([...select.options].some(option=>option.value===previous))select.value=previous;
+  button.disabled=!cls;
+}
+
+function analyticsStudentStats(cls,student) {
+  const transactions=(cls.transactions||[]).filter(t=>t.student_id===student.id);
+  const earned=transactions.filter(t=>t.amount>0).reduce((sum,t)=>sum+t.amount,0);
+  const spent=Math.abs(transactions.filter(t=>t.amount<0).reduce((sum,t)=>sum+t.amount,0));
+  const purchases=transactions.filter(t=>t.type==='expense'&&(t.description||'').startsWith('Покупка:')).length;
+  const rewards=(cls.requests||[]).filter(r=>r.student_id===student.id&&r.status==='approved').length;
+  const achievements=(student.achievements||[]).length;
+  return {transactions,earned,spent,purchases,rewards,achievements};
+}
+
+function buildAnalyticsPdfReport(cls,student) {
+  const date=new Date().toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'});
+  const ranking=[...cls.students].sort((a,b)=>(b.fincoins_balance||0)-(a.fincoins_balance||0));
+  const cards=items=>`<div class="analytics-pdf-cards">${items.map(item=>`<div class="analytics-pdf-card"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join('')}</div>`;
+  let title,subtitle,content;
+  if(student){
+    const stats=analyticsStudentStats(cls,student),position=ranking.findIndex(item=>item.id===student.id)+1,rank=getRank(student.fincoins_balance||0).name;
+    const rows=[...stats.transactions].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(t=>`<tr><td>${new Date(t.timestamp).toLocaleDateString('ru-RU')}</td><td>${escapeHtml(t.description|| (t.amount>0?'Начисление':'Списание'))}</td><td>${t.amount>0?'+':''}${t.amount}</td></tr>`).join('');
+    title=`Отчёт ученика: ${escapeHtml(student.name)}`;subtitle=`Класс ${escapeHtml(cls.name)} · позиция в рейтинге ${position||'-'} из ${cls.students.length}`;
+    content=`${cards([[(student.fincoins_balance||0).toLocaleString('ru-RU'),'Текущий баланс'],[stats.earned.toLocaleString('ru-RU'),'Всего заработано'],[stats.spent.toLocaleString('ru-RU'),'Всего потрачено'],[rank,'Текущий ранг']])}<h2>Успеваемость</h2><table class="analytics-pdf-table"><thead><tr><th>Показатель</th><th>Значение</th></tr></thead><tbody><tr><td>Место в классе</td><td>${position||'-'} из ${cls.students.length}</td></tr><tr><td>Достижения</td><td>${stats.achievements}</td></tr><tr><td>Полученные награды</td><td>${stats.rewards}</td></tr><tr><td>Покупки</td><td>${stats.purchases}</td></tr><tr><td>Количество операций</td><td>${stats.transactions.length}</td></tr></tbody></table><h2>История операций</h2><table class="analytics-pdf-table"><thead><tr><th>Дата</th><th>Операция</th><th>Финкоины</th></tr></thead><tbody>${rows||'<tr><td colspan="3">Операций пока нет</td></tr>'}</tbody></table>`;
+  }else{
+    const totalCoins=cls.students.reduce((sum,s)=>sum+(s.fincoins_balance||0),0),transactions=cls.transactions||[];
+    const avg=cls.students.length?Math.round(totalCoins/cls.students.length):0;
+    const rows=ranking.map((s,index)=>{const stats=analyticsStudentStats(cls,s);return `<tr><td>${index+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(getRank(s.fincoins_balance||0).name)}</td><td>${(s.fincoins_balance||0).toLocaleString('ru-RU')}</td><td>${stats.earned.toLocaleString('ru-RU')}</td><td>${stats.spent.toLocaleString('ru-RU')}</td><td>${stats.achievements}</td></tr>`}).join('');
+    title='Общий отчёт класса';subtitle=`Класс ${escapeHtml(cls.name)} · рейтинг и успеваемость всех учеников`;
+    content=`${cards([[cls.students.length,'Учеников'],[totalCoins.toLocaleString('ru-RU'),'Общий баланс'],[avg.toLocaleString('ru-RU'),'Средний баланс'],[transactions.length,'Операций']])}<h2>Общий рейтинг и успеваемость</h2><table class="analytics-pdf-table"><thead><tr><th>Место</th><th>Ученик</th><th>Ранг</th><th>Баланс</th><th>Заработано</th><th>Потрачено</th><th>Достижения</th></tr></thead><tbody>${rows||'<tr><td colspan="7">В классе пока нет учеников</td></tr>'}</tbody></table><div class="analytics-pdf-note">Рейтинг сформирован по текущему балансу. Показатели заработано и потрачено рассчитаны по сохранённой истории операций.</div>`;
+  }
+  const report=document.createElement('article');report.className='analytics-pdf-report';
+  report.innerHTML=`<header class="analytics-pdf-head"><h1>${title}</h1><p>${subtitle}</p></header><main class="analytics-pdf-body"><div class="analytics-pdf-meta"><span>Трекер Прогресса</span><span>Сформировано: ${date}</span></div>${content}</main><footer class="analytics-pdf-foot"><span>Финансовая грамотность как приключение</span><span>${escapeHtml(cls.name)}</span></footer>`;
+  return report;
+}
+
+async function exportAnalyticsPdf() {
+  const cls=getCurrentClass(),select=document.getElementById('analytics-export-target'),button=document.getElementById('analytics-export-button');
+  if(!cls||!select||!button)return;
+  const student=select.value==='all'?null:cls.students.find(s=>s.id===select.value);
+  if(select.value!=='all'&&!student){showToast('Ученик не найден');return}
+  const original=button.querySelector('span').textContent;button.disabled=true;button.querySelector('span').textContent='Формируем…';
+  let report;
+  try{
+    if(typeof html2canvas!=='function'||!window.jspdf?.jsPDF)throw new Error('PDF libraries are unavailable');
+    report=buildAnalyticsPdfReport(cls,student);document.body.appendChild(report);await document.fonts.ready;
+    const canvas=await html2canvas(report,{scale:2,backgroundColor:'#f7f1e2',logging:false,useCORS:true});
+    const {jsPDF}=window.jspdf,pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const margin=8,pageWidth=210,pageHeight=297,usableWidth=pageWidth-margin*2,usableHeight=pageHeight-margin*2;
+    const sliceHeight=Math.floor(canvas.width*usableHeight/usableWidth);let offset=0,page=0;
+    while(offset<canvas.height){const height=Math.min(sliceHeight,canvas.height-offset),slice=document.createElement('canvas');slice.width=canvas.width;slice.height=height;const context=slice.getContext('2d');context.fillStyle='#f7f1e2';context.fillRect(0,0,slice.width,slice.height);context.drawImage(canvas,0,offset,canvas.width,height,0,0,canvas.width,height);if(page>0)pdf.addPage();pdf.addImage(slice.toDataURL('image/jpeg',.94),'JPEG',margin,margin,usableWidth,height*usableWidth/canvas.width,undefined,'FAST');offset+=height;page++}
+    const safe=(student?student.name:cls.name).replace(/[\\/:*?"<>|]+/g,'_').trim()||'отчёт';
+    pdf.save(`Аналитика_${safe}.pdf`);showToast(student?`Отчёт ученика «${student.name}» скачан`:'Общий отчёт класса скачан');
+  }catch(error){console.error(error);showToast('Не удалось сформировать PDF')}
+  finally{report?.remove();button.disabled=false;button.querySelector('span').textContent=original}
+}
+
+function switchAnalyticsTab(tab, button) {
+  document.querySelectorAll('.analytics-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+  document.querySelectorAll('.analytics-content').forEach(c => c.classList.remove('active'));
+  const activeButton = button || event?.currentTarget;
+  activeButton?.classList.add('active');
+  activeButton?.setAttribute('aria-selected','true');
+  document.getElementById('analytics-' + tab).classList.add('active');
+}
+
+function renderAnalyticsClass() {
+  const cls = getCurrentClass(), div = document.getElementById('analytics-class');
+  if (!cls) { div.innerHTML = '<div class="analytics-empty">Создайте класс, чтобы увидеть аналитику.</div>'; return; }
+  const requests=cls.requests||[], transactions=cls.transactions||[];
+  const totalCoins=cls.students.reduce((sum,s)=>sum+(s.fincoins_balance||0),0);
+  const avgBalance=cls.students.length?Math.round(totalCoins/cls.students.length):0;
+  const totalRewards=requests.filter(r=>r.status==='approved').length;
+  const activeRequests=requests.filter(r=>r.status==='pending').length;
+  const activeStudents=cls.students.filter(s=>(s.fincoins_balance||0)>0).length;
+  const activePercent=cls.students.length?Math.round(activeStudents/cls.students.length*100):0;
+  const metric=(icon,value,label,meta)=>`<article class="stat-item"><div class="analytics-stat-top"><span class="analytics-stat-icon">${analyticsIcon(icon)}</span><span class="analytics-stat-meta">${meta}</span></div><div class="stat-value">${value.toLocaleString('ru-RU')}</div><div class="stat-label">${label}</div></article>`;
+  div.innerHTML=`<div class="stat-grid">${metric('coin',totalCoins,'Финкоинов в классе','Баланс')}${metric('users',avgBalance,'Средний баланс ученика','Среднее')}${metric('gift',totalRewards,'Получено наград','Награды')}${metric('file',activeRequests,'Заявок на рассмотрении','В работе')}</div><div class="analytics-overview"><section class="analytics-panel"><h3>Активность экипажа</h3><p>Доля учеников, которые уже начали накапливать финкоины</p><div class="analytics-progress-row"><div><span>Учеников с положительным балансом</span><strong>${activeStudents} из ${cls.students.length}</strong></div><div class="analytics-progress-track"><i style="width:${activePercent}%"></i></div></div></section><section class="analytics-panel"><h3>Сводка класса</h3><p>Ключевые объёмы за всё время</p><div class="analytics-facts"><div class="analytics-fact"><span>Учеников</span><strong>${cls.students.length}</strong></div><div class="analytics-fact"><span>Операций</span><strong>${transactions.length}</strong></div></div></section></div>`;
+}
+
+function renderAnalyticsDynamics() {
+  const cls=getCurrentClass(), div=document.getElementById('analytics-dynamics');
+  if (!cls) { div.innerHTML='<div class="analytics-empty">Нет данных для построения графика.</div>'; return; }
+  const days=[], now=new Date(), transactions=cls.transactions||[];
+  for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);d.setHours(23,59,59,999);days.push(d)}
+  const dataPoints=days.map(day=>{let balance=0;cls.students.forEach(s=>{let b=s.fincoins_balance||0;transactions.filter(t=>t.student_id===s.id&&new Date(t.timestamp)>day).forEach(t=>{b-=t.amount});balance+=Math.max(0,b)});return balance});
+  const maxVal=Math.max(...dataPoints,1), width=820, height=300, padding=52;
+  const points=dataPoints.map((val,i)=>({x:padding+(i/6)*(width-2*padding),y:height-padding-(val/maxVal)*(height-2*padding),val}));
+  const pathD='M '+points.map(p=>p.x+' '+p.y).join(' L ');
+  const areaD=`${pathD} L ${points[points.length-1].x} ${height-padding} L ${points[0].x} ${height-padding} Z`;
+  let svg=`<svg viewBox="0 0 ${width} ${height}"><defs><linearGradient id="analytics-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9bd43" stop-opacity=".28"/><stop offset="1" stop-color="#e9bd43" stop-opacity="0"/></linearGradient></defs>`;
+  for(let i=0;i<=4;i++){const y=padding+(i/4)*(height-2*padding),label=Math.round(maxVal*(1-i/4));svg+=`<line x1="${padding}" y1="${y}" x2="${width-padding}" y2="${y}" stroke="rgba(124,174,194,.16)"/><text x="${padding-12}" y="${y+4}" text-anchor="end" font-size="11" fill="#7898a8">${label}</text>`}
+  svg+=`<path d="${areaD}" fill="url(#analytics-area)"/><path d="${pathD}" fill="none" stroke="#efc64f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  points.forEach(p=>{svg+=`<circle cx="${p.x}" cy="${p.y}" r="5" fill="#062436" stroke="#f2cd60" stroke-width="3"><title>${p.val} финкоинов</title></circle><text x="${p.x}" y="${p.y-14}" text-anchor="middle" font-size="12" fill="#f7d66f" font-weight="700">${p.val}</text>`});
+  days.forEach((d,i)=>{const x=padding+(i/6)*(width-2*padding);svg+=`<text x="${x}" y="${height-18}" text-anchor="middle" font-size="11" fill="#91adba">${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}</text>`});
+  svg+='</svg>';
+  div.innerHTML=`<div class="analytics-section-head"><div><h3>Баланс класса за 7 дней</h3><p>Суммарное количество финкоинов у всех учеников</p></div><span class="analytics-legend"><i></i>Общий баланс</span></div><div class="chart-container">${svg}</div>`;
+}
+
+function renderAnalyticsTop() {
+  const cls=getCurrentClass(), div=document.getElementById('analytics-top');
+  if(!cls||!cls.students.length){div.innerHTML='<div class="analytics-empty">Добавьте учеников, чтобы сформировать рейтинг.</div>';return}
+  const transactions=cls.transactions||[], txCount=s=>transactions.filter(t=>t.student_id===s.id).length;
+  const purchaseCount=s=>transactions.filter(t=>t.student_id===s.id&&t.type==='expense'&&(t.description||'').startsWith('Покупка:')).length;
+  const byBalance=[...cls.students].sort((a,b)=>b.fincoins_balance-a.fincoins_balance).slice(0,5);
+  const byTxns=[...cls.students].sort((a,b)=>txCount(b)-txCount(a)).slice(0,5);
+  const byPurchases=[...cls.students].sort((a,b)=>purchaseCount(b)-purchaseCount(a)).slice(0,5);
+  const panel=(title,icon,students,value,unit)=>`<section class="analytics-rank-panel"><div class="analytics-rank-heading">${analyticsIcon(icon)}<span>${title}</span></div><ul class="top-list">${students.map((s,i)=>`<li><span class="top-rank">${i+1}</span><span class="analytics-person">${escapeHtml((s.name||'?').trim().charAt(0).toUpperCase())}</span><span class="top-name">${escapeHtml(s.name)}</span><span class="top-value">${value(s).toLocaleString('ru-RU')} ${unit}</span></li>`).join('')}</ul></section>`;
+  div.innerHTML=`<div class="analytics-rank-grid">${panel('По балансу','trophy',byBalance,s=>s.fincoins_balance,'')}${panel('По операциям','chart',byTxns,txCount,'оп.')}${panel('По покупкам','bag',byPurchases,purchaseCount,'пок.')}</div>`;
+}
+
+function confirmNewSeason() {
+  showConfirm('Новый сезон', 'Все балансы учеников будут сброшены до 0. История транзакций, заявки и достижения сохранятся. Продолжить?', () => {
+    const cls = getCurrentClass();
+    if (!cls) return;
+    cls.students.forEach(s => { s.fincoins_balance = 0; });
+    saveData();
+    renderTeacherView();
+    window.PirateSound?.play('season');
+    showToast('Сезон сброшен! Все балансы обнулены.');
+  });
+}
+
+function showConfirm(title, text, onConfirm) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-text').textContent = text;
+  document.getElementById('confirm-yes').onclick = () => { closeModal('modal-confirm'); onConfirm(); };
+  openModal('modal-confirm');
+}
+
+function getChestSVG() {
+  return `<svg width="160" height="120" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="45" width="140" height="70" rx="5" fill="#8B4513" stroke="#5D2E0C" stroke-width="2"/>
+    <line x1="40" y1="45" x2="40" y2="115" stroke="#5D2E0C" stroke-width="1.5" opacity="0.5"/>
+    <line x1="70" y1="45" x2="70" y2="115" stroke="#5D2E0C" stroke-width="1.5" opacity="0.5"/>
+    <line x1="100" y1="45" x2="100" y2="115" stroke="#5D2E0C" stroke-width="1.5" opacity="0.5"/>
+    <line x1="130" y1="45" x2="130" y2="115" stroke="#5D2E0C" stroke-width="1.5" opacity="0.5"/>
+    <path d="M10,45 Q80,5 150,45" fill="#A0522D" stroke="#5D2E0C" stroke-width="2"/>
+    <path d="M15,45 Q80,12 145,45" fill="#8B4513" stroke="none"/>
+    <rect x="8" y="42" width="144" height="6" rx="2" fill="#B8860B" stroke="#8B6914" stroke-width="1"/>
+    <rect x="8" y="75" width="144" height="5" rx="2" fill="#B8860B" stroke="#8B6914" stroke-width="1"/>
+    <rect x="8" y="108" width="144" height="5" rx="2" fill="#B8860B" stroke="#8B6914" stroke-width="1"/>
+    <circle cx="20" cy="45" r="3" fill="#DAA520"/><circle cx="140" cy="45" r="3" fill="#DAA520"/>
+    <circle cx="20" cy="77" r="2.5" fill="#DAA520"/><circle cx="140" cy="77" r="2.5" fill="#DAA520"/>
+    <circle cx="20" cy="110" r="2.5" fill="#DAA520"/><circle cx="140" cy="110" r="2.5" fill="#DAA520"/>
+    <path d="M10,45 L25,45 L25,55 L15,55 L15,60 L10,60 Z" fill="#B8860B" opacity="0.7"/>
+    <path d="M150,45 L135,45 L135,55 L145,55 L145,60 L150,60 Z" fill="#B8860B" opacity="0.7"/>
+    <path d="M10,115 L25,115 L25,105 L15,105 L15,100 L10,100 Z" fill="#B8860B" opacity="0.7"/>
+    <path d="M150,115 L135,115 L135,105 L145,105 L145,100 L150,100 Z" fill="#B8860B" opacity="0.7"/>
+    <rect x="70" y="50" width="20" height="18" rx="3" fill="#DAA520" stroke="#8B6914" stroke-width="1.5"/>
+    <circle cx="80" cy="57" r="3" fill="#5D2E0C"/><rect x="78.5" y="57" width="3" height="6" fill="#5D2E0C"/>
+    <ellipse cx="60" cy="30" rx="20" ry="8" fill="rgba(255,255,255,0.1)"/>
+  </svg>`;
+}
+
+function renderTeacherView() {
+  const classSelect = document.getElementById('teacher-class-select');
+  classSelect.innerHTML = '';
+  appData.classes.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id; opt.textContent = c.name;
+    if (c.id === appData.currentClassId) opt.selected = true;
+    classSelect.appendChild(opt);
+  });
+  const cls = getCurrentClass();
+  const grid = document.getElementById('students-grid');
+  grid.innerHTML = '';
+  if (!cls || cls.students.length === 0) {
+    grid.innerHTML = '<p style="text-align:center;color:#a0c4e8;font-size:18px;grid-column:1/-1;padding:40px">Учеников пока нет. Добавьте первого!</p>';
+    updateRequestsBadge();
+    return;
+  }
+  const sorted = [...cls.students].sort((a, b) => b.fincoins_balance - a.fincoins_balance);
+  const isLeader = sorted.length > 0 && sorted[0].fincoins_balance > 0;
+  sorted.forEach((student, index) => {
+    const rank = getRank(student.fincoins_balance);
+    const nextRank = getNextRank(student.fincoins_balance);
+    const progress = getProgressPercent(student.fincoins_balance);
+    const isTop = index === 0 && isLeader;
+    const card = document.createElement('div');
+    card.className = 'student-card' + (isTop ? ' leader' : '');
+    if (isTop) {
+      card.innerHTML += '<div class="spark"></div><div class="spark"></div><div class="spark"></div>';
+      card.innerHTML += '<div class="leader-crown">\u{1F451}</div>';
+    }
+    const delBtn = document.createElement('button');
+    delBtn.className = 'card-delete';
+    delBtn.textContent = '\u2715';
+    delBtn.onclick = () => deleteStudent(student.id);
+    card.appendChild(delBtn);
+    const header = document.createElement('div');
+    header.className = 'card-header';
+    header.innerHTML = `<div class="card-avatar-name"><span class="card-avatar">${student.flag}</span><span class="card-name">${escapeHtml(student.name)}</span></div><span class="rank-badge">${rank.emoji} ${rank.name}</span>`;
+    card.appendChild(header);
+    const chest = document.createElement('div');
+    chest.className = 'card-chest';
+    chest.innerHTML = getChestSVG();
+    card.appendChild(chest);
+    const balance = document.createElement('div');
+    balance.className = 'card-balance';
+    balance.innerHTML = `<div class="coin-icon">\u{1F4B0}</div><span class="balance-amount" data-balance="${student.id}">${student.fincoins_balance}</span>`;
+    card.appendChild(balance);
+    const label = document.createElement('div');
+    label.className = 'card-balance-label';
+    label.textContent = 'финкоинов в сундуке';
+    card.appendChild(label);
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'card-progress';
+    const progressText = nextRank ? `До ранга «${nextRank.name}»: ${nextRank.min - student.fincoins_balance} финкоинов` : 'Максимальный ранг достигнут!';
+    progressDiv.innerHTML = `<div class="card-progress-text">${progressText}</div><div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>`;
+    card.appendChild(progressDiv);
+    const achDiv = document.createElement('div');
+    achDiv.className = 'card-achievements';
+    AUTO_ACHIEVEMENTS.forEach(a => { if (student.achievements.includes(a.id)) { const icon = document.createElement('img'); icon.className = 'achievement-icon achievement-image'; icon.src = a.iconPath || 'assets/achievements/12-star.png'; icon.alt = ''; icon.title = a.name; achDiv.appendChild(icon); } });
+    if (cls.achievements) { cls.achievements.forEach(a => { if (a.awarded_to && a.awarded_to.includes(student.id)) { const icon = document.createElement('img'); icon.className = 'achievement-icon achievement-image'; icon.src = a.iconPath || 'assets/achievements/02-compass.png'; icon.alt = ''; icon.title = a.name; achDiv.appendChild(icon); } }); }
+    if (achDiv.children.length > 0) card.appendChild(achDiv);
+    const actionButtons = document.createElement('div');
+    actionButtons.className = 'card-action-buttons';
+    actionButtons.innerHTML = `<button class="btn-add-coin" onclick="openTransactionModal('${student.id}', 'income')"><span class="coin-btn-icon">\u{1F4B0}</span><span>Прибавить</span></button><button class="btn-sub-coin" onclick="openTransactionModal('${student.id}', 'expense')"><span class="coin-btn-icon red">\u{1F4B0}</span><span>Убавить</span></button>`;
+    card.appendChild(actionButtons);
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'card-bottom-row';
+    bottomRow.innerHTML = `<button class="btn-detail" onclick="openTransactionModal('${student.id}', 'income')">\u{1F4B0} Подробнее</button><button class="btn-achieve" onclick="openAwardAchievement('${student.id}')" title="Выдать достижение">\u{1F3C6}</button>`;
+    card.appendChild(bottomRow);
+    const historyLink = document.createElement('div');
+    historyLink.className = 'card-history-link';
+    historyLink.innerHTML = `<a onclick="openHistory('${student.id}')">\u{1F4DC} Журнал операций</a>`;
+    card.appendChild(historyLink);
+    grid.appendChild(card);
+  });
+  updateRequestsBadge();
+}
+
+function getCurrentStudent() {
+  if (!appData.currentUser || appData.currentUser.role !== 'student') return null;
+  const cls = appData.classes.find(c => c.id === appData.currentUser.classId);
+  if (!cls) return null;
+  return cls.students.find(s => s.id === appData.currentUser.studentId) || null;
+}
+
+function renderStudentView() {
+  const cls = getCurrentClass();
+  const student = getCurrentStudent();
+  if (!cls || !student) { logout(); return; }
+  const rank = getRank(student.fincoins_balance);
+  const nextRank = getNextRank(student.fincoins_balance);
+  const progress = getProgressPercent(student.fincoins_balance);
+  const profileCard = document.getElementById('student-profile-card');
+  const progressText = nextRank ? `До ранга «${nextRank.name}»: ${nextRank.min - student.fincoins_balance} финкоинов` : '\u{1F451} Максимальный ранг достигнут!';
+  profileCard.innerHTML = `<div class="profile-avatar">${student.flag}</div><div class="profile-name">${escapeHtml(student.name)}</div><div class="profile-rank">${rank.emoji} ${rank.name}</div>${getChestSVG()}<div class="profile-balance"><div class="coin-icon">\u{1F4B0}</div><span class="balance-amount">${student.fincoins_balance}</span></div><div style="font-size:13px;color:#7a6a4f;margin-bottom:8px">финкоинов в сундуке</div><div class="card-progress"><div class="card-progress-text">${progressText}</div><div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div></div>`;
+  const lb = document.getElementById('student-leaderboard');
+  const sorted = [...cls.students].sort((a, b) => b.fincoins_balance - a.fincoins_balance).slice(0, 10);
+  let lbHtml = '<h3>\u{1F3C6} Лидерборд класса</h3>';
+  sorted.forEach((s, i) => {
+    const isCurrent = s.id === student.id;
+    const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
+    const rankStr = i < 3 ? medals[i] : (i + 1);
+    lbHtml += `<div class="leaderboard-item ${isCurrent ? 'current' : ''}"><span class="lb-rank">${rankStr}</span><span class="lb-avatar">${s.flag}</span><span class="lb-name">${escapeHtml(s.name)}${isCurrent ? ' (вы)' : ''}</span><span class="lb-balance">${s.fincoins_balance}</span></div>`;
+  });
+  lb.innerHTML = lbHtml;
+  const achSection = document.getElementById('student-achievements-section');
+  let achHtml = '<h3>\u{1F3C6} Мои достижения</h3><div class="achievements-grid">';
+  AUTO_ACHIEVEMENTS.forEach(a => { const earned = student.achievements.includes(a.id); achHtml += `<div class="achievement-card" style="opacity:${earned ? 1 : 0.3}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/12-star.png'}" alt=""><div class="name">${a.name}</div><div class="desc">${a.desc}</div></div>`; });
+  const awardedSnapshots = Array.isArray(student.awardedAchievements) ? student.awardedAchievements : [];
+  awardedSnapshots.forEach(a => { const rarity = a.raritySnapshot || 'common'; const coins = Number(a.fincoinsSnapshot) || 0; achHtml += `<div class="achievement-card rarity-${rarity}"><img class="achievement-medal-image" src="${a.iconPathSnapshot || 'assets/achievements/02-compass.png'}" alt=""><div class="name">${escapeHtml(a.titleSnapshot || 'Достижение')}</div><div class="cabin-badge rarity-${rarity}">${typeof achievementRarityLabel === 'function' ? achievementRarityLabel(rarity) : rarity}</div><div class="desc">${escapeHtml(a.descriptionSnapshot || '')}</div><div class="student-achievement-date">Получено: ${new Date(a.awardedAt).toLocaleDateString('ru-RU')}</div>${coins ? `<div class="student-achievement-coins">+${coins} финкоинов</div>` : ''}</div>`; });
+  if (cls.achievements) { cls.achievements.forEach(a => { const earned = a.awarded_to && a.awarded_to.includes(student.id); const hasSnapshot = awardedSnapshots.some(s => s.achievementId === a.id); if (earned && !hasSnapshot) { achHtml += `<div class="achievement-card rarity-${a.rarity || 'common'}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/02-compass.png'}" alt=""><div class="name">${escapeHtml(a.name)}</div><div class="desc">${escapeHtml(a.description || '')}</div></div>`; } }); }
+  achHtml += '</div>';
+  achSection.innerHTML = achHtml;
+  const journalDiv = document.getElementById('student-journal');
+  const txns = cls.transactions.filter(t => t.student_id === student.id).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20);
+  let jHtml = '<h3>\u{1F4DC} Последние операции</h3>';
+  if (txns.length === 0) { jHtml += '<p style="text-align:center;color:#7a6a4f;padding:10px">Операций пока нет</p>'; }
+  else { txns.forEach(txn => { jHtml += `<div class="history-item ${txn.amount > 0 ? 'income' : 'expense'}"><span class="history-icon">${txn.amount > 0 ? '\u{1F4B0}' : '\u{1F4B8}'}</span><div class="history-details"><div class="history-desc">${txn.amount > 0 ? 'Начислено' : 'Списано'}</div><div class="history-date">${escapeHtml(txn.description)} \u2022 ${formatDate(txn.timestamp)}</div></div><span class="history-amount ${txn.amount > 0 ? 'positive' : 'negative'}">${txn.amount > 0 ? '+' : ''}${txn.amount}</span></div>`; }); }
+  journalDiv.innerHTML = jHtml;
+}
+
+function createStars() {
+  const container = document.getElementById('stars-container');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 70 + '%';
+    star.style.animationDelay = Math.random() * 3 + 's';
+    star.style.animationDuration = (2 + Math.random() * 3) + 's';
+    star.style.width = (2 + Math.random() * 3) + 'px';
+    star.style.height = star.style.width;
+    container.appendChild(star);
+  }
+}
+
+function createFloatingIcons() {
+  const container = document.getElementById('floating-icons');
+  const icons = ['\u{1F4B0}', '\u{1F3C6}', '\u2693', '\u{1F3F4}\u200D\u2620\uFE0F', '\u{1F48E}', '\u2B50', '\u{1F988}', '\u{1F419}'];
+  for (let i = 0; i < 15; i++) {
+    const icon = document.createElement('div');
+    icon.className = 'floating-icon';
+    icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+    icon.style.left = Math.random() * 100 + '%';
+    icon.style.animationDuration = (12 + Math.random() * 8) + 's';
+    icon.style.animationDelay = Math.random() * 10 + 's';
+    icon.style.fontSize = (20 + Math.random() * 15) + 'px';
+    container.appendChild(icon);
+  }
+  for (let i = 0; i < 10; i++) {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    const size = 10 + Math.random() * 20;
+    bubble.style.width = size + 'px';
+    bubble.style.height = size + 'px';
+    bubble.style.left = Math.random() * 100 + '%';
+    bubble.style.animationDuration = (6 + Math.random() * 6) + 's';
+    bubble.style.animationDelay = Math.random() * 8 + 's';
+    container.appendChild(bubble);
+  }
+}
+
+function init() {
+  loadData();
+  createStars();
+  createFloatingIcons();
+  if (appData.currentUser) {
+    if (appData.currentUser.role === 'teacher') { showView('teacher-view'); renderTeacherView(); }
+    else if (appData.currentUser.role === 'student') { showView('student-view'); renderStudentView(); }
+  }
+}
+
+init();
+</script>
+<script src="sound.js?v=3"></script>
+<script src="teacher.js?v=13"></script>
+<script src="login.js?v=8"></script>
+<script src="student-dashboard.js?v=15"></script>
+<script src="achievement-cabin.js?v=2"></script>
+<script type="module" src="firebase-sync.js?v=1"></script>
+</body>
+</html>

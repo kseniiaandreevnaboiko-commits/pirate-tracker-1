@@ -1,0 +1,132 @@
+/* PIN routes extend the existing login scene without changing its start screen. */
+#login-view.active:not(.lr-view),#teacher-view.active:not(.td-view),#student-view.active:not(.sd-view){visibility:hidden}
+.pin-page { display:none; }
+.pin-page.active { display:block; }
+.lr-screen.is-pin-route .lr-cards { display:none!important; }
+.lr-screen.is-pin-route .lr-center { width:min(1040px,calc(100vw - 300px)); }
+.lr-screen.is-pin-route .lr-header { top:1.2%; }
+.lr-screen.is-pin-route .lr-compass { width:clamp(58px,7.2vh,74px); height:clamp(58px,7.2vh,74px); margin-bottom:-5px; }
+.lr-screen.is-pin-route .lr-header h1 { font-size:clamp(42px,3.3vw,58px); line-height:.88; }
+.lr-screen.is-pin-route .lr-title-rule { height:20px; }
+.lr-screen.is-pin-route .lr-title-rule svg { width:20px; height:20px; }
+.lr-screen.is-pin-route .lr-header>p { font-size:clamp(13px,1vw,17px); }
+.lr-screen.is-pin-route .lr-motto { margin-top:5px; }
+.lr-screen.is-pin-route .lr-motto strong { font-size:10px; }
+.lr-screen.is-pin-route .lr-footer { bottom:17px; font-size:11px; }
+
+.pin-dialog,.pin-dialog * { box-sizing:border-box; }
+.pin-dialog { position:absolute; left:50%; color:#f8f1df; border:1px solid rgba(224,171,56,.96); background:linear-gradient(145deg,rgba(4,35,47,.985),rgba(2,19,30,.995)); box-shadow:0 22px 54px rgba(0,0,0,.68),inset 0 0 0 2px rgba(212,150,39,.14),0 0 24px rgba(225,165,43,.12); font-family:Manrope,'Segoe UI',sans-serif; animation:pin-rise .3s ease-out both; }
+.pin-dialog::before,.pin-dialog::after { content:""; position:absolute; width:38px; height:38px; pointer-events:none; }
+.pin-dialog::before { left:8px; top:8px; border-left:2px solid #d9a338; border-top:2px solid #d9a338; border-radius:12px 0 0; }
+.pin-dialog::after { right:8px; bottom:8px; border-right:2px solid #d9a338; border-bottom:2px solid #d9a338; border-radius:0 0 12px; }
+.pin-teacher-dialog { top:clamp(180px,26%,280px); width:430px; min-height:500px; padding:48px 58px 20px; transform:translateX(-50%); border-radius:24px; text-align:center; }
+.pin-emblem { position:absolute; top:-40px; left:50%; width:80px; height:80px; display:grid; place-items:center; transform:translateX(-50%); border:2px solid #e5b243; border-radius:50%; background:radial-gradient(circle at 40% 35%,#174e62,#031521 75%); box-shadow:0 0 0 4px rgba(3,20,29,.9),0 0 22px rgba(236,179,55,.35),inset 0 0 15px #000; }
+.pin-emblem svg { width:49px; height:49px; fill:#f2c55a; }
+.pin-dialog h2 { margin:0; color:#ffe49a; font:700 34px/1.05 'Cormorant Garamond',Georgia,serif; text-shadow:0 2px 3px #000; }
+.pin-dialog>p,.pin-student-auth>p,.pin-student-picker header p { margin:8px 0 12px; color:#cfd8dc; font-size:13px; }
+.pin-slots { display:flex; justify-content:center; gap:10px; min-height:50px; }
+.pin-slots i { position:relative; width:42px; height:42px; border:1px solid rgba(232,184,71,.9); border-radius:7px; background:linear-gradient(150deg,rgba(117,85,42,.55),rgba(47,43,35,.7)); box-shadow:inset 0 0 9px rgba(0,0,0,.45),0 1px 0 rgba(255,225,139,.18); }
+.pin-slots i.filled::after { content:""; position:absolute; left:50%; top:50%; width:11px; height:11px; transform:translate(-50%,-50%); border-radius:50%; background:#ffd86f; box-shadow:0 0 9px rgba(255,201,70,.62); }
+.pin-message { min-height:20px; margin:2px 0 3px!important; color:#ff8379!important; font-size:12px!important; font-weight:700; }
+.pin-message.success { color:#72e7a5!important; }
+.pin-keypad { width:220px; margin:0 auto 12px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.pin-keypad button { width:52px; height:44px; justify-self:center; padding:0; border:1px solid rgba(223,171,57,.88); border-radius:50%; color:#fff5dc; background:linear-gradient(145deg,rgba(8,43,57,.94),rgba(3,21,31,.98)); box-shadow:inset 0 0 10px rgba(0,0,0,.38),0 3px 8px rgba(0,0,0,.35); font:700 19px/1 Manrope,'Segoe UI',sans-serif; cursor:pointer; transition:transform .14s,background .14s,box-shadow .14s; }
+.pin-keypad button:hover { background:linear-gradient(145deg,#17566d,#062b3d); box-shadow:0 0 13px rgba(230,174,54,.28); transform:translateY(-1px); }
+.pin-keypad button:active { transform:translateY(1px) scale(.96); }
+.pin-keypad .pin-key-special { color:#efbd4d; font-size:20px; }
+.pin-submit { width:100%; min-height:43px; display:flex; align-items:center; justify-content:center; gap:14px; padding:0 22px; border:1px solid #ffe493; border-radius:11px; color:#211405; background:linear-gradient(180deg,#ffe28a,#efba4f 55%,#cc891b); box-shadow:inset 0 1px #fff9ce,0 6px 14px rgba(92,52,5,.45); font-size:14px; font-weight:800; cursor:pointer; }
+.pin-submit:hover { filter:brightness(1.08); }
+.pin-submit svg { width:28px; fill:none; stroke:currentColor; stroke-width:1.8; }
+.pin-home { position:relative; z-index:2; margin-top:11px; padding:4px 9px; border:0; color:#e9be5b; background:transparent; font:600 13px/1.2 Manrope,'Segoe UI',sans-serif; cursor:pointer; }
+.pin-home:hover { color:#ffe198; }
+
+.pin-student-dialog { top:22.5%; width:min(930px,100%); height:535px; padding:25px 25px 46px; transform:translateX(-50%); border-radius:24px; display:grid; grid-template-columns:minmax(0,1.35fr) minmax(290px,.8fr); gap:25px; }
+.pin-student-picker { min-width:0; padding:0 23px 0 3px; border-right:1px solid rgba(210,161,56,.37); }
+.pin-student-picker header { min-height:59px; }
+.pin-student-picker header h2 { font-size:29px; }
+.pin-student-picker header p { margin:4px 0 8px; }
+.pin-class-row { height:34px; margin-bottom:9px; display:flex; align-items:center; justify-content:space-between; color:#edc86e; font-size:13px; font-weight:700; }
+.pin-class-row[hidden] { display:none; }
+.pin-class-row select { min-width:145px; height:32px; padding:0 30px 0 12px; border:1px solid rgba(221,170,57,.7); border-radius:8px; color:#f8edcf; background:#072737; font-size:12px; outline:none; }
+.pin-student-grid { min-height:342px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:repeat(2,1fr); gap:12px; }
+.pin-student-card { min-width:0; padding:7px 6px 5px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid rgba(207,150,40,.58); border-radius:13px; color:#f9f2df; background:linear-gradient(150deg,rgba(6,36,47,.9),rgba(3,18,27,.96)); box-shadow:inset 0 0 15px rgba(0,0,0,.24); cursor:pointer; transition:border-color .2s,box-shadow .2s,transform .2s; overflow:hidden; }
+.pin-student-card:hover { transform:translateY(-2px); border-color:#e9b54b; }
+.pin-student-card.selected { border-color:#ffe17f; box-shadow:0 0 0 2px rgba(238,175,47,.55),0 0 20px rgba(242,181,50,.42),inset 0 0 18px rgba(209,146,31,.1); }
+.pin-student-card>span { width:84px; height:84px; flex:0 0 84px; overflow:hidden; border:2px solid #c9942d; border-radius:50%; background:#093147; }
+.pin-student-card>span img { width:100%; height:100%; display:block; object-fit:cover; filter:none!important; }
+.pin-student-card strong { width:100%; margin-top:5px; overflow:hidden; color:#fff4db; font-size:13px; line-height:17px; text-overflow:ellipsis; white-space:nowrap; }
+.pin-student-card small { color:#e59b79; font-size:9px; line-height:11px; }
+.pin-empty { grid-column:1/-1; align-self:center; color:#b8c9cf; text-align:center; }
+.pin-pagination { height:28px; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:12px; color:#dcb352; font-size:12px; }
+.pin-pagination button { width:27px; height:27px; padding:0; border:1px solid rgba(220,170,61,.7); border-radius:50%; color:#f3ca67; background:#062433; cursor:pointer; }
+.pin-student-auth { padding:2px 6px; display:flex; flex-direction:column; align-items:center; text-align:center; transition:opacity .2s; }
+.pin-student-auth.disabled .pin-slots,.pin-student-auth.disabled .pin-keypad,.pin-student-auth.disabled .pin-submit { opacity:.34; }
+.pin-selected-avatar { width:94px; height:94px; display:grid; place-items:center; overflow:hidden; border:2px solid #e5b342; border-radius:50%; background:radial-gradient(circle,#15566b,#031923); box-shadow:0 0 0 4px rgba(4,26,36,.9),0 0 17px rgba(229,173,55,.32); }
+.pin-selected-avatar img { width:100%; height:100%; display:block; object-fit:cover; filter:none!important; }
+.pin-selected-avatar svg { width:54px; height:54px; fill:#e8bb55; }
+.pin-student-auth h2 { max-width:100%; margin-top:8px; overflow:hidden; font-size:27px; text-overflow:ellipsis; white-space:nowrap; }
+.pin-student-auth>p { min-height:18px; margin:3px 0 6px; }
+.pin-student-auth .pin-slots i { width:34px; height:34px; }
+.pin-student-auth .pin-slots { min-height:41px; }
+.pin-student-auth .pin-message { margin:0!important; }
+.pin-student-auth .pin-keypad { width:185px; gap:5px; margin-bottom:7px; }
+.pin-student-auth .pin-keypad button { width:42px; height:36px; font-size:16px; }
+.pin-student-auth .pin-submit { width:210px; min-height:39px; }
+.pin-student-home { position:absolute; left:50%; bottom:12px; transform:translateX(-50%); margin:0; }
+.pin-teacher-dialog.pin-shake { animation:pin-teacher-shake .32s ease; }
+.pin-student-auth.pin-shake { animation:pin-shake .32s ease; }
+
+.add-student-pin-field { margin-top:-3px; }
+.add-student-pin-field small { display:block; margin-top:6px; color:#7798a8; font:500 12px/1.35 Manrope,'Segoe UI',sans-serif; }
+.add-student-pin-field input { letter-spacing:.35em; }
+.student-pin-modal { width:min(430px,calc(100vw - 30px)); overflow:hidden; border:1px solid #d6a02e!important; border-radius:20px!important; background:linear-gradient(145deg,#082f40,#031b28)!important; color:#f6eedc; font-family:Manrope,'Segoe UI',sans-serif!important; }
+.student-pin-modal-header { display:flex; align-items:center; gap:15px; padding:23px 25px 18px; border-bottom:1px solid rgba(215,165,51,.28); }
+.student-pin-modal-header>span { width:52px; height:52px; display:grid; place-items:center; border:1px solid #d6a236; border-radius:14px; background:#103e4e; font-size:24px; }
+.student-pin-modal-header h2 { margin:0; color:#ffe095; font:700 25px/1.08 'Cormorant Garamond',Georgia,serif; }
+.student-pin-modal-header p { margin:4px 0 0; color:#a9c0c9; font-size:13px; }
+.student-pin-modal-body { padding:20px 25px 25px; }
+.student-pin-modal-body label { display:block; margin-bottom:7px; color:#d5e1e5; font-size:13px; font-weight:700; }
+.student-pin-modal-body input { width:100%; height:48px; padding:0 15px; border:1px solid #3c7287; border-radius:10px; color:#fff; background:#041d2a; font:700 18px Manrope,'Segoe UI',sans-serif; letter-spacing:.35em; outline:none; }
+.student-pin-modal-body input:focus { border-color:#e1ae42; box-shadow:0 0 0 3px rgba(225,174,66,.13); }
+.student-pin-modal-body>p { min-height:20px; margin:5px 0; color:#ff8178; font-size:12px; }
+.student-pin-modal-body>div { display:flex; gap:10px; }
+.student-pin-modal-body button { flex:1; height:42px; border:1px solid #34677b; border-radius:10px; color:#d6e4e9; background:#0b3546; font-weight:700; cursor:pointer; }
+.student-pin-modal-body button:last-child { border-color:#f0ca6f; color:#221505; background:linear-gradient(#ffe08a,#e8a934); }
+
+@keyframes pin-rise { from { opacity:0; transform:translate(-50%,12px); } to { opacity:1; transform:translate(-50%,0); } }
+@keyframes pin-shake { 20%,60% { transform:translateX(-5px); } 40%,80% { transform:translateX(5px); } }
+@keyframes pin-teacher-shake { 20%,60% { transform:translateX(calc(-50% - 5px)); } 40%,80% { transform:translateX(calc(-50% + 5px)); } }
+
+@media (max-height:780px) {
+  .lr-screen.is-pin-route .lr-header { top:.4%; }
+  .lr-screen.is-pin-route .lr-compass { width:52px; height:52px; }
+  .lr-screen.is-pin-route .lr-header h1 { font-size:40px; }
+  .lr-screen.is-pin-route .lr-header>p { font-size:12px; }
+  .lr-screen.is-pin-route .lr-motto,.lr-screen.is-pin-route .lr-title-rule { display:none; }
+  .pin-teacher-dialog { top:clamp(175px,25%,200px); min-height:0; height:490px; padding-top:44px; }
+  .pin-student-dialog { top:16%; height:535px; }
+  .lr-screen.is-pin-route .lr-footer { display:none; }
+}
+@media (max-width:1300px) {
+  .lr-screen.is-pin-route .lr-center { width:min(940px,calc(100vw - 230px)); }
+  .pin-student-dialog { width:min(850px,100%); grid-template-columns:minmax(0,1.2fr) minmax(270px,.8fr); gap:18px; padding-left:20px; padding-right:20px; }
+  .pin-student-card>span { width:72px; height:72px; flex-basis:72px; }
+}
+@media (max-width:980px) {
+  .lr-screen.is-pin-route .lr-center { width:calc(100vw - 28px); }
+  .lr-screen.is-pin-route .lr-left-inscription,.lr-screen.is-pin-route .lr-right-barrel { opacity:.35; }
+  .pin-student-dialog { width:min(720px,100%); grid-template-columns:1fr 240px; }
+  .pin-student-grid { grid-template-columns:repeat(3,1fr); }
+  .pin-student-auth .pin-submit { width:185px; }
+}
+@media (max-width:720px) {
+  #login-view.lr-view { overflow:auto!important; }
+  .lr-screen.is-pin-route { min-height:980px; overflow:hidden; }
+  .lr-screen.is-pin-route .lr-header h1 { font-size:36px; }
+  .lr-screen.is-pin-route .lr-audio-control { right:10px; }
+  .pin-teacher-dialog { top:170px; width:min(420px,calc(100vw - 28px)); }
+  .pin-student-dialog { top:150px; width:min(470px,calc(100vw - 24px)); height:auto; min-height:790px; grid-template-columns:1fr; grid-template-rows:auto auto; padding-bottom:48px; }
+  .pin-student-picker { padding:0 0 14px; border-right:0; border-bottom:1px solid rgba(210,161,56,.37); }
+  .pin-student-grid { min-height:300px; }
+  .pin-student-home { bottom:12px; }
+}
