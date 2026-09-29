@@ -220,7 +220,7 @@
   padding: 16px;
   background:
     linear-gradient(180deg, rgba(1, 9, 17, .58), rgba(1, 10, 18, .76)),
-    url('reward-shop-pirate-cove-v1.png') center / cover no-repeat;
+    url('reward-shop-pirate-cove-v1.webp') center / cover no-repeat;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
 }
@@ -238,7 +238,7 @@
   color: #eef7fc;
   background:
     linear-gradient(180deg, rgba(3, 18, 31, .66), rgba(3, 22, 38, .88)),
-    url('reward-shop-pirate-cove-v1.png') center 48% / cover no-repeat;
+    url('reward-shop-pirate-cove-v1.webp') center 48% / cover no-repeat;
   border: 1px solid rgba(232, 177, 67, .62);
   border-radius: 26px;
   box-shadow: 0 28px 80px rgba(0,0,0,.68), 0 0 30px rgba(227,174,57,.10), inset 0 1px rgba(255,238,184,.08);
@@ -269,7 +269,7 @@
   width: 260px;
   height: 235px;
   opacity: .10;
-  background: url('reward-treasure-chest.png') center / contain no-repeat;
+  background: url('reward-treasure-chest.webp') center / contain no-repeat;
   filter: saturate(.8) drop-shadow(0 0 25px #d98d22);
 }
 
@@ -583,7 +583,7 @@
 }
 /* Purchase confirmation follows the same parchment and brass visual system as the shop. */
 #modal-confirm{background:rgba(1,10,17,.82);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
-#modal-confirm .modal{position:relative;width:min(610px,calc(100vw - 34px));max-width:none;padding:52px 66px 52px;overflow:visible;color:#38230e;background:linear-gradient(rgba(255,240,193,.88),rgba(229,191,116,.92)),url('свиток.png') center/100% 100% no-repeat;border:0;border-radius:12px;box-shadow:0 25px 70px rgba(0,0,0,.72),0 0 30px rgba(233,177,54,.16);text-align:center}
+#modal-confirm .modal{position:relative;width:min(610px,calc(100vw - 34px));max-width:none;padding:52px 66px 52px;overflow:visible;color:#38230e;background:linear-gradient(rgba(255,240,193,.88),rgba(229,191,116,.92)),url('свиток.webp') center/100% 100% no-repeat;border:0;border-radius:12px;box-shadow:0 25px 70px rgba(0,0,0,.72),0 0 30px rgba(233,177,54,.16);text-align:center}
 #modal-confirm .modal:before{content:none;display:none}
 #modal-confirm #confirm-title{margin:0;color:#3a240f!important;font:800 34px/1.05 Georgia,serif;text-shadow:0 1px rgba(255,255,255,.5)}
 #modal-confirm .confirm-text{max-width:470px;margin:22px auto 28px;color:#563718;font:600 18px/1.55 Georgia,serif}

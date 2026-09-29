@@ -4,6 +4,7 @@ output/
 
 # Local backup files
 index.original.html
+firebase-debug.log
 
 # Common editor and OS files
 .DS_Store
@@ -13,4 +14,3 @@ Thumbs.db
 
 # Dependency folders if tooling is added later
 node_modules/
-

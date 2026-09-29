@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Трекер Прогресса — Финансовая грамотность</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@600;700&display=swap">
+<link rel="preload" as="image" href="login-scene-v3.webp" type="image/webp" fetchpriority="high">
 <style>
 :root {
   --bg-dark: #0a1628;
@@ -1258,20 +1262,20 @@ body {
   border-color: #922b21;
 }
 </style>
-<link rel="stylesheet" href="redesign.css">
-<link rel="stylesheet" href="teacher.css?v=15">
-<link rel="stylesheet" href="login.css?v=5">
-<link rel="stylesheet" href="pin-login.css?v=5">
-<link rel="stylesheet" href="student-modal.css">
-<link rel="stylesheet" href="reward-modal.css?v=4">
-<link rel="stylesheet" href="achievement-cabin.css?v=1">
-<link rel="stylesheet" href="analytics.css?v=1">
-<link rel="stylesheet" href="sound.css?v=2">
-<link rel="stylesheet" href="student-dashboard.css?v=15">
-<link rel="stylesheet" href="transaction-modal.css?v=2">
-<link rel="stylesheet" href="history-modal.css?v=1">
-<link rel="stylesheet" href="selection-backdrops.css?v=1">
-<link rel="stylesheet" href="typography.css?v=1">
+<link rel="stylesheet" href="redesign.css?v=20260929">
+<link rel="stylesheet" href="teacher.css?v=20260929">
+<link rel="stylesheet" href="login.css?v=20260929">
+<link rel="stylesheet" href="pin-login.css?v=20260929">
+<link rel="stylesheet" href="student-modal.css?v=20260929">
+<link rel="stylesheet" href="reward-modal.css?v=20260929">
+<link rel="stylesheet" href="achievement-cabin.css?v=20260929">
+<link rel="stylesheet" href="analytics.css?v=20260929">
+<link rel="stylesheet" href="sound.css?v=20260929">
+<link rel="stylesheet" href="student-dashboard.css?v=20260929">
+<link rel="stylesheet" href="transaction-modal.css?v=20260929">
+<link rel="stylesheet" href="history-modal.css?v=20260929">
+<link rel="stylesheet" href="selection-backdrops.css?v=20260929">
+<link rel="stylesheet" href="typography.css?v=20260929">
 </head>
 <body>
 
@@ -1443,9 +1447,9 @@ body {
       <div><span class="txn-eyebrow">Операция с балансом</span><h2 id="transaction-title">Финкоины ученика</h2></div>
     </header>
     <section class="txn-student" aria-label="Выбранный ученик">
-      <div class="txn-avatar-wrap"><img id="txn-student-avatar" src="student-avatar-captain-boy.png" alt=""></div>
+      <div class="txn-avatar-wrap"><img id="txn-student-avatar" src="student-avatar-captain-boy.webp" alt=""></div>
       <div class="txn-student-copy"><strong id="txn-student-name">Ученик</strong><span id="txn-student-rank">Юнга</span></div>
-      <div class="txn-current"><span>Сейчас на счету</span><strong><img src="Монета.png" alt=""> <b id="txn-current-balance">0</b></strong></div>
+      <div class="txn-current"><span>Сейчас на счету</span><strong><img src="Монета.webp" alt=""> <b id="txn-current-balance">0</b></strong></div>
     </section>
     <div class="txn-type-switch" role="group" aria-label="Тип операции">
       <button type="button" id="txn-type-add" onclick="setTxnType('income')" aria-pressed="true"><span class="txn-type-icon">+</span><span><strong>Начислить</strong><small>Пополнить баланс</small></span></button>
@@ -1453,7 +1457,7 @@ body {
     </div>
     <section class="txn-amount-section">
       <label for="txn-amount">Количество финкоинов</label>
-      <div class="txn-amount-control"><span id="txn-amount-sign">+</span><input type="number" id="txn-amount" value="1" min="1" inputmode="numeric" aria-describedby="txn-balance-preview"><img src="Монета.png" alt="финкоинов"></div>
+      <div class="txn-amount-control"><span id="txn-amount-sign">+</span><input type="number" id="txn-amount" value="1" min="1" inputmode="numeric" aria-describedby="txn-balance-preview"><img src="Монета.webp" alt="финкоинов"></div>
       <div class="quick-amounts" aria-label="Быстрый выбор суммы">
         <button type="button" onclick="setTxnAmount(1)">+1</button><button type="button" onclick="setTxnAmount(5)">+5</button><button type="button" onclick="setTxnAmount(10)">+10</button><button type="button" onclick="setTxnAmount(25)">+25</button><button type="button" onclick="setTxnAmount(50)">+50</button>
       </div>
@@ -1510,7 +1514,7 @@ body {
           </div>
         </div>
         <div class="reward-number-row">
-          <div class="form-group reward-price-field"><label for="reward-price">Цена</label><div class="reward-input-shell"><img src="Монета.png" alt=""><input type="number" id="reward-price" value="10" min="1"><span>финкоинов</span></div><div class="reward-presets" aria-label="Быстрый выбор цены"><button type="button" onclick="setRewardPrice(10)">10</button><button type="button" onclick="setRewardPrice(25)">25</button><button type="button" onclick="setRewardPrice(50)">50</button><button type="button" onclick="setRewardPrice(100)">100</button><button type="button" onclick="setRewardPrice(200)">200</button></div></div>
+          <div class="form-group reward-price-field"><label for="reward-price">Цена</label><div class="reward-input-shell"><img src="Монета.webp" alt=""><input type="number" id="reward-price" value="10" min="1"><span>финкоинов</span></div><div class="reward-presets" aria-label="Быстрый выбор цены"><button type="button" onclick="setRewardPrice(10)">10</button><button type="button" onclick="setRewardPrice(25)">25</button><button type="button" onclick="setRewardPrice(50)">50</button><button type="button" onclick="setRewardPrice(100)">100</button><button type="button" onclick="setRewardPrice(200)">200</button></div></div>
           <div class="form-group reward-limit-field"><label for="reward-limit">Лимит покупок</label><div class="reward-input-shell"><input type="number" id="reward-limit" value="0" min="0"></div><small>0 = без ограничений</small></div>
         </div>
         <div class="reward-live-preview"><span id="reward-preview-icon" class="reward-preview-icon"></span><div><small>Предпросмотр</small><strong id="reward-preview-name">Новая награда</strong><span id="reward-preview-price">10 финкоинов</span></div></div>
@@ -1552,7 +1556,7 @@ body {
     <section class="cabin-form" aria-label="Создание достижения">
       <div class="cabin-form-row">
         <div class="cabin-field cabin-title-field"><label for="ach-name">Название достижения</label><input id="ach-name" type="text" minlength="2" maxlength="60" placeholder="Например: Финансовый навигатор"><small id="ach-name-error" class="cabin-error"></small></div>
-        <div class="cabin-field cabin-coin-field"><label for="ach-coins">Бонус <small>необязательно</small></label><div class="cabin-coin-input"><img src="Монета.png" alt=""><span>+</span><input id="ach-coins" type="number" min="0" max="50" value="0" inputmode="numeric"><span>финкоинов</span></div></div>
+        <div class="cabin-field cabin-coin-field"><label for="ach-coins">Бонус <small>необязательно</small></label><div class="cabin-coin-input"><img src="Монета.webp" alt=""><span>+</span><input id="ach-coins" type="number" min="0" max="50" value="0" inputmode="numeric"><span>финкоинов</span></div></div>
       </div>
       <div class="cabin-field"><label for="ach-desc">Описание</label><textarea id="ach-desc" maxlength="180" rows="2" placeholder="Например: За пять верных финансовых решений подряд"></textarea><small id="ach-desc-error" class="cabin-error"></small></div>
       <fieldset class="cabin-rarity"><legend>Редкость</legend><div id="achievement-rarity-options" class="cabin-rarity-grid"></div></fieldset>
@@ -1603,20 +1607,18 @@ body {
   </div>
 </div>
 
-<script src="vendor/html2canvas.min.js"></script>
-<script src="vendor/jspdf.umd.min.js"></script>
-<script src="pin-auth.js?v=2"></script>
+<script src="pin-auth.js?v=20260929"></script>
 <script>
 const AVATARS = ['\u{1F3F4}\u200D\u2620\uFE0F', '\u26F5', '\u{1F6A2}', '\u{1F6F6}', '\u{1F99C}', '\u{1F419}', '\u{1F988}', '\u{1F420}', '\u{1F30A}', '\u{1F5E1}\uFE0F'];
 const STUDENT_AVATARS = [
-  { id: 'captain-boy', src: 'student-avatar-captain-boy.png', label: 'Юный капитан' },
-  { id: 'green-scarf-boy', src: 'student-avatar-green-scarf-boy.png', label: 'Юнга в зелёном' },
-  { id: 'red-scarf-boy', src: 'student-avatar-red-scarf-boy.png', label: 'Юнга в красной бандане' },
-  { id: 'brunette-girl', src: 'student-avatar-brunette-girl.png', label: 'Пиратка с тёмными волосами' },
-  { id: 'blue-bandana-boy', src: 'student-avatar-blue-bandana-boy.png', label: 'Юнга в синей бандане' },
-  { id: 'black-hat-boy', src: 'student-avatar-black-hat-boy.png', label: 'Пират в чёрной шляпе' },
-  { id: 'redhead-girl', src: 'student-avatar-redhead-girl.png', label: 'Рыжая пиратка' },
-  { id: 'teal-bandana-girl', src: 'student-avatar-teal-bandana-girl.png', label: 'Пиратка в бирюзовой бандане' }
+  { id: 'captain-boy', src: 'student-avatar-captain-boy.webp', label: 'Юный капитан' },
+  { id: 'green-scarf-boy', src: 'student-avatar-green-scarf-boy.webp', label: 'Юнга в зелёном' },
+  { id: 'red-scarf-boy', src: 'student-avatar-red-scarf-boy.webp', label: 'Юнга в красной бандане' },
+  { id: 'brunette-girl', src: 'student-avatar-brunette-girl.webp', label: 'Пиратка с тёмными волосами' },
+  { id: 'blue-bandana-boy', src: 'student-avatar-blue-bandana-boy.webp', label: 'Юнга в синей бандане' },
+  { id: 'black-hat-boy', src: 'student-avatar-black-hat-boy.webp', label: 'Пират в чёрной шляпе' },
+  { id: 'redhead-girl', src: 'student-avatar-redhead-girl.webp', label: 'Рыжая пиратка' },
+  { id: 'teal-bandana-girl', src: 'student-avatar-teal-bandana-girl.webp', label: 'Пиратка в бирюзовой бандане' }
 ];
 const RANKS = [
   { min: 0, max: 49, name: '\u042E\u043D\u0433\u0430', emoji: '\u{1F41A}' },
@@ -1643,10 +1645,19 @@ let currentTxnType = 'income';
 let currentShopCategory = 'all';
 let pinSetupStudentId = null;
 
+function migrateAssetPaths(value) {
+  if (typeof value === 'string') return value.replace(/\.png(?=$|[?#])/gi, '.webp');
+  if (Array.isArray(value)) return value.map(migrateAssetPaths);
+  if (value && typeof value === 'object') {
+    Object.keys(value).forEach(key => { value[key] = migrateAssetPaths(value[key]); });
+  }
+  return value;
+}
+
 function loadData() {
   const raw = localStorage.getItem('pirateTracker');
   if (raw) {
-    try { appData = JSON.parse(raw); } catch(e) { console.error('Ошибка загрузки данных', e); }
+    try { appData = migrateAssetPaths(JSON.parse(raw)); } catch(e) { console.error('Ошибка загрузки данных', e); }
   }
   if (!appData.classes) appData.classes = [];
   const session = window.PinAuth?.getSession();
@@ -1668,10 +1679,11 @@ window.PirateCloudBridge = {
   importState(remoteData) {
     if (!remoteData || !Array.isArray(remoteData.classes)) return;
     const session = window.PinAuth?.getSession();
+    const migratedData = migrateAssetPaths(JSON.parse(JSON.stringify(remoteData)));
     appData = {
       ...appData,
-      ...JSON.parse(JSON.stringify(remoteData)),
-      classes: JSON.parse(JSON.stringify(remoteData.classes)),
+      ...migratedData,
+      classes: migratedData.classes,
       currentUser: session ? { role: session.role, classId: session.classId, studentId: session.studentId } : null
     };
     if (appData.currentClassId && !appData.classes.some(item => item.id === appData.currentClassId)) {
@@ -2187,7 +2199,7 @@ function renderRewardsList() {
   const rewards = cls && Array.isArray(cls.rewards) ? cls.rewards : [];
   if (total) total.textContent = 'Всего: ' + rewards.length;
   if (rewards.length === 0) {
-    list.innerHTML = '<div class="rewards-empty"><img src="Сундук закрытый.png" alt=""><strong>Сундук пока пуст</strong><span>Создайте первую награду для учеников</span></div>';
+    list.innerHTML = '<div class="rewards-empty"><img src="Сундук закрытый.webp" alt=""><strong>Сундук пока пуст</strong><span>Создайте первую награду для учеников</span></div>';
     return;
   }
   list.innerHTML = rewards.map(r => {
@@ -2198,16 +2210,16 @@ function renderRewardsList() {
 }
 
 const SHOP_REWARD_IMAGES = [
-  'reward-compass.png',
-  'reward-anchor-medal.png',
-  'reward-wheel.png',
-  'reward-pirate-hat.png',
-  'reward-scroll.png',
-  'reward-spyglass.png',
-  'reward-lighthouse.png',
-  'reward-treasure-map.png',
-  'reward-treasure-chest.png',
-  'reward-coin-bag.png'
+  'reward-compass.webp',
+  'reward-anchor-medal.webp',
+  'reward-wheel.webp',
+  'reward-pirate-hat.webp',
+  'reward-scroll.webp',
+  'reward-spyglass.webp',
+  'reward-lighthouse.webp',
+  'reward-treasure-map.webp',
+  'reward-treasure-chest.webp',
+  'reward-coin-bag.webp'
 ];
 
 const SHOP_CATEGORIES = [
@@ -2247,7 +2259,7 @@ function renderShop() {
   const cls = getCurrentClass();
   const student = getCurrentStudent();
   if (!cls || !student) return;
-  document.getElementById('shop-balance').innerHTML = '<img src="Монета.png" alt=""><span>Ваш баланс:</span><strong>' + Number(student.fincoins_balance || 0) + '</strong><span>финкоинов</span>';
+  document.getElementById('shop-balance').innerHTML = '<img src="Монета.webp" alt=""><span>Ваш баланс:</span><strong>' + Number(student.fincoins_balance || 0) + '</strong><span>финкоинов</span>';
   const cats = document.getElementById('shop-categories');
   cats.innerHTML = '';
   SHOP_CATEGORIES.forEach(cat => {
@@ -2264,7 +2276,7 @@ function renderShop() {
   grid.innerHTML = '';
   let rewards = (Array.isArray(cls.rewards) ? cls.rewards : []).map((reward, index) => ({ reward, index }));
   if (currentShopCategory !== 'all') rewards = rewards.filter(entry => getShopFilterForReward(entry.reward) === currentShopCategory);
-  if (rewards.length === 0) { grid.innerHTML = '<div class="shop-empty"><img src="Сундук закрытый.png" alt=""><strong>В этой категории пока пусто</strong><span>Новые сокровища скоро появятся на витрине</span></div>'; return; }
+  if (rewards.length === 0) { grid.innerHTML = '<div class="shop-empty"><img src="Сундук закрытый.webp" alt=""><strong>В этой категории пока пусто</strong><span>Новые сокровища скоро появятся на витрине</span></div>'; return; }
   rewards.forEach(entry => {
     const r = entry.reward;
     const item = document.createElement('article');
@@ -2282,7 +2294,7 @@ function renderShop() {
     nameEl.textContent = r.name;
     const priceDiv = document.createElement('div');
     priceDiv.className = 'shop-item-price';
-    priceDiv.innerHTML = '<img class="coin-sm" src="Монета.png" alt=""><span>' + Number(r.price || 0) + '</span>';
+    priceDiv.innerHTML = '<img class="coin-sm" src="Монета.webp" alt=""><span>' + Number(r.price || 0) + '</span>';
     item.appendChild(picture);
     item.appendChild(nameEl);
     item.appendChild(priceDiv);
@@ -2340,7 +2352,7 @@ function renderRequests() {
       const rewardIndex = Math.max(0, cls.rewards.findIndex(item => item.id === reward.id));
       card.innerHTML = '<div class="request-avatar">' + renderStudentAvatar(student) + '</div>' +
         '<div class="request-info"><div class="request-student-row"><strong class="request-student">' + escapeHtml(student.name) + '</strong><time class="request-date">' + formatDate(req.createdAt) + '</time></div>' +
-        '<div class="request-reward"><span class="request-reward-picture"><img src="' + getShopRewardImage(reward, rewardIndex) + '" alt=""></span><div><strong>' + escapeHtml(reward.name) + '</strong><small><img src="Монета.png" alt="">' + Number(reward.price || 0) + ' финкоинов</small></div></div></div>' +
+        '<div class="request-reward"><span class="request-reward-picture"><img src="' + getShopRewardImage(reward, rewardIndex) + '" alt=""></span><div><strong>' + escapeHtml(reward.name) + '</strong><small><img src="Монета.webp" alt="">' + Number(reward.price || 0) + ' финкоинов</small></div></div></div>' +
         '<div class="request-actions"><button class="request-action request-approve" type="button" aria-label="Одобрить заявку" title="Одобрить"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></button><button class="request-action request-reject" type="button" aria-label="Отклонить заявку" title="Отклонить"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>';
       card.querySelector('.request-approve').onclick = () => approveRequest(req.id);
       card.querySelector('.request-reject').onclick = () => rejectRequest(req.id);
@@ -2363,7 +2375,7 @@ function renderRequests() {
       card.className = 'request-card request-card-processed';
       card.innerHTML = '<div class="request-avatar">' + renderStudentAvatar(student) + '</div>' +
         '<div class="request-info"><div class="request-student-row"><strong class="request-student">' + escapeHtml(student.name) + '</strong><time class="request-date">' + formatDate(req.processedAt || req.createdAt) + '</time></div>' +
-        '<div class="request-reward"><span class="request-reward-picture"><img src="' + getShopRewardImage(reward, rewardIndex) + '" alt=""></span><div><strong>' + escapeHtml(reward.name) + '</strong><small><img src="Монета.png" alt="">' + Number(reward.price || 0) + ' финкоинов</small></div></div></div>' +
+        '<div class="request-reward"><span class="request-reward-picture"><img src="' + getShopRewardImage(reward, rewardIndex) + '" alt=""></span><div><strong>' + escapeHtml(reward.name) + '</strong><small><img src="Монета.webp" alt="">' + Number(reward.price || 0) + ' финкоинов</small></div></div></div>' +
         '<span class="request-status ' + (approved ? 'approved' : 'rejected') + '"><svg viewBox="0 0 24 24">' + (approved ? '<path d="m5 12 4 4L19 6"/>' : '<path d="m6 6 12 12M18 6 6 18"/>') + '</svg>' + (approved ? 'Одобрено' : 'Отклонено') + '</span>';
       processedDiv.appendChild(card);
     });
@@ -2496,6 +2508,10 @@ async function exportAnalyticsPdf() {
   const original=button.querySelector('span').textContent;button.disabled=true;button.querySelector('span').textContent='Формируем…';
   let report;
   try{
+    await Promise.all([
+      loadExternalScript('vendor/html2canvas.min.js', () => typeof html2canvas === 'function'),
+      loadExternalScript('vendor/jspdf.umd.min.js', () => Boolean(window.jspdf?.jsPDF))
+    ]);
     if(typeof html2canvas!=='function'||!window.jspdf?.jsPDF)throw new Error('PDF libraries are unavailable');
     report=buildAnalyticsPdfReport(cls,student);document.body.appendChild(report);await document.fonts.ready;
     const canvas=await html2canvas(report,{scale:2,backgroundColor:'#f7f1e2',logging:false,useCORS:true});
@@ -2507,6 +2523,24 @@ async function exportAnalyticsPdf() {
     pdf.save(`Аналитика_${safe}.pdf`);showToast(student?`Отчёт ученика «${student.name}» скачан`:'Общий отчёт класса скачан');
   }catch(error){console.error(error);showToast('Не удалось сформировать PDF')}
   finally{report?.remove();button.disabled=false;button.querySelector('span').textContent=original}
+}
+
+function loadExternalScript(src, isReady) {
+  if (isReady()) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[data-lazy-src="${src}"]`);
+    if (existing) {
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', reject, { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.dataset.lazySrc = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
 }
 
 function switchAnalyticsTab(tab, button) {
@@ -2665,8 +2699,8 @@ function renderTeacherView() {
     card.appendChild(progressDiv);
     const achDiv = document.createElement('div');
     achDiv.className = 'card-achievements';
-    AUTO_ACHIEVEMENTS.forEach(a => { if (student.achievements.includes(a.id)) { const icon = document.createElement('img'); icon.className = 'achievement-icon achievement-image'; icon.src = a.iconPath || 'assets/achievements/12-star.png'; icon.alt = ''; icon.title = a.name; achDiv.appendChild(icon); } });
-    if (cls.achievements) { cls.achievements.forEach(a => { if (a.awarded_to && a.awarded_to.includes(student.id)) { const icon = document.createElement('img'); icon.className = 'achievement-icon achievement-image'; icon.src = a.iconPath || 'assets/achievements/02-compass.png'; icon.alt = ''; icon.title = a.name; achDiv.appendChild(icon); } }); }
+    AUTO_ACHIEVEMENTS.forEach(a => { if (student.achievements.includes(a.id)) { const icon = document.createElement('img'); icon.className = 'achievement-icon achievement-image'; icon.src = a.iconPath || 'assets/achievements/12-star.webp'; icon.alt = ''; icon.title = a.name; achDiv.appendChild(icon); } });
+    if (cls.achievements) { cls.achievements.forEach(a => { if (a.awarded_to && a.awarded_to.includes(student.id)) { const icon = document.createElement('img'); icon.className = 'achievement-icon achievement-image'; icon.src = a.iconPath || 'assets/achievements/02-compass.webp'; icon.alt = ''; icon.title = a.name; achDiv.appendChild(icon); } }); }
     if (achDiv.children.length > 0) card.appendChild(achDiv);
     const actionButtons = document.createElement('div');
     actionButtons.className = 'card-action-buttons';
@@ -2714,10 +2748,10 @@ function renderStudentView() {
   lb.innerHTML = lbHtml;
   const achSection = document.getElementById('student-achievements-section');
   let achHtml = '<h3>\u{1F3C6} Мои достижения</h3><div class="achievements-grid">';
-  AUTO_ACHIEVEMENTS.forEach(a => { const earned = student.achievements.includes(a.id); achHtml += `<div class="achievement-card" style="opacity:${earned ? 1 : 0.3}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/12-star.png'}" alt=""><div class="name">${a.name}</div><div class="desc">${a.desc}</div></div>`; });
+  AUTO_ACHIEVEMENTS.forEach(a => { const earned = student.achievements.includes(a.id); achHtml += `<div class="achievement-card" style="opacity:${earned ? 1 : 0.3}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/12-star.webp'}" alt=""><div class="name">${a.name}</div><div class="desc">${a.desc}</div></div>`; });
   const awardedSnapshots = Array.isArray(student.awardedAchievements) ? student.awardedAchievements : [];
-  awardedSnapshots.forEach(a => { const rarity = a.raritySnapshot || 'common'; const coins = Number(a.fincoinsSnapshot) || 0; achHtml += `<div class="achievement-card rarity-${rarity}"><img class="achievement-medal-image" src="${a.iconPathSnapshot || 'assets/achievements/02-compass.png'}" alt=""><div class="name">${escapeHtml(a.titleSnapshot || 'Достижение')}</div><div class="cabin-badge rarity-${rarity}">${typeof achievementRarityLabel === 'function' ? achievementRarityLabel(rarity) : rarity}</div><div class="desc">${escapeHtml(a.descriptionSnapshot || '')}</div><div class="student-achievement-date">Получено: ${new Date(a.awardedAt).toLocaleDateString('ru-RU')}</div>${coins ? `<div class="student-achievement-coins">+${coins} финкоинов</div>` : ''}</div>`; });
-  if (cls.achievements) { cls.achievements.forEach(a => { const earned = a.awarded_to && a.awarded_to.includes(student.id); const hasSnapshot = awardedSnapshots.some(s => s.achievementId === a.id); if (earned && !hasSnapshot) { achHtml += `<div class="achievement-card rarity-${a.rarity || 'common'}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/02-compass.png'}" alt=""><div class="name">${escapeHtml(a.name)}</div><div class="desc">${escapeHtml(a.description || '')}</div></div>`; } }); }
+  awardedSnapshots.forEach(a => { const rarity = a.raritySnapshot || 'common'; const coins = Number(a.fincoinsSnapshot) || 0; achHtml += `<div class="achievement-card rarity-${rarity}"><img class="achievement-medal-image" src="${a.iconPathSnapshot || 'assets/achievements/02-compass.webp'}" alt=""><div class="name">${escapeHtml(a.titleSnapshot || 'Достижение')}</div><div class="cabin-badge rarity-${rarity}">${typeof achievementRarityLabel === 'function' ? achievementRarityLabel(rarity) : rarity}</div><div class="desc">${escapeHtml(a.descriptionSnapshot || '')}</div><div class="student-achievement-date">Получено: ${new Date(a.awardedAt).toLocaleDateString('ru-RU')}</div>${coins ? `<div class="student-achievement-coins">+${coins} финкоинов</div>` : ''}</div>`; });
+  if (cls.achievements) { cls.achievements.forEach(a => { const earned = a.awarded_to && a.awarded_to.includes(student.id); const hasSnapshot = awardedSnapshots.some(s => s.achievementId === a.id); if (earned && !hasSnapshot) { achHtml += `<div class="achievement-card rarity-${a.rarity || 'common'}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/02-compass.webp'}" alt=""><div class="name">${escapeHtml(a.name)}</div><div class="desc">${escapeHtml(a.description || '')}</div></div>`; } }); }
   achHtml += '</div>';
   achSection.innerHTML = achHtml;
   const journalDiv = document.getElementById('student-journal');
@@ -2781,11 +2815,15 @@ function init() {
 
 init();
 </script>
-<script src="sound.js?v=3"></script>
-<script src="teacher.js?v=13"></script>
-<script src="login.js?v=8"></script>
-<script src="student-dashboard.js?v=15"></script>
-<script src="achievement-cabin.js?v=2"></script>
-<script type="module" src="firebase-sync.js?v=1"></script>
+<script src="sound.js?v=20260929"></script>
+<script src="teacher.js?v=20260929"></script>
+<script src="login.js?v=20260929"></script>
+<script src="student-dashboard.js?v=20260929"></script>
+<script src="achievement-cabin.js?v=20260929"></script>
+<script type="module">
+  const connectCloud = () => import('./firebase-sync.js?v=20260929');
+  if ('requestIdleCallback' in window) requestIdleCallback(connectCloud, { timeout: 1500 });
+  else setTimeout(connectCloud, 750);
+</script>
 </body>
 </html>

@@ -19,16 +19,16 @@
   };
   const svg = name => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name]}</svg>`;
   const safe = value => typeof escapeHtml === 'function' ? escapeHtml(String(value ?? '')) : String(value ?? '');
-  const rankBadgeAssets = ['assets/ranks/yunga.png','assets/ranks/matros.png','assets/achievements/07-ship-wheel.png','assets/achievements/18-shield.png','assets/achievements/09-crown.png','assets/achievements/10-trophy.png'];
+  const rankBadgeAssets = ['assets/ranks/yunga.webp','assets/ranks/matros.webp','assets/achievements/07-ship-wheel.webp','assets/achievements/18-shield.webp','assets/achievements/09-crown.webp','assets/achievements/10-trophy.webp'];
   const rankBadgeAsset = rank => rankBadgeAssets[Math.max(0, RANKS.indexOf(rank))] || rankBadgeAssets[0];
 
   const cards = [
-    ['leaderboard','Лидерборд','Смотри, кто в топе','student-card-leaderboard-v2.png'],
-    ['achievements','Мои достижения','Твои награды','student-card-achievements-v2.png'],
-    ['shop','Магазин наград','Обменивай финкоины','student-card-shop-v2.png'],
-    ['statistics','Статистика','Следи за своим прогрессом','student-card-statistics-v2.png'],
-    ['tasks','Мои задания','Продолжай развиваться','student-card-tasks-v2.png'],
-    ['settings','Настройки','Настрой свой путь','student-card-settings-v2.png']
+    ['leaderboard','Лидерборд','Смотри, кто в топе','student-card-leaderboard-v2.webp'],
+    ['achievements','Мои достижения','Твои награды','student-card-achievements-v2.webp'],
+    ['shop','Магазин наград','Обменивай финкоины','student-card-shop-v2.webp'],
+    ['statistics','Статистика','Следи за своим прогрессом','student-card-statistics-v2.webp'],
+    ['tasks','Мои задания','Продолжай развиваться','student-card-tasks-v2.webp'],
+    ['settings','Настройки','Настрой свой путь','student-card-settings-v2.webp']
   ];
 
   function card([id,title,subtitle,image]) {
@@ -39,7 +39,7 @@
     view.classList.add('sd-view');
     view.innerHTML = `<div class="sd-shell">
       <aside class="sd-sidebar">
-        <div class="sd-brand"><img src="Лого.png" alt="Трекер Прогресса"></div>
+        <div class="sd-brand"><img src="Лого.webp" alt="Трекер Прогресса"></div>
         <div class="sd-profile"><div id="sd-avatar" class="sd-avatar"></div><strong id="sd-name">Ученик</strong><span id="sd-rank">Юнга</span></div>
         <nav class="sd-nav" aria-label="Навигация ученика">
           <button class="active" type="button" onclick="openStudentDashboardSection('home')">${svg('home')}<span>Главная</span></button>
@@ -50,7 +50,7 @@
           <button type="button" onclick="openStudentDashboardSection('tasks')">${svg('scroll')}<span>Мои задания</span></button>
           <button type="button" onclick="openStudentDashboardSection('settings')">${svg('settings')}<span>Настройки</span></button>
         </nav>
-        <span class="sd-sidebar-art" aria-hidden="true"><img src="student-sidebar-decor-v2.png" alt=""></span>
+        <span class="sd-sidebar-art" aria-hidden="true"><img src="student-sidebar-decor-v2.webp" alt=""></span>
         <button class="sd-logout" type="button" onclick="logout()">${svg('logout')}<span>Выйти</span></button>
       </aside>
       <main class="sd-main">
@@ -60,23 +60,23 @@
         </div>
         <section class="sd-hero">
           <div class="sd-greeting"><h1>Привет, <span id="sd-greeting-name">ученик</span>!</h1><p>Продолжай свой путь к финансовой свободе!</p></div>
-          <div class="sd-balance"><img src="Монета.png" alt=""><strong id="sd-balance">0</strong><span>финкоинов</span></div>
+          <div class="sd-balance"><img src="Монета.webp" alt=""><strong id="sd-balance">0</strong><span>финкоинов</span></div>
         </section>
         <section class="sd-progress-card sd-voyage-card" aria-labelledby="sd-progress-title">
           <div class="sd-voyage-intro">
-            <img src="assets/progress/route-ship-large.png" alt="Парусный пиратский корабль">
+            <img src="assets/progress/route-ship-large.webp" alt="Парусный пиратский корабль">
             <div><h2 id="sd-progress-title">Курс к новому рангу</h2><p>Каждый шаг приближает к большим горизонтам!</p></div>
           </div>
           <div class="sd-voyage-route">
-            <div class="sd-rank-emblem sd-rank-current"><img id="sd-current-rank-badge" src="assets/achievements/01-anchor.png" alt=""><strong id="sd-current-rank">Юнга</strong></div>
+            <div class="sd-rank-emblem sd-rank-current"><img id="sd-current-rank-badge" src="assets/achievements/01-anchor.webp" alt=""><strong id="sd-current-rank">Юнга</strong></div>
             <svg id="sd-voyage-map" viewBox="0 0 560 94" preserveAspectRatio="xMidYMid meet" aria-label="Маршрут к следующему рангу">
               <defs><clipPath id="sd-route-complete-clip" clipPathUnits="userSpaceOnUse"><rect id="sd-route-complete-rect" x="0" y="0" width="0" height="94"/></clipPath></defs>
               <path id="sd-route-path" class="sd-map-route sd-map-route-future" d="M0 53 C88 19 148 76 228 45 S360 24 430 51 S512 68 560 39"/>
               <path class="sd-map-route sd-map-route-complete" clip-path="url(#sd-route-complete-clip)" d="M0 53 C88 19 148 76 228 45 S360 24 430 51 S512 68 560 39"/>
               <g class="sd-map-checkpoints" aria-hidden="true"><circle data-at="25" r="7"/><circle data-at="50" r="7"/><circle data-at="75" r="7"/></g>
-              <image id="sd-route-ship" class="sd-map-vessel" href="assets/progress/route-ship-marker.png" width="74" height="66" preserveAspectRatio="xMidYMid meet"/>
+              <image id="sd-route-ship" class="sd-map-vessel" href="assets/progress/route-ship-marker.webp" width="74" height="66" preserveAspectRatio="xMidYMid meet"/>
             </svg>
-            <div class="sd-rank-emblem sd-rank-next"><img id="sd-target-rank-badge" src="assets/achievements/05-pirate-flag.png" alt=""><strong id="sd-target-rank">Матрос</strong></div>
+            <div class="sd-rank-emblem sd-rank-next"><img id="sd-target-rank-badge" src="assets/achievements/05-pirate-flag.webp" alt=""><strong id="sd-target-rank">Матрос</strong></div>
           </div>
           <div class="sd-voyage-summary">
             <strong><span id="sd-progress-current">0</span><small id="sd-progress-target"> из 50 финкоинов</small></strong>

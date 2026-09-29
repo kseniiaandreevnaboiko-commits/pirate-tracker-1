@@ -1,6 +1,6 @@
 /* One visual language for screens where the user makes a choice. */
 :root {
-  --selection-pirate-scene: url('reward-shop-pirate-cove-v1.png');
+  --selection-pirate-scene: url('reward-shop-pirate-cove-v1.webp');
 }
 
 /* The landscape remains visible around every selection dialog. */
