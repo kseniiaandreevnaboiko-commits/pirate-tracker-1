@@ -54,6 +54,21 @@ npm.cmd run test:emulators
 Вторая команда сама запускает чистые Auth и Firestore emulators, выполняет
 тесты и завершает их. Она не использует реальные данные и не публикует rules.
 
+## Локальная миграция искусственных данных
+
+При уже запущенном Firestore Emulator:
+
+```powershell
+$env:FIRESTORE_EMULATOR_HOST='127.0.0.1:8080'
+$env:GCLOUD_PROJECT='demo-pirate-auth'
+npm.cmd run migrate:emulator
+npm.cmd run migrate:emulator -- --input=C:\path\to\artificial-data.json
+```
+
+Скрипт блокирует любой хост, кроме `localhost`/`127.0.0.1`, и любой project ID
+без префикса `demo-`. Формат и правила преобразования описаны в
+`FIRESTORE-SCHEMA.md` и `TZ4B-REPORT.md`.
+
 ## Ручной UI-сценарий
 
 1. Войти тестовым email/паролем учителя.

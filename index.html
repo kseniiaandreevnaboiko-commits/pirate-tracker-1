@@ -1634,7 +1634,7 @@ body {
 window.PIRATE_AUTH_TEST_MODE = ['localhost', '127.0.0.1'].includes(location.hostname)
   && new URLSearchParams(location.search).get('emulator') === '1';
 window.secureAuthReady = window.PIRATE_AUTH_TEST_MODE
-  ? import('./secure-auth.js?v=20261015')
+  ? import('./secure-auth.js?v=20261015-4b')
   : Promise.resolve(null);
 </script>
 <script src="pin-auth.js?v=20261015"></script>
@@ -1662,14 +1662,15 @@ let currentTxnStudentId = null;
 let currentTxnType = 'income';
 let currentShopCategory = 'all';
 let pinSetupStudentId = null;
+let editingRewardId = null;
 
 window.PirateSecureBridge = {
   getData() { return appData; },
   hydrateTeacher(classes) {
     appData = { classes: classes || [], currentClassId: classes?.[0]?.id || null, currentUser: { role: 'teacher' } };
   },
-  hydrateStudent(classData, student) {
-    const safeClass = { ...classData, students: [student], transactions: [], requests: [], rewards: [] };
+  hydrateStudent(classData, student, visibleStudents = null) {
+    const safeClass = { ...classData, students: visibleStudents || [student] };
     appData = { classes: [safeClass], currentClassId: safeClass.id, currentUser: { role: 'student', classId: safeClass.id, studentId: student.id } };
   },
   clear() {
@@ -1862,7 +1863,7 @@ function showToast(message) {
   setTimeout(() => toast.remove(), 3000);
 }
 
-function addClass() {
+function addClassLegacy() {
   const name = document.getElementById('new-class-name').value.trim();
   if (!name) { showToast('Введите название класса!'); return; }
   const classId = generateId('class');
@@ -1877,6 +1878,21 @@ function addClass() {
   renderTeacherView();
   window.PirateSound?.play('success');
   showToast('Класс «' + name + '» создан!');
+}
+
+async function addClass() {
+  if (!window.SecureData) return addClassLegacy();
+  const input = document.getElementById('new-class-name');
+  const name = input.value.trim();
+  if (!name) { showToast('Введите название класса.'); return; }
+  try {
+    const classId = await window.SecureData.createClass(name);
+    appData.currentClassId = classId;
+    input.value = '';
+    closeModal('modal-add-class');
+    renderTeacherView();
+    showToast('Класс создан.');
+  } catch (error) { showToast(error.message); }
 }
 
 function switchClass() { appData.currentClassId = document.getElementById('teacher-class-select').value; saveData(); renderTeacherView(); }
@@ -1944,7 +1960,7 @@ function initAvatarPicker() {
   updateStudentPreview();
 }
 
-async function addStudent() {
+async function addStudentLegacy() {
   const name = document.getElementById('new-student-name').value.trim();
   const pinInput = document.getElementById('new-student-pin');
   const pin = pinInput.value.trim();
@@ -1962,6 +1978,23 @@ async function addStudent() {
   renderTeacherView();
   window.PirateSound?.play('success');
   showToast('Ученик «' + name + '» добавлен!');
+}
+
+async function addStudent() {
+  if (!window.SecureData) return addStudentLegacy();
+  const cls = getCurrentClass();
+  const input = document.getElementById('new-student-name');
+  const name = input.value.trim();
+  if (!cls || !name) { showToast('Выберите класс и введите имя ученика.'); return; }
+  const avatar = selectedAvatar && selectedAvatar.src ? selectedAvatar : STUDENT_AVATARS[0];
+  try {
+    await window.SecureData.createStudent(cls.id, { displayName: name, avatarId: avatar.id, avatarSrc: avatar.src });
+    input.value = '';
+    document.getElementById('new-student-pin').value = '';
+    closeModal('modal-add-student');
+    renderTeacherView();
+    showToast('Ученик создан. Приглашение можно выдать в панели защищённого доступа.');
+  } catch (error) { showToast(error.message); }
 }
 
 function openStudentPinSetup(studentId) {
@@ -2000,7 +2033,7 @@ async function saveStudentPin() {
   });
 });
 
-function deleteStudent(studentId) {
+function deleteStudentLegacy(studentId) {
   const cls = getCurrentClass();
   if (!cls) return;
   const student = cls.students.find(s => s.id === studentId);
@@ -2013,6 +2046,20 @@ function deleteStudent(studentId) {
     saveData();
     renderTeacherView();
     showToast('Ученик удалён');
+  });
+}
+
+function deleteStudent(studentId) {
+  if (!window.SecureData) return deleteStudentLegacy(studentId);
+  const cls = getCurrentClass();
+  const student = cls?.students.find(item => item.id === studentId);
+  if (!student) return;
+  showConfirm('Архивировать ученика?', `Профиль «${student.name}» будет скрыт, а история сохранится.`, async () => {
+    try {
+      await window.SecureData.archiveStudent(cls.id, studentId);
+      renderTeacherView();
+      showToast('Ученик перемещён в архив.');
+    } catch (error) { showToast(error.message); }
   });
 }
 
@@ -2092,7 +2139,7 @@ document.getElementById('txn-amount').addEventListener('keydown', event => {
   if (event.key === 'Enter') executeTransaction();
 });
 
-function executeTransaction() {
+function executeTransactionLegacy() {
   const amount = parseInt(document.getElementById('txn-amount').value);
   const comment = document.getElementById('txn-comment').value.trim();
   if (!amount || amount <= 0) { showToast('Введите корректную сумму!'); return; }
@@ -2114,6 +2161,27 @@ function executeTransaction() {
   renderTeacherView();
   window.PirateSound?.play(finalAmount > 0 ? 'coin' : 'debit');
   showToast(purpose === 'lifetime_correction' ? 'Общий заработок скорректирован' : (finalAmount > 0 ? '+' : '') + finalAmount + ' финкоинов ' + (finalAmount > 0 ? 'начислено' : 'списано'));
+}
+
+async function executeTransaction() {
+  if (!window.SecureData) return executeTransactionLegacy();
+  const amount = parseInt(document.getElementById('txn-amount').value);
+  const cls = getCurrentClass();
+  const student = cls?.students.find(item => item.id === currentTxnStudentId);
+  if (!amount || amount <= 0 || !student) { showToast('Введите корректную сумму.'); return; }
+  const purpose = document.getElementById('txn-purpose')?.value || (currentTxnType === 'income' ? 'earning' : 'balance_correction');
+  const signed = currentTxnType === 'income' ? amount : -amount;
+  const balanceDelta = purpose === 'lifetime_correction' ? 0 : signed;
+  const lifetimeDelta = purpose === 'earning' ? amount : purpose === 'earning_correction' ? -amount : purpose === 'lifetime_correction' ? signed : 0;
+  try {
+    await window.SecureData.applyTeacherTransaction({
+      classId: cls.id, studentId: student.id, balanceDelta, lifetimeDelta, category: purpose,
+      description: document.getElementById('txn-comment').value.trim(), operationId: generateId('txn')
+    });
+    closeModal('modal-transaction');
+    renderTeacherView();
+    showToast('Операция сохранена атомарно.');
+  } catch (error) { showToast(error.message); }
 }
 
 function openHistory(studentId) {
@@ -2239,7 +2307,7 @@ function initRewardsManager() {
   syncRewardCategoryUi();
 }
 
-function addReward() {
+function addRewardLegacy() {
   const cls = getCurrentClass();
   if (!cls) return;
   const name = document.getElementById('reward-name').value.trim();
@@ -2259,7 +2327,47 @@ function addReward() {
   showToast('Награда «' + name + '» добавлена!');
 }
 
-function deleteReward(rewardId) { const cls = getCurrentClass(); if (!cls) return; cls.rewards = cls.rewards.filter(r => r.id !== rewardId); saveData(); renderRewardsList(); window.PirateSound?.play('reject'); }
+async function addReward() {
+  if (!window.SecureData) return addRewardLegacy();
+  const cls = getCurrentClass();
+  const name = document.getElementById('reward-name').value.trim();
+  const category = document.getElementById('reward-category').value;
+  const price = parseInt(document.getElementById('reward-price').value);
+  const limit = parseInt(document.getElementById('reward-limit').value) || 0;
+  if (!cls || !name || !Number.isSafeInteger(price) || price <= 0) { showToast('Заполните название и корректную цену.'); return; }
+  try {
+    await window.SecureData.saveReward(cls.id, { id: editingRewardId, name, category, price, limit, image: editingRewardId ? cls.rewards.find(item => item.id === editingRewardId)?.image : SHOP_REWARD_IMAGES[cls.rewards.length % SHOP_REWARD_IMAGES.length] });
+    editingRewardId = null;
+    document.getElementById('reward-name').value = '';
+    document.getElementById('reward-price').value = '10';
+    document.getElementById('reward-limit').value = '0';
+    renderRewardsList();
+    showToast('Награда добавлена.');
+  } catch (error) { showToast(error.message); }
+}
+
+function deleteRewardLegacy(rewardId) { const cls = getCurrentClass(); if (!cls) return; cls.rewards = cls.rewards.filter(r => r.id !== rewardId); saveData(); renderRewardsList(); window.PirateSound?.play('reject'); }
+
+async function deleteReward(rewardId) {
+  if (!window.SecureData) return deleteRewardLegacy(rewardId);
+  const cls = getCurrentClass();
+  if (!cls) return;
+  try { await window.SecureData.hideReward(cls.id, rewardId); renderRewardsList(); }
+  catch (error) { showToast(error.message); }
+}
+
+function editReward(rewardId) {
+  const reward = getCurrentClass()?.rewards.find(item => item.id === rewardId);
+  if (!reward || !window.SecureData) return;
+  editingRewardId = rewardId;
+  document.getElementById('reward-name').value = reward.name;
+  document.getElementById('reward-category').value = reward.category;
+  document.getElementById('reward-price').value = reward.price;
+  document.getElementById('reward-limit').value = reward.limit || 0;
+  syncRewardCategoryUi();
+  updateRewardPreview();
+  document.getElementById('reward-name').focus();
+}
 
 function renderRewardsList() {
   const cls = getCurrentClass();
@@ -2275,7 +2383,7 @@ function renderRewardsList() {
   list.innerHTML = rewards.map(r => {
     const ui = getRewardCategoryUi(r.category);
     const limit = Number(r.limit) > 0 ? 'Лимит: ' + Number(r.limit) : 'Без лимита';
-    return `<article class="reward-manager-item"><span class="reward-manager-icon reward-symbol-${ui.type}">${getRewardCategoryIcon(r.category)}</span><div class="reward-manager-copy"><strong title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</strong><span class="reward-manager-category">${escapeHtml(ui.label)}</span><span class="reward-manager-meta"><b>${Number(r.price) || 0} финкоинов</b><span>${limit}</span></span></div><button class="reward-delete" type="button" onclick="deleteReward('${r.id}')" aria-label="Удалить награду ${escapeHtml(r.name)}"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7m4 4v6m4-6v6"/></svg></button></article>`;
+    return `<article class="reward-manager-item"><span class="reward-manager-icon reward-symbol-${ui.type}">${getRewardCategoryIcon(r.category)}</span><div class="reward-manager-copy"><strong title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</strong><span class="reward-manager-category">${escapeHtml(ui.label)}</span><span class="reward-manager-meta"><b>${Number(r.price) || 0} финкоинов</b><span>${limit}</span></span></div><div class="reward-manager-actions"><button class="reward-edit" type="button" onclick="editReward('${r.id}')" aria-label="Редактировать награду ${escapeHtml(r.name)}"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Zm9-13 4 4"/></svg></button><button class="reward-delete" type="button" onclick="deleteReward('${r.id}')" aria-label="Скрыть награду ${escapeHtml(r.name)}"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7m4 4v6m4-6v6"/></svg></button></div></article>`;
   }).join('');
 }
 
@@ -2386,7 +2494,7 @@ function renderShop() {
   });
 }
 
-function buyReward(rewardId) {
+function buyRewardLegacy(rewardId) {
   const cls = getCurrentClass();
   const student = getCurrentStudent();
   if (!cls || !student) return;
@@ -2397,6 +2505,21 @@ function buyReward(rewardId) {
     saveData();
     renderShop();
     showToast('Заявка отправлена! Ожидайте подтверждения.');
+  });
+}
+
+function buyReward(rewardId) {
+  if (!window.SecureData) return buyRewardLegacy(rewardId);
+  const cls = getCurrentClass();
+  const student = getCurrentStudent();
+  const reward = cls?.rewards.find(item => item.id === rewardId);
+  if (!cls || !student || !reward) return;
+  showConfirm('Купить награду?', `Отправить учителю заявку на «${reward.name}» за ${reward.price} финкоинов?`, async () => {
+    try {
+      await window.SecureData.createPurchaseRequest(cls.id, student.id, rewardId);
+      renderShop();
+      showToast('Заявка отправлена учителю.');
+    } catch (error) { showToast(error.message); }
   });
 }
 
@@ -2453,7 +2576,7 @@ function renderRequests() {
   updateRequestsBadge();
 }
 
-function approveRequest(requestId) {
+function approveRequestLegacy(requestId) {
   const cls = getCurrentClass();
   if (!cls) return;
   const req = cls.requests.find(r => r.id === requestId);
@@ -2474,7 +2597,7 @@ function approveRequest(requestId) {
   showToast('Заявка одобрена!');
 }
 
-function rejectRequest(requestId) {
+function rejectRequestLegacy(requestId) {
   const cls = getCurrentClass();
   if (!cls) return;
   const req = cls.requests.find(r => r.id === requestId);
@@ -2486,6 +2609,30 @@ function rejectRequest(requestId) {
   renderTeacherView();
   window.PirateSound?.play('reject');
   showToast('Заявка отклонена');
+}
+
+async function approveRequest(requestId) {
+  if (!window.SecureData) return approveRequestLegacy(requestId);
+  const cls = getCurrentClass();
+  if (!cls) return;
+  try {
+    await window.SecureData.approvePurchase(cls.id, requestId);
+    renderRequests();
+    renderTeacherView();
+    showToast('Заявка одобрена.');
+  } catch (error) { showToast(error.message); }
+}
+
+async function rejectRequest(requestId) {
+  if (!window.SecureData) return rejectRequestLegacy(requestId);
+  const cls = getCurrentClass();
+  if (!cls) return;
+  try {
+    await window.SecureData.rejectPurchase(cls.id, requestId);
+    renderRequests();
+    renderTeacherView();
+    showToast('Заявка отклонена.');
+  } catch (error) { showToast(error.message); }
 }
 
 function updateRequestsBadge() {
@@ -2661,7 +2808,7 @@ function renderAnalyticsTop() {
   div.innerHTML=`<div class="analytics-rank-grid">${panel('По заработку','trophy',byBalance,s=>getStudentLifetimeEarned(s),'')}${panel('По операциям','chart',byTxns,txCount,'оп.')}${panel('По покупкам','bag',byPurchases,purchaseCount,'пок.')}</div>`;
 }
 
-function confirmNewSeason() {
+function confirmNewSeasonLegacy() {
   showConfirm('Новый сезон', 'Текущий баланс и заработок за курс начнутся с 0. История транзакций, заявки и достижения сохранятся. Продолжить?', () => {
     const cls = getCurrentClass();
     if (!cls) return;
@@ -2672,6 +2819,19 @@ function confirmNewSeason() {
     renderTeacherView();
     window.PirateSound?.play('season');
     showToast('Сезон сброшен! Все балансы обнулены.');
+  });
+}
+
+function confirmNewSeason() {
+  if (!window.SecureData) return confirmNewSeasonLegacy();
+  const cls = getCurrentClass();
+  if (!cls) return;
+  showConfirm('Новый сезон', 'Баланс и заработок текущего курса будут обнулены. История, покупки и достижения сохранятся. Продолжить?', async () => {
+    try {
+      await window.SecureData.startNewSeason(cls.id);
+      renderTeacherView();
+      showToast('Новый сезон начат; архив предыдущего сохранён.');
+    } catch (error) { showToast(error.message); }
   });
 }
 

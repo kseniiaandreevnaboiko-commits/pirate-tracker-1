@@ -19,6 +19,8 @@ const auth = authModule.getAuth(app);
 const db = storeModule.getFirestore(app);
 authModule.connectAuthEmulator(auth, AUTH_EMULATOR, { disableWarnings: true });
 storeModule.connectFirestoreEmulator(db, FIRESTORE_HOST, FIRESTORE_PORT);
+const { configure: configureSecureData } = await import('./secure-data.js?v=20261015');
+const secureData = configureSecureData({ db, auth, storeModule });
 
 let currentSession = null;
 
@@ -81,7 +83,7 @@ function normalizeClass(snapshot, students = []) {
   };
 }
 
-async function loadTeacherData(user) {
+async function loadTeacherDataLegacy(user) {
   const classQuery = storeModule.query(
     storeModule.collection(db, 'classes'),
     storeModule.where('teacherUid', '==', user.uid)
@@ -96,7 +98,7 @@ async function loadTeacherData(user) {
   return currentSession;
 }
 
-async function loadStudentData(user) {
+async function loadStudentDataLegacy(user) {
   const bindingSnapshot = await storeModule.getDoc(storeModule.doc(db, 'studentBindings', user.uid));
   if (!bindingSnapshot.exists()) return null;
   const binding = bindingSnapshot.data();
@@ -108,6 +110,23 @@ async function loadStudentData(user) {
   const student = normalizeStudent(studentSnapshot.id, studentSnapshot.data());
   window.PirateSecureBridge.hydrateStudent(normalizeClass(classSnapshot), student);
   setSession({ role: 'student', uid: user.uid, classId: binding.classId, studentId: binding.studentId });
+  return currentSession;
+}
+
+async function loadTeacherData(user) {
+  setSession({ role: 'teacher', uid: user.uid, email: user.email, classId: null, studentId: null });
+  await secureData.startRealtime(currentSession);
+  return currentSession;
+}
+
+async function loadStudentData(user) {
+  const bindingSnapshot = await storeModule.getDoc(storeModule.doc(db, 'studentBindings', user.uid));
+  if (!bindingSnapshot.exists()) return null;
+  const binding = bindingSnapshot.data();
+  const profile = await storeModule.getDoc(storeModule.doc(db, 'classes', binding.classId, 'students', binding.studentId));
+  if (!profile.exists() || profile.data().ownerUid !== user.uid) return null;
+  setSession({ role: 'student', uid: user.uid, classId: binding.classId, studentId: binding.studentId });
+  await secureData.startRealtime(currentSession);
   return currentSession;
 }
 
@@ -184,7 +203,7 @@ async function claimInvitation(rawToken) {
   return loadStudentData(user);
 }
 
-async function createClass(name) {
+async function createClassLegacy(name) {
   const user = auth.currentUser;
   if (!currentSession || currentSession.role !== 'teacher' || !user) throw new Error('Требуется вход учителя.');
   const classId = safeId('class');
@@ -197,7 +216,7 @@ async function createClass(name) {
   return classId;
 }
 
-async function createStudentWithInvite(classId, displayName) {
+async function createStudentWithInviteLegacy(classId, displayName) {
   const user = auth.currentUser;
   if (!currentSession || currentSession.role !== 'teacher' || !user) throw new Error('Требуется вход учителя.');
   const studentId = safeId('student');
@@ -225,6 +244,23 @@ async function createStudentWithInvite(classId, displayName) {
   });
   await batch.commit();
   await loadTeacherData(user);
+  return { studentId, inviteId };
+}
+
+async function createClass(name) {
+  return secureData.createClass(name);
+}
+
+async function createStudentWithInvite(classId, displayName) {
+  const user = auth.currentUser;
+  if (!currentSession || currentSession.role !== 'teacher' || !user) throw new Error('Требуется вход учителя.');
+  const inviteId = token();
+  const studentId = await secureData.createStudentWithInvite(
+    classId,
+    { displayName },
+    inviteId,
+    storeModule.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000)
+  );
   return { studentId, inviteId };
 }
 
@@ -261,6 +297,7 @@ async function reissueInvitation(classId, studentId) {
 }
 
 async function logout() {
+  secureData.stopRealtime();
   await authModule.signOut(auth);
   setSession(null);
   window.PirateSecureBridge.clear();
@@ -461,6 +498,7 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
   const queryInvite = new URLSearchParams(location.search).get('invite');
   if (queryInvite) document.getElementById('secure-invite-code').value = queryInvite;
   window.addEventListener('hashchange', route);
+  window.SecureData = secureData;
   window.SecureAuth = { enabled: true, logout, changePassword, createClass, createStudentWithInvite, reissueInvitation };
   if (currentSession?.role === 'teacher') history.replaceState(null, '', '#/teacher');
   else if (currentSession?.role === 'student') history.replaceState(null, '', '#/student');
