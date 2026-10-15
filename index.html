@@ -1263,17 +1263,17 @@ body {
 }
 </style>
 <link rel="stylesheet" href="redesign.css?v=20260929">
-<link rel="stylesheet" href="teacher.css?v=20260929">
+<link rel="stylesheet" href="teacher.css?v=20261015">
 <link rel="stylesheet" href="login.css?v=20260929">
 <link rel="stylesheet" href="pin-login.css?v=20260929">
 <link rel="stylesheet" href="student-modal.css?v=20260929">
 <link rel="stylesheet" href="reward-modal.css?v=20260929">
-<link rel="stylesheet" href="achievement-cabin.css?v=20260929">
+<link rel="stylesheet" href="achievement-cabin.css?v=20261015-2">
 <link rel="stylesheet" href="analytics.css?v=20260929">
 <link rel="stylesheet" href="sound.css?v=20260929">
-<link rel="stylesheet" href="student-dashboard.css?v=20260929">
-<link rel="stylesheet" href="transaction-modal.css?v=20260929">
-<link rel="stylesheet" href="history-modal.css?v=20260929">
+<link rel="stylesheet" href="student-dashboard.css?v=20261015">
+<link rel="stylesheet" href="transaction-modal.css?v=20261015">
+<link rel="stylesheet" href="history-modal.css?v=20261015-2">
 <link rel="stylesheet" href="selection-backdrops.css?v=20260929">
 <link rel="stylesheet" href="typography.css?v=20260929">
 </head>
@@ -1449,7 +1449,7 @@ body {
     <section class="txn-student" aria-label="Выбранный ученик">
       <div class="txn-avatar-wrap"><img id="txn-student-avatar" src="student-avatar-captain-boy.webp" alt=""></div>
       <div class="txn-student-copy"><strong id="txn-student-name">Ученик</strong><span id="txn-student-rank">Юнга</span></div>
-      <div class="txn-current"><span>Сейчас на счету</span><strong><img src="Монета.webp" alt=""> <b id="txn-current-balance">0</b></strong></div>
+      <div class="txn-current"><span>Доступно / заработано</span><strong><img src="Монета.webp" alt=""> <b id="txn-current-balance">0</b></strong><small id="txn-current-earned">всего 0</small></div>
     </section>
     <div class="txn-type-switch" role="group" aria-label="Тип операции">
       <button type="button" id="txn-type-add" onclick="setTxnType('income')" aria-pressed="true"><span class="txn-type-icon">+</span><span><strong>Начислить</strong><small>Пополнить баланс</small></span></button>
@@ -1462,6 +1462,11 @@ body {
         <button type="button" onclick="setTxnAmount(1)">+1</button><button type="button" onclick="setTxnAmount(5)">+5</button><button type="button" onclick="setTxnAmount(10)">+10</button><button type="button" onclick="setTxnAmount(25)">+25</button><button type="button" onclick="setTxnAmount(50)">+50</button>
       </div>
     </section>
+    <div class="txn-purpose-field">
+      <label for="txn-purpose">Назначение операции</label>
+      <select id="txn-purpose" onchange="updateTxnPreview()"></select>
+      <small id="txn-purpose-hint"></small>
+    </div>
     <div class="txn-comment-field">
       <label for="txn-comment"><span>Комментарий</span><small>необязательно</small></label>
       <div><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg><input type="text" id="txn-comment" placeholder="Например, за отличную работу на уроке" maxlength="120"></div>
@@ -1487,6 +1492,13 @@ body {
       <div class="history-summary-expense"><span>Списано</span><strong id="history-expense">−0</strong></div>
     </section>
     <div id="history-list" class="history-list"></div>
+    <section class="history-achievements" aria-labelledby="history-achievements-title">
+      <div class="history-achievements-heading"><div><span>Коллекция ученика</span><h3 id="history-achievements-title">Достижения</h3></div><strong id="history-achievements-total">0</strong></div>
+      <div class="history-achievement-columns">
+        <section><h4>Автоматические <span id="history-auto-count">0</span></h4><div id="history-auto-achievements" class="history-achievement-grid"></div></section>
+        <section><h4>Ручные <span id="history-manual-count">0</span></h4><div id="history-manual-achievements" class="history-achievement-grid"></div></section>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -1553,6 +1565,11 @@ body {
   <div class="modal rewards-cabin" role="dialog" aria-modal="true" aria-labelledby="rewards-cabin-title">
     <button class="modal-close rewards-cabin-close" type="button" onclick="closeModal('modal-achievements-manage')" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
     <header class="rewards-cabin-header"><span class="cabin-trophy" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 13v4m-4 3h8"/></svg></span><div><h2 id="rewards-cabin-title">Каюта достижений</h2><p>Создавайте особые знаки отличия для своего экипажа</p></div></header>
+    <div class="cabin-tabs" role="tablist" aria-label="Типы достижений">
+      <button id="cabin-tab-button-manual" class="is-active" type="button" role="tab" aria-selected="true" aria-controls="cabin-tab-manual" onclick="switchAchievementCabinTab('manual')">Ручные достижения</button>
+      <button id="cabin-tab-button-auto" type="button" role="tab" aria-selected="false" aria-controls="cabin-tab-auto" onclick="switchAchievementCabinTab('auto')">Автоматические достижения</button>
+    </div>
+    <div id="cabin-tab-manual" class="cabin-tab-panel" role="tabpanel" aria-labelledby="cabin-tab-button-manual">
     <section class="cabin-form" aria-label="Создание достижения">
       <div class="cabin-form-row">
         <div class="cabin-field cabin-title-field"><label for="ach-name">Название достижения</label><input id="ach-name" type="text" minlength="2" maxlength="60" placeholder="Например: Финансовый навигатор"><small id="ach-name-error" class="cabin-error"></small></div>
@@ -1566,6 +1583,11 @@ body {
       <div class="cabin-submit-row"><button id="achievement-submit" class="cabin-submit" type="button" onclick="addManualAchievement()" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg><span>Создать достижение</span></button><button id="achievement-cancel-edit" class="cabin-cancel-edit" type="button" onclick="cancelAchievementEdit()" hidden>Отменить редактирование</button></div>
     </section>
     <section class="cabin-created"><div class="cabin-section-heading"><div><h3>Достижения вашего экипажа</h3><p>Особые знаки отличия текущего класса</p></div><button id="achievement-show-all" type="button" onclick="toggleAchievementCards()">Показать все (0) →</button></div><div id="manual-achievements-list" class="cabin-achievement-list"></div></section>
+    </div>
+    <div id="cabin-tab-auto" class="cabin-tab-panel" role="tabpanel" aria-labelledby="cabin-tab-button-auto" hidden>
+      <section class="cabin-auto-intro"><div><h3>Автоматические достижения</h3><p>Выдаются системой по достоверным данным об общем заработке и подтверждённых покупках.</p></div><span>Без награды в финкоинах</span></section>
+      <div id="automatic-achievements-list" class="cabin-auto-list"></div>
+    </div>
   </div>
 </div>
 
@@ -1608,6 +1630,8 @@ body {
 </div>
 
 <script src="pin-auth.js?v=20260929"></script>
+<script src="economy.js?v=20261015"></script>
+<script src="achievements.js?v=20261015-2"></script>
 <script>
 const AVATARS = ['\u{1F3F4}\u200D\u2620\uFE0F', '\u26F5', '\u{1F6A2}', '\u{1F6F6}', '\u{1F99C}', '\u{1F419}', '\u{1F988}', '\u{1F420}', '\u{1F30A}', '\u{1F5E1}\uFE0F'];
 const STUDENT_AVATARS = [
@@ -1620,23 +1644,9 @@ const STUDENT_AVATARS = [
   { id: 'redhead-girl', src: 'student-avatar-redhead-girl.webp', label: 'Рыжая пиратка' },
   { id: 'teal-bandana-girl', src: 'student-avatar-teal-bandana-girl.webp', label: 'Пиратка в бирюзовой бандане' }
 ];
-const RANKS = [
-  { min: 0, max: 49, name: '\u042E\u043D\u0433\u0430', emoji: '\u{1F41A}' },
-  { min: 50, max: 99, name: '\u041C\u0430\u0442\u0440\u043E\u0441', emoji: '\u26F5' },
-  { min: 100, max: 199, name: '\u0411\u043E\u0446\u043C\u0430\u043D', emoji: '\u{1F9ED}' },
-  { min: 200, max: 299, name: '\u041A\u0430\u043F\u0438\u0442\u0430\u043D', emoji: '\u{1F3F4}\u200D\u2620\uFE0F' },
-  { min: 300, max: 499, name: '\u0410\u0434\u043C\u0438\u0440\u0430\u043B', emoji: '\u2693' },
-  { min: 500, max: Infinity, name: '\u041A\u043E\u0440\u043E\u043B\u044C \u041F\u0438\u0440\u0430\u0442\u043E\u0432', emoji: '\u{1F451}' }
-];
+const RANKS = window.PirateEconomy.RANKS;
 
-const AUTO_ACHIEVEMENTS = [
-  { id: 'first_coin', name: '\u041F\u0435\u0440\u0432\u044B\u0439 \u0444\u0438\u043D\u043A\u043E\u0438\u043D', desc: '\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043F\u0435\u0440\u0432\u0443\u044E \u043C\u043E\u043D\u0435\u0442\u0443', emoji: '\u{1F4B0}' },
-  { id: 'balance_50', name: '\u041A\u043E\u043F\u0438\u043B\u043A\u0430', desc: '\u041D\u0430\u043A\u043E\u043F\u0438\u0442\u044C 50 \u0444\u0438\u043D\u043A\u043E\u0438\u043D\u043E\u0432', emoji: '\u{1F437}' },
-  { id: 'balance_100', name: '\u0421\u043E\u0441\u0442\u043E\u044F\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u043F\u0438\u0440\u0430\u0442', desc: '\u041D\u0430\u043A\u043E\u043F\u0438\u0442\u044C 100 \u0444\u0438\u043D\u043A\u043E\u0438\u043D\u043E\u0432', emoji: '\u{1F48E}' },
-  { id: 'balance_300', name: '\u0410\u0434\u043C\u0438\u0440\u0430\u043B\u044C\u0441\u043A\u0438\u0435 \u0430\u043C\u0431\u0438\u0446\u0438\u0438', desc: '\u041D\u0430\u043A\u043E\u043F\u0438\u0442\u044C 300 \u0444\u0438\u043D\u043A\u043E\u0438\u043D\u043E\u0432', emoji: '\u{1F3C6}' },
-  { id: 'first_purchase', name: '\u041F\u0435\u0440\u0432\u0430\u044F \u043F\u043E\u043A\u0443\u043F\u043A\u0430', desc: '\u041A\u0443\u043F\u0438\u0442\u044C \u043F\u0435\u0440\u0432\u0443\u044E \u043D\u0430\u0433\u0440\u0430\u0434\u0443', emoji: '\u{1F6D2}' },
-  { id: 'five_purchases', name: '\u0428\u043E\u043F\u043F\u0438\u043D\u0433', desc: '\u0421\u043E\u0432\u0435\u0440\u0448\u0438\u0442\u044C 5 \u043F\u043E\u043A\u0443\u043F\u043E\u043A', emoji: '\u{1F6CD}\uFE0F' }
-];
+const AUTO_ACHIEVEMENTS = window.PirateAchievements.AUTO_ACHIEVEMENTS;
 
 let appData = { classes: [], currentClassId: null, currentUser: null };
 let selectedAvatar = STUDENT_AVATARS[0];
@@ -1660,6 +1670,9 @@ function loadData() {
     try { appData = migrateAssetPaths(JSON.parse(raw)); } catch(e) { console.error('Ошибка загрузки данных', e); }
   }
   if (!appData.classes) appData.classes = [];
+  window.PirateEconomy.migrateData(appData);
+  const achievementReconciliation = window.PirateAchievements.reconcileData(appData);
+  if (achievementReconciliation.changed) localStorage.setItem('pirateTracker', JSON.stringify({ ...appData, currentUser: null }));
   const session = window.PinAuth?.getSession();
   appData.currentUser = session ? { role: session.role, classId: session.classId, studentId: session.studentId } : null;
 }
@@ -1680,6 +1693,8 @@ window.PirateCloudBridge = {
     if (!remoteData || !Array.isArray(remoteData.classes)) return;
     const session = window.PinAuth?.getSession();
     const migratedData = migrateAssetPaths(JSON.parse(JSON.stringify(remoteData)));
+    window.PirateEconomy.migrateData(migratedData);
+    const achievementReconciliation = window.PirateAchievements.reconcileData(migratedData);
     appData = {
       ...appData,
       ...migratedData,
@@ -1693,6 +1708,7 @@ window.PirateCloudBridge = {
     window.dispatchEvent(new CustomEvent('pirate-data-synced'));
     if (appData.currentUser?.role === 'teacher') renderTeacherView();
     if (appData.currentUser?.role === 'student') renderStudentView();
+    if (achievementReconciliation.changed) queueMicrotask(() => window.PirateCloud?.save(exportPersistentData()));
   }
 };
 
@@ -1702,9 +1718,13 @@ function getCurrentClass() { return appData.classes.find(c => c.id === appData.c
 
 function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
-function getRank(balance) { for (let i = RANKS.length - 1; i >= 0; i--) { if (balance >= RANKS[i].min) return RANKS[i]; } return RANKS[0]; }
-function getNextRank(balance) { for (let i = 0; i < RANKS.length; i++) { if (balance < RANKS[i].min) return RANKS[i]; } return null; }
-function getProgressPercent(balance) { const current = getRank(balance); const next = getNextRank(balance); if (!next) return 100; return Math.min(100, Math.round(((balance - current.min) / (next.min - current.min)) * 100)); }
+function getStudentBalance(student) { return window.PirateEconomy.getBalance(student); }
+function getStudentLifetimeEarned(student) { return window.PirateEconomy.getLifetimeEarned(student); }
+function isLifetimeOnlyTransaction(transaction) { return transaction?.category === 'lifetime_correction' && Number(transaction.balanceDelta ?? transaction.amount ?? 0) === 0; }
+function getTransactionDisplayAmount(transaction) { return isLifetimeOnlyTransaction(transaction) ? Number(transaction.lifetimeDelta || 0) : Number(transaction.amount || 0); }
+function getRank(lifetimeEarned) { return window.PirateEconomy.getRank(lifetimeEarned); }
+function getNextRank(lifetimeEarned) { return window.PirateEconomy.getNextRank(lifetimeEarned); }
+function getProgressPercent(lifetimeEarned) { return window.PirateEconomy.getProgressPercent(lifetimeEarned); }
 
 function showView(viewId) {
   const session = window.PinAuth?.getSession();
@@ -1814,7 +1834,10 @@ function showToast(message) {
 function addClass() {
   const name = document.getElementById('new-class-name').value.trim();
   if (!name) { showToast('Введите название класса!'); return; }
-  const newClass = { id: generateId('class'), name, students: [], transactions: [], rewards: [], requests: [], achievements: [], createdAt: new Date().toISOString() };
+  const classId = generateId('class');
+  const seasonId = generateId('season');
+  const createdAt = new Date().toISOString();
+  const newClass = { id: classId, name, students: [], transactions: [], rewards: [], requests: [], achievements: [], seasons: [{ id: seasonId, startedAt: createdAt }], currentSeasonId: seasonId, economyVersion: window.PirateEconomy.SCHEMA_VERSION, createdAt };
   appData.classes.push(newClass);
   appData.currentClassId = newClass.id;
   saveData();
@@ -1900,7 +1923,7 @@ async function addStudent() {
   if (!cls) { showToast('Сначала создайте класс!'); return; }
   const avatar = selectedAvatar && selectedAvatar.src ? selectedAvatar : STUDENT_AVATARS[0];
   const pinAuth = await window.PinAuth.createRecord(pin);
-  cls.students.push({ id: generateId('stu'), name, flag: avatar.src, avatarId: avatar.id, avatarSrc: avatar.src, pinAuth, fincoins_balance: 0, achievements: [], createdAt: new Date().toISOString() });
+  cls.students.push({ id: generateId('stu'), name, flag: avatar.src, avatarId: avatar.id, avatarSrc: avatar.src, pinAuth, balance: 0, fincoins_balance: 0, lifetimeEarned: 0, economyVersion: window.PirateEconomy.SCHEMA_VERSION, seasonId: cls.currentSeasonId, achievements: [], createdAt: new Date().toISOString() });
   saveData();
   closeModal('modal-add-student');
   document.getElementById('new-student-name').value = '';
@@ -1972,8 +1995,9 @@ function openTransactionModal(studentId, type) {
   document.getElementById('txn-amount').value = 1;
   document.getElementById('txn-comment').value = '';
   document.getElementById('txn-student-name').textContent = student.name;
-  document.getElementById('txn-student-rank').textContent = getRank(student.fincoins_balance).name;
-  document.getElementById('txn-current-balance').textContent = student.fincoins_balance.toLocaleString('ru-RU');
+  document.getElementById('txn-student-rank').textContent = getRank(getStudentLifetimeEarned(student)).name;
+  document.getElementById('txn-current-balance').textContent = getStudentBalance(student).toLocaleString('ru-RU');
+  document.getElementById('txn-current-earned').textContent = 'всего ' + getStudentLifetimeEarned(student).toLocaleString('ru-RU');
   const studentIndex = cls.students.indexOf(student);
   const storedAvatar = student.avatarSrc || student.flag;
   document.getElementById('txn-student-avatar').src = storedAvatar && /\.(png|jpe?g|webp|gif|svg)$/i.test(storedAvatar) ? storedAvatar : STUDENT_AVATARS[studentIndex % STUDENT_AVATARS.length].src;
@@ -1995,6 +2019,10 @@ function updateTxnTypeButtons() {
   document.getElementById('modal-transaction').dataset.mode = isIncome ? 'income' : 'expense';
   document.getElementById('transaction-title').textContent = isIncome ? 'Начисление финкоинов' : 'Списание финкоинов';
   document.getElementById('txn-amount-sign').textContent = isIncome ? '+' : '−';
+  const purpose = document.getElementById('txn-purpose');
+  purpose.innerHTML = isIncome
+    ? '<option value="earning">Игровая награда</option><option value="balance_correction">Коррекция баланса</option><option value="lifetime_correction">Коррекция общего заработка</option>'
+    : '<option value="balance_correction">Коррекция баланса</option><option value="earning_correction">Отмена ошибочного начисления</option><option value="lifetime_correction">Коррекция общего заработка</option>';
   document.querySelectorAll('#modal-transaction .quick-amounts button').forEach(button => {
     button.textContent = (isIncome ? '+' : '−') + button.textContent.replace(/[^0-9]/g, '');
   });
@@ -2012,15 +2040,20 @@ function updateTxnPreview() {
   if (!student) return;
   const amount = Math.max(0, parseInt(document.getElementById('txn-amount').value) || 0);
   const isIncome = currentTxnType === 'income';
-  const result = Math.max(0, student.fincoins_balance + (isIncome ? amount : -amount));
-  const insufficient = !isIncome && amount > student.fincoins_balance;
+  const balance = getStudentBalance(student);
+  const purpose = document.getElementById('txn-purpose')?.value || (isIncome ? 'earning' : 'balance_correction');
+  const lifetimeOnly = purpose === 'lifetime_correction';
+  const result = lifetimeOnly ? Math.max(0, getStudentLifetimeEarned(student) + (isIncome ? amount : -amount)) : Math.max(0, balance + (isIncome ? amount : -amount));
+  const insufficient = !isIncome && (lifetimeOnly ? amount > getStudentLifetimeEarned(student) : amount > balance);
+  const hint = document.getElementById('txn-purpose-hint');
+  if (hint) hint.textContent = purpose === 'earning' ? 'Увеличит баланс и общий заработок.' : purpose === 'earning_correction' ? 'Уменьшит баланс и общий заработок.' : purpose === 'lifetime_correction' ? 'Изменит только общий заработок и ранг.' : 'Изменит только доступный баланс.';
   document.getElementById('txn-result-balance').textContent = result.toLocaleString('ru-RU');
   const preview = document.getElementById('txn-balance-preview');
   preview.classList.toggle('insufficient', insufficient);
-  preview.querySelector('span').textContent = insufficient ? 'Недостаточно финкоинов' : 'Баланс после операции';
+  preview.querySelector('span').textContent = insufficient ? (lifetimeOnly ? 'Общий заработок меньше коррекции' : 'Недостаточно финкоинов') : lifetimeOnly ? 'Общий заработок после операции' : 'Баланс после операции';
   const submit = document.getElementById('txn-submit');
   submit.disabled = amount < 1 || insufficient;
-  document.getElementById('txn-submit-label').textContent = insufficient ? 'Уменьшите сумму' : (isIncome ? 'Начислить ' : 'Списать ') + (amount || '—');
+  document.getElementById('txn-submit-label').textContent = insufficient ? 'Уменьшите сумму' : lifetimeOnly ? (isIncome ? 'Увеличить заработок ' : 'Уменьшить заработок ') + (amount || '—') : (isIncome ? 'Начислить ' : 'Списать ') + (amount || '—');
 }
 
 document.getElementById('txn-amount').addEventListener('input', updateTxnPreview);
@@ -2036,17 +2069,20 @@ function executeTransaction() {
   if (!cls) return;
   const student = cls.students.find(s => s.id === currentTxnStudentId);
   if (!student) return;
-  if (currentTxnType === 'expense' && amount > student.fincoins_balance) { showToast('На балансе недостаточно финкоинов'); return; }
+  const purpose = document.getElementById('txn-purpose')?.value || (currentTxnType === 'income' ? 'earning' : 'balance_correction');
+  if (currentTxnType === 'expense' && purpose !== 'lifetime_correction' && amount > getStudentBalance(student)) { showToast('На балансе недостаточно финкоинов'); return; }
+  if (currentTxnType === 'expense' && purpose === 'lifetime_correction' && amount > getStudentLifetimeEarned(student)) { showToast('Общий заработок меньше указанной коррекции'); return; }
   const finalAmount = currentTxnType === 'income' ? amount : -amount;
-  student.fincoins_balance += finalAmount;
-  if (student.fincoins_balance < 0) student.fincoins_balance = 0;
-  cls.transactions.push({ id: generateId('txn'), student_id: currentTxnStudentId, amount: finalAmount, type: finalAmount > 0 ? 'income' : 'expense', description: comment || (finalAmount > 0 ? 'Начисление' : 'Списание'), timestamp: new Date().toISOString() });
+  const balanceDelta = purpose === 'lifetime_correction' ? 0 : finalAmount;
+  const lifetimeDelta = purpose === 'earning' ? amount : purpose === 'earning_correction' ? -amount : purpose === 'lifetime_correction' ? finalAmount : 0;
+  const result = window.PirateEconomy.applyTransaction(student, cls, { id: generateId('txn'), balanceDelta, lifetimeDelta, category: purpose, description: comment || (purpose === 'earning' ? 'Игровое начисление' : purpose === 'earning_correction' ? 'Отмена ошибочного начисления' : purpose === 'lifetime_correction' ? 'Коррекция общего заработка' : 'Коррекция баланса'), timestamp: new Date().toISOString() });
+  if (!result.ok) { showToast('Операцию выполнить не удалось'); return; }
   checkAutoAchievements(student, cls);
   saveData();
   closeModal('modal-transaction');
   renderTeacherView();
   window.PirateSound?.play(finalAmount > 0 ? 'coin' : 'debit');
-  showToast((finalAmount > 0 ? '+' : '') + finalAmount + ' финкоинов ' + (finalAmount > 0 ? 'начислено' : 'списано'));
+  showToast(purpose === 'lifetime_correction' ? 'Общий заработок скорректирован' : (finalAmount > 0 ? '+' : '') + finalAmount + ' финкоинов ' + (finalAmount > 0 ? 'начислено' : 'списано'));
 }
 
 function openHistory(studentId) {
@@ -2057,7 +2093,7 @@ function openHistory(studentId) {
   const transactions = cls.transactions.filter(t => t.student_id === studentId).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   const credited = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
   const debited = Math.abs(transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
-  document.getElementById('history-student-name').textContent = student.name + ' · текущий баланс ' + student.fincoins_balance.toLocaleString('ru-RU');
+  document.getElementById('history-student-name').textContent = student.name + ' · баланс ' + getStudentBalance(student).toLocaleString('ru-RU') + ' · заработано за курс ' + getStudentLifetimeEarned(student).toLocaleString('ru-RU') + (student.economyMigration?.needsReview ? ' · старая история не согласована; сумма всех начислений: ' + Number(student.economyMigration.suggestedLifetimeEarned || 0).toLocaleString('ru-RU') + ', проверьте период' : '');
   document.getElementById('history-total').textContent = transactions.length.toLocaleString('ru-RU');
   document.getElementById('history-income').textContent = '+' + credited.toLocaleString('ru-RU');
   document.getElementById('history-expense').textContent = '−' + debited.toLocaleString('ru-RU');
@@ -2067,8 +2103,10 @@ function openHistory(studentId) {
     list.innerHTML = '<div class="history-empty"><span><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg></span><strong>Операций пока нет</strong><small>Начисления и списания появятся здесь</small></div>';
   } else {
     transactions.forEach(txn => {
+      const lifetimeOnly = isLifetimeOnlyTransaction(txn);
+      const displayAmount = getTransactionDisplayAmount(txn);
       const item = document.createElement('div');
-      item.className = 'history-item ' + (txn.amount > 0 ? 'income' : 'expense');
+      item.className = 'history-item ' + (displayAmount >= 0 ? 'income' : 'expense');
       const icon = document.createElement('span');
       icon.className = 'history-icon';
       icon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>';
@@ -2076,21 +2114,22 @@ function openHistory(studentId) {
       details.className = 'history-details';
       const desc = document.createElement('div');
       desc.className = 'history-desc';
-      desc.textContent = txn.amount > 0 ? 'Начислено' : 'Списано';
+      desc.textContent = lifetimeOnly ? 'Скорректирован общий заработок' : txn.amount > 0 ? 'Начислено' : 'Списано';
       const commentEl = document.createElement('div');
       commentEl.className = 'history-date';
       commentEl.textContent = txn.description + ' \u2022 ' + formatDate(txn.timestamp);
       details.appendChild(desc);
       details.appendChild(commentEl);
       const amount = document.createElement('span');
-      amount.className = 'history-amount ' + (txn.amount > 0 ? 'positive' : 'negative');
-      amount.textContent = (txn.amount > 0 ? '+' : '') + txn.amount;
+      amount.className = 'history-amount ' + (displayAmount >= 0 ? 'positive' : 'negative');
+      amount.textContent = (displayAmount > 0 ? '+' : '') + displayAmount;
       item.appendChild(icon);
       item.appendChild(details);
       item.appendChild(amount);
       list.appendChild(item);
     });
   }
+  window.renderTeacherStudentAchievements?.(student, cls);
   openModal('modal-history');
 }
 
@@ -2259,7 +2298,7 @@ function renderShop() {
   const cls = getCurrentClass();
   const student = getCurrentStudent();
   if (!cls || !student) return;
-  document.getElementById('shop-balance').innerHTML = '<img src="Монета.webp" alt=""><span>Ваш баланс:</span><strong>' + Number(student.fincoins_balance || 0) + '</strong><span>финкоинов</span>';
+  document.getElementById('shop-balance').innerHTML = '<img src="Монета.webp" alt=""><span>Доступный баланс:</span><strong>' + getStudentBalance(student) + '</strong><span>финкоинов</span>';
   const cats = document.getElementById('shop-categories');
   cats.innerHTML = '';
   SHOP_CATEGORIES.forEach(cat => {
@@ -2308,7 +2347,7 @@ function renderShop() {
     }
     const buyBtn = document.createElement('button');
     if (pendingReq) { buyBtn.className = 'btn btn-small btn-blue'; buyBtn.textContent = 'Ожидает подтверждения'; buyBtn.disabled = true; }
-    else if (student.fincoins_balance < r.price) { buyBtn.className = 'btn btn-small btn-gold'; buyBtn.textContent = 'Недостаточно'; buyBtn.disabled = true; }
+    else if (getStudentBalance(student) < r.price) { buyBtn.className = 'btn btn-small btn-gold'; buyBtn.textContent = 'Недостаточно'; buyBtn.disabled = true; }
     else if (r.limit > 0 && purchased >= r.limit) { buyBtn.className = 'btn btn-small btn-gold'; buyBtn.textContent = 'Лимит достигнут'; buyBtn.disabled = true; }
     else { buyBtn.className = 'btn btn-small btn-gold'; buyBtn.textContent = 'Купить'; buyBtn.onclick = () => buyReward(r.id); }
     item.appendChild(buyBtn);
@@ -2391,9 +2430,9 @@ function approveRequest(requestId) {
   const student = cls.students.find(s => s.id === req.student_id);
   const reward = cls.rewards.find(r => r.id === req.reward_id);
   if (!student || !reward) return;
-  student.fincoins_balance -= reward.price;
-  if (student.fincoins_balance < 0) student.fincoins_balance = 0;
-  cls.transactions.push({ id: generateId('txn'), student_id: student.id, amount: -reward.price, type: 'expense', description: 'Покупка: ' + reward.name, timestamp: new Date().toISOString() });
+  if (getStudentBalance(student) < reward.price) { showToast('На балансе ученика недостаточно финкоинов'); return; }
+  const purchase = window.PirateEconomy.applyTransaction(student, cls, { id: generateId('txn'), balanceDelta: -reward.price, lifetimeDelta: 0, category: 'purchase', description: 'Покупка: ' + reward.name, timestamp: new Date().toISOString(), idempotencyKey: 'purchase:' + requestId });
+  if (!purchase.ok) { showToast('Покупку обработать не удалось'); return; }
   req.status = 'approved';
   req.processedAt = new Date().toISOString();
   checkAutoAchievements(student, cls);
@@ -2428,15 +2467,9 @@ function updateRequestsBadge() {
 }
 
 function checkAutoAchievements(student, cls) {
-  const newAchs = [];
-  if (student.fincoins_balance > 0 && !student.achievements.includes('first_coin')) { student.achievements.push('first_coin'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'first_coin')); }
-  if (student.fincoins_balance >= 50 && !student.achievements.includes('balance_50')) { student.achievements.push('balance_50'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'balance_50')); }
-  if (student.fincoins_balance >= 100 && !student.achievements.includes('balance_100')) { student.achievements.push('balance_100'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'balance_100')); }
-  if (student.fincoins_balance >= 300 && !student.achievements.includes('balance_300')) { student.achievements.push('balance_300'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'balance_300')); }
-  const purchaseCount = cls.transactions.filter(t => t.student_id === student.id && t.type === 'expense' && t.description.startsWith('Покупка:')).length;
-  if (purchaseCount >= 1 && !student.achievements.includes('first_purchase')) { student.achievements.push('first_purchase'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'first_purchase')); }
-  if (purchaseCount >= 5 && !student.achievements.includes('five_purchases')) { student.achievements.push('five_purchases'); newAchs.push(AUTO_ACHIEVEMENTS.find(a => a.id === 'five_purchases')); }
-  if (newAchs.length > 0) { saveData(); newAchs.forEach(a => { showToast('Достижение «' + a.name + '» открыто!'); }); }
+  const newAchs = window.PirateAchievements.reconcileStudent(student, cls);
+  newAchs.forEach(a => { showToast('Достижение «' + a.name + '» открыто!'); });
+  return newAchs;
 }
 
 function analyticsIcon(name) {
@@ -2470,28 +2503,28 @@ function renderAnalyticsExportOptions(cls) {
 
 function analyticsStudentStats(cls,student) {
   const transactions=(cls.transactions||[]).filter(t=>t.student_id===student.id);
-  const earned=transactions.filter(t=>t.amount>0).reduce((sum,t)=>sum+t.amount,0);
+  const earned=getStudentLifetimeEarned(student);
   const spent=Math.abs(transactions.filter(t=>t.amount<0).reduce((sum,t)=>sum+t.amount,0));
   const purchases=transactions.filter(t=>t.type==='expense'&&(t.description||'').startsWith('Покупка:')).length;
   const rewards=(cls.requests||[]).filter(r=>r.student_id===student.id&&r.status==='approved').length;
-  const achievements=(student.achievements||[]).length;
+  const achievements=window.PirateAchievements.countStudentAchievements(student,cls);
   return {transactions,earned,spent,purchases,rewards,achievements};
 }
 
 function buildAnalyticsPdfReport(cls,student) {
   const date=new Date().toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'});
-  const ranking=[...cls.students].sort((a,b)=>(b.fincoins_balance||0)-(a.fincoins_balance||0));
+  const ranking=[...cls.students].sort((a,b)=>getStudentLifetimeEarned(b)-getStudentLifetimeEarned(a));
   const cards=items=>`<div class="analytics-pdf-cards">${items.map(item=>`<div class="analytics-pdf-card"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join('')}</div>`;
   let title,subtitle,content;
   if(student){
-    const stats=analyticsStudentStats(cls,student),position=ranking.findIndex(item=>item.id===student.id)+1,rank=getRank(student.fincoins_balance||0).name;
-    const rows=[...stats.transactions].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(t=>`<tr><td>${new Date(t.timestamp).toLocaleDateString('ru-RU')}</td><td>${escapeHtml(t.description|| (t.amount>0?'Начисление':'Списание'))}</td><td>${t.amount>0?'+':''}${t.amount}</td></tr>`).join('');
+    const stats=analyticsStudentStats(cls,student),position=ranking.findIndex(item=>item.id===student.id)+1,rank=getRank(getStudentLifetimeEarned(student)).name;
+    const rows=[...stats.transactions].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(t=>{const amount=getTransactionDisplayAmount(t);return `<tr><td>${new Date(t.timestamp).toLocaleDateString('ru-RU')}</td><td>${escapeHtml(t.description|| (amount>=0?'Начисление':'Списание'))}</td><td>${amount>0?'+':''}${amount}${isLifetimeOnlyTransaction(t)?' к заработку':''}</td></tr>`}).join('');
     title=`Отчёт ученика: ${escapeHtml(student.name)}`;subtitle=`Класс ${escapeHtml(cls.name)} · позиция в рейтинге ${position||'-'} из ${cls.students.length}`;
-    content=`${cards([[(student.fincoins_balance||0).toLocaleString('ru-RU'),'Текущий баланс'],[stats.earned.toLocaleString('ru-RU'),'Всего заработано'],[stats.spent.toLocaleString('ru-RU'),'Всего потрачено'],[rank,'Текущий ранг']])}<h2>Успеваемость</h2><table class="analytics-pdf-table"><thead><tr><th>Показатель</th><th>Значение</th></tr></thead><tbody><tr><td>Место в классе</td><td>${position||'-'} из ${cls.students.length}</td></tr><tr><td>Достижения</td><td>${stats.achievements}</td></tr><tr><td>Полученные награды</td><td>${stats.rewards}</td></tr><tr><td>Покупки</td><td>${stats.purchases}</td></tr><tr><td>Количество операций</td><td>${stats.transactions.length}</td></tr></tbody></table><h2>История операций</h2><table class="analytics-pdf-table"><thead><tr><th>Дата</th><th>Операция</th><th>Финкоины</th></tr></thead><tbody>${rows||'<tr><td colspan="3">Операций пока нет</td></tr>'}</tbody></table>`;
+    content=`${cards([[getStudentBalance(student).toLocaleString('ru-RU'),'Доступный баланс'],[stats.earned.toLocaleString('ru-RU'),'Всего заработано за курс'],[stats.spent.toLocaleString('ru-RU'),'Всего потрачено'],[rank,'Текущий ранг']])}<h2>Успеваемость</h2><table class="analytics-pdf-table"><thead><tr><th>Показатель</th><th>Значение</th></tr></thead><tbody><tr><td>Место в классе</td><td>${position||'-'} из ${cls.students.length}</td></tr><tr><td>Достижения</td><td>${stats.achievements}</td></tr><tr><td>Полученные награды</td><td>${stats.rewards}</td></tr><tr><td>Покупки</td><td>${stats.purchases}</td></tr><tr><td>Количество операций</td><td>${stats.transactions.length}</td></tr></tbody></table><h2>История операций</h2><table class="analytics-pdf-table"><thead><tr><th>Дата</th><th>Операция</th><th>Финкоины</th></tr></thead><tbody>${rows||'<tr><td colspan="3">Операций пока нет</td></tr>'}</tbody></table>`;
   }else{
-    const totalCoins=cls.students.reduce((sum,s)=>sum+(s.fincoins_balance||0),0),transactions=cls.transactions||[];
+    const totalCoins=cls.students.reduce((sum,s)=>sum+getStudentBalance(s),0),transactions=cls.transactions||[];
     const avg=cls.students.length?Math.round(totalCoins/cls.students.length):0;
-    const rows=ranking.map((s,index)=>{const stats=analyticsStudentStats(cls,s);return `<tr><td>${index+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(getRank(s.fincoins_balance||0).name)}</td><td>${(s.fincoins_balance||0).toLocaleString('ru-RU')}</td><td>${stats.earned.toLocaleString('ru-RU')}</td><td>${stats.spent.toLocaleString('ru-RU')}</td><td>${stats.achievements}</td></tr>`}).join('');
+    const rows=ranking.map((s,index)=>{const stats=analyticsStudentStats(cls,s);return `<tr><td>${index+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(getRank(getStudentLifetimeEarned(s)).name)}</td><td>${getStudentBalance(s).toLocaleString('ru-RU')}</td><td>${stats.earned.toLocaleString('ru-RU')}</td><td>${stats.spent.toLocaleString('ru-RU')}</td><td>${stats.achievements}</td></tr>`}).join('');
     title='Общий отчёт класса';subtitle=`Класс ${escapeHtml(cls.name)} · рейтинг и успеваемость всех учеников`;
     content=`${cards([[cls.students.length,'Учеников'],[totalCoins.toLocaleString('ru-RU'),'Общий баланс'],[avg.toLocaleString('ru-RU'),'Средний баланс'],[transactions.length,'Операций']])}<h2>Общий рейтинг и успеваемость</h2><table class="analytics-pdf-table"><thead><tr><th>Место</th><th>Ученик</th><th>Ранг</th><th>Баланс</th><th>Заработано</th><th>Потрачено</th><th>Достижения</th></tr></thead><tbody>${rows||'<tr><td colspan="7">В классе пока нет учеников</td></tr>'}</tbody></table><div class="analytics-pdf-note">Рейтинг сформирован по текущему балансу. Показатели заработано и потрачено рассчитаны по сохранённой истории операций.</div>`;
   }
@@ -2556,11 +2589,11 @@ function renderAnalyticsClass() {
   const cls = getCurrentClass(), div = document.getElementById('analytics-class');
   if (!cls) { div.innerHTML = '<div class="analytics-empty">Создайте класс, чтобы увидеть аналитику.</div>'; return; }
   const requests=cls.requests||[], transactions=cls.transactions||[];
-  const totalCoins=cls.students.reduce((sum,s)=>sum+(s.fincoins_balance||0),0);
+  const totalCoins=cls.students.reduce((sum,s)=>sum+getStudentBalance(s),0);
   const avgBalance=cls.students.length?Math.round(totalCoins/cls.students.length):0;
   const totalRewards=requests.filter(r=>r.status==='approved').length;
   const activeRequests=requests.filter(r=>r.status==='pending').length;
-  const activeStudents=cls.students.filter(s=>(s.fincoins_balance||0)>0).length;
+  const activeStudents=cls.students.filter(s=>getStudentLifetimeEarned(s)>0).length;
   const activePercent=cls.students.length?Math.round(activeStudents/cls.students.length*100):0;
   const metric=(icon,value,label,meta)=>`<article class="stat-item"><div class="analytics-stat-top"><span class="analytics-stat-icon">${analyticsIcon(icon)}</span><span class="analytics-stat-meta">${meta}</span></div><div class="stat-value">${value.toLocaleString('ru-RU')}</div><div class="stat-label">${label}</div></article>`;
   div.innerHTML=`<div class="stat-grid">${metric('coin',totalCoins,'Финкоинов в классе','Баланс')}${metric('users',avgBalance,'Средний баланс ученика','Среднее')}${metric('gift',totalRewards,'Получено наград','Награды')}${metric('file',activeRequests,'Заявок на рассмотрении','В работе')}</div><div class="analytics-overview"><section class="analytics-panel"><h3>Активность экипажа</h3><p>Доля учеников, которые уже начали накапливать финкоины</p><div class="analytics-progress-row"><div><span>Учеников с положительным балансом</span><strong>${activeStudents} из ${cls.students.length}</strong></div><div class="analytics-progress-track"><i style="width:${activePercent}%"></i></div></div></section><section class="analytics-panel"><h3>Сводка класса</h3><p>Ключевые объёмы за всё время</p><div class="analytics-facts"><div class="analytics-fact"><span>Учеников</span><strong>${cls.students.length}</strong></div><div class="analytics-fact"><span>Операций</span><strong>${transactions.length}</strong></div></div></section></div>`;
@@ -2571,7 +2604,7 @@ function renderAnalyticsDynamics() {
   if (!cls) { div.innerHTML='<div class="analytics-empty">Нет данных для построения графика.</div>'; return; }
   const days=[], now=new Date(), transactions=cls.transactions||[];
   for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);d.setHours(23,59,59,999);days.push(d)}
-  const dataPoints=days.map(day=>{let balance=0;cls.students.forEach(s=>{let b=s.fincoins_balance||0;transactions.filter(t=>t.student_id===s.id&&new Date(t.timestamp)>day).forEach(t=>{b-=t.amount});balance+=Math.max(0,b)});return balance});
+  const dataPoints=days.map(day=>{let balance=0;cls.students.forEach(s=>{let b=getStudentBalance(s);transactions.filter(t=>t.student_id===s.id&&new Date(t.timestamp)>day).forEach(t=>{b-=Number(t.balanceDelta ?? t.amount ?? 0)});balance+=Math.max(0,b)});return balance});
   const maxVal=Math.max(...dataPoints,1), width=820, height=300, padding=52;
   const points=dataPoints.map((val,i)=>({x:padding+(i/6)*(width-2*padding),y:height-padding-(val/maxVal)*(height-2*padding),val}));
   const pathD='M '+points.map(p=>p.x+' '+p.y).join(' L ');
@@ -2590,18 +2623,20 @@ function renderAnalyticsTop() {
   if(!cls||!cls.students.length){div.innerHTML='<div class="analytics-empty">Добавьте учеников, чтобы сформировать рейтинг.</div>';return}
   const transactions=cls.transactions||[], txCount=s=>transactions.filter(t=>t.student_id===s.id).length;
   const purchaseCount=s=>transactions.filter(t=>t.student_id===s.id&&t.type==='expense'&&(t.description||'').startsWith('Покупка:')).length;
-  const byBalance=[...cls.students].sort((a,b)=>b.fincoins_balance-a.fincoins_balance).slice(0,5);
+  const byBalance=[...cls.students].sort((a,b)=>getStudentLifetimeEarned(b)-getStudentLifetimeEarned(a)).slice(0,5);
   const byTxns=[...cls.students].sort((a,b)=>txCount(b)-txCount(a)).slice(0,5);
   const byPurchases=[...cls.students].sort((a,b)=>purchaseCount(b)-purchaseCount(a)).slice(0,5);
   const panel=(title,icon,students,value,unit)=>`<section class="analytics-rank-panel"><div class="analytics-rank-heading">${analyticsIcon(icon)}<span>${title}</span></div><ul class="top-list">${students.map((s,i)=>`<li><span class="top-rank">${i+1}</span><span class="analytics-person">${escapeHtml((s.name||'?').trim().charAt(0).toUpperCase())}</span><span class="top-name">${escapeHtml(s.name)}</span><span class="top-value">${value(s).toLocaleString('ru-RU')} ${unit}</span></li>`).join('')}</ul></section>`;
-  div.innerHTML=`<div class="analytics-rank-grid">${panel('По балансу','trophy',byBalance,s=>s.fincoins_balance,'')}${panel('По операциям','chart',byTxns,txCount,'оп.')}${panel('По покупкам','bag',byPurchases,purchaseCount,'пок.')}</div>`;
+  div.innerHTML=`<div class="analytics-rank-grid">${panel('По заработку','trophy',byBalance,s=>getStudentLifetimeEarned(s),'')}${panel('По операциям','chart',byTxns,txCount,'оп.')}${panel('По покупкам','bag',byPurchases,purchaseCount,'пок.')}</div>`;
 }
 
 function confirmNewSeason() {
-  showConfirm('Новый сезон', 'Все балансы учеников будут сброшены до 0. История транзакций, заявки и достижения сохранятся. Продолжить?', () => {
+  showConfirm('Новый сезон', 'Текущий баланс и заработок за курс начнутся с 0. История транзакций, заявки и достижения сохранятся. Продолжить?', () => {
     const cls = getCurrentClass();
     if (!cls) return;
-    cls.students.forEach(s => { s.fincoins_balance = 0; });
+    const now = new Date().toISOString();
+    const seasonId = generateId('season');
+    window.PirateEconomy.startNewSeason(cls, seasonId, now);
     saveData();
     renderTeacherView();
     window.PirateSound?.play('season');
@@ -2658,12 +2693,13 @@ function renderTeacherView() {
     updateRequestsBadge();
     return;
   }
-  const sorted = [...cls.students].sort((a, b) => b.fincoins_balance - a.fincoins_balance);
-  const isLeader = sorted.length > 0 && sorted[0].fincoins_balance > 0;
+  const sorted = [...cls.students].sort((a, b) => getStudentLifetimeEarned(b) - getStudentLifetimeEarned(a));
+  const isLeader = sorted.length > 0 && getStudentLifetimeEarned(sorted[0]) > 0;
   sorted.forEach((student, index) => {
-    const rank = getRank(student.fincoins_balance);
-    const nextRank = getNextRank(student.fincoins_balance);
-    const progress = getProgressPercent(student.fincoins_balance);
+    const earned = getStudentLifetimeEarned(student);
+    const rank = getRank(earned);
+    const nextRank = getNextRank(earned);
+    const progress = getProgressPercent(earned);
     const isTop = index === 0 && isLeader;
     const card = document.createElement('div');
     card.className = 'student-card' + (isTop ? ' leader' : '');
@@ -2686,7 +2722,7 @@ function renderTeacherView() {
     card.appendChild(chest);
     const balance = document.createElement('div');
     balance.className = 'card-balance';
-    balance.innerHTML = `<div class="coin-icon">\u{1F4B0}</div><span class="balance-amount" data-balance="${student.id}">${student.fincoins_balance}</span>`;
+    balance.innerHTML = `<div class="coin-icon">\u{1F4B0}</div><span class="balance-amount" data-balance="${student.id}">${getStudentBalance(student)}</span>`;
     card.appendChild(balance);
     const label = document.createElement('div');
     label.className = 'card-balance-label';
@@ -2694,7 +2730,7 @@ function renderTeacherView() {
     card.appendChild(label);
     const progressDiv = document.createElement('div');
     progressDiv.className = 'card-progress';
-    const progressText = nextRank ? `До ранга «${nextRank.name}»: ${nextRank.min - student.fincoins_balance} финкоинов` : 'Максимальный ранг достигнут!';
+    const progressText = nextRank ? `Заработано ${earned}. До ранга «${nextRank.name}»: ${nextRank.min - earned} финкоинов` : 'Максимальный ранг достигнут!';
     progressDiv.innerHTML = `<div class="card-progress-text">${progressText}</div><div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>`;
     card.appendChild(progressDiv);
     const achDiv = document.createElement('div');
@@ -2730,35 +2766,34 @@ function renderStudentView() {
   const cls = getCurrentClass();
   const student = getCurrentStudent();
   if (!cls || !student) { logout(); return; }
-  const rank = getRank(student.fincoins_balance);
-  const nextRank = getNextRank(student.fincoins_balance);
-  const progress = getProgressPercent(student.fincoins_balance);
+  const earned = getStudentLifetimeEarned(student);
+  const rank = getRank(earned);
+  const nextRank = getNextRank(earned);
+  const progress = getProgressPercent(earned);
   const profileCard = document.getElementById('student-profile-card');
-  const progressText = nextRank ? `До ранга «${nextRank.name}»: ${nextRank.min - student.fincoins_balance} финкоинов` : '\u{1F451} Максимальный ранг достигнут!';
-  profileCard.innerHTML = `<div class="profile-avatar">${student.flag}</div><div class="profile-name">${escapeHtml(student.name)}</div><div class="profile-rank">${rank.emoji} ${rank.name}</div>${getChestSVG()}<div class="profile-balance"><div class="coin-icon">\u{1F4B0}</div><span class="balance-amount">${student.fincoins_balance}</span></div><div style="font-size:13px;color:#7a6a4f;margin-bottom:8px">финкоинов в сундуке</div><div class="card-progress"><div class="card-progress-text">${progressText}</div><div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div></div>`;
+  const progressText = nextRank ? `Заработано ${earned}. До ранга «${nextRank.name}»: ${nextRank.min - earned} финкоинов` : '\u{1F451} Максимальный ранг достигнут!';
+  profileCard.innerHTML = `<div class="profile-avatar">${student.flag}</div><div class="profile-name">${escapeHtml(student.name)}</div><div class="profile-rank">${rank.emoji} ${rank.name}</div>${getChestSVG()}<div class="profile-balance"><div class="coin-icon">\u{1F4B0}</div><span class="balance-amount">${getStudentBalance(student)}</span></div><div style="font-size:13px;color:#7a6a4f;margin-bottom:8px">доступно · всего заработано ${earned}</div><div class="card-progress"><div class="card-progress-text">${progressText}</div><div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div></div>`;
   const lb = document.getElementById('student-leaderboard');
-  const sorted = [...cls.students].sort((a, b) => b.fincoins_balance - a.fincoins_balance).slice(0, 10);
+  const sorted = [...cls.students].sort((a, b) => getStudentLifetimeEarned(b) - getStudentLifetimeEarned(a)).slice(0, 10);
   let lbHtml = '<h3>\u{1F3C6} Лидерборд класса</h3>';
   sorted.forEach((s, i) => {
     const isCurrent = s.id === student.id;
     const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
     const rankStr = i < 3 ? medals[i] : (i + 1);
-    lbHtml += `<div class="leaderboard-item ${isCurrent ? 'current' : ''}"><span class="lb-rank">${rankStr}</span><span class="lb-avatar">${s.flag}</span><span class="lb-name">${escapeHtml(s.name)}${isCurrent ? ' (вы)' : ''}</span><span class="lb-balance">${s.fincoins_balance}</span></div>`;
+    lbHtml += `<div class="leaderboard-item ${isCurrent ? 'current' : ''}"><span class="lb-rank">${rankStr}</span><span class="lb-avatar">${s.flag}</span><span class="lb-name">${escapeHtml(s.name)}${isCurrent ? ' (вы)' : ''}</span><span class="lb-balance">${getStudentLifetimeEarned(s)}</span></div>`;
   });
   lb.innerHTML = lbHtml;
   const achSection = document.getElementById('student-achievements-section');
   let achHtml = '<h3>\u{1F3C6} Мои достижения</h3><div class="achievements-grid">';
   AUTO_ACHIEVEMENTS.forEach(a => { const earned = student.achievements.includes(a.id); achHtml += `<div class="achievement-card" style="opacity:${earned ? 1 : 0.3}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/12-star.webp'}" alt=""><div class="name">${a.name}</div><div class="desc">${a.desc}</div></div>`; });
-  const awardedSnapshots = Array.isArray(student.awardedAchievements) ? student.awardedAchievements : [];
-  awardedSnapshots.forEach(a => { const rarity = a.raritySnapshot || 'common'; const coins = Number(a.fincoinsSnapshot) || 0; achHtml += `<div class="achievement-card rarity-${rarity}"><img class="achievement-medal-image" src="${a.iconPathSnapshot || 'assets/achievements/02-compass.webp'}" alt=""><div class="name">${escapeHtml(a.titleSnapshot || 'Достижение')}</div><div class="cabin-badge rarity-${rarity}">${typeof achievementRarityLabel === 'function' ? achievementRarityLabel(rarity) : rarity}</div><div class="desc">${escapeHtml(a.descriptionSnapshot || '')}</div><div class="student-achievement-date">Получено: ${new Date(a.awardedAt).toLocaleDateString('ru-RU')}</div>${coins ? `<div class="student-achievement-coins">+${coins} финкоинов</div>` : ''}</div>`; });
-  if (cls.achievements) { cls.achievements.forEach(a => { const earned = a.awarded_to && a.awarded_to.includes(student.id); const hasSnapshot = awardedSnapshots.some(s => s.achievementId === a.id); if (earned && !hasSnapshot) { achHtml += `<div class="achievement-card rarity-${a.rarity || 'common'}"><img class="achievement-medal-image" src="${a.iconPath || 'assets/achievements/02-compass.webp'}" alt=""><div class="name">${escapeHtml(a.name)}</div><div class="desc">${escapeHtml(a.description || '')}</div></div>`; } }); }
+  window.PirateAchievements.getStudentManualAchievements(student, cls).forEach(a => { achHtml += `<div class="achievement-card rarity-${a.rarity}"><img class="achievement-medal-image" src="${a.iconPath}" alt=""><div class="name">${escapeHtml(a.name)}</div><div class="cabin-badge rarity-${a.rarity}">${typeof achievementRarityLabel === 'function' ? achievementRarityLabel(a.rarity) : a.rarity}</div><div class="desc">${escapeHtml(a.description)}</div>${a.awardedAt ? `<div class="student-achievement-date">Получено: ${new Date(a.awardedAt).toLocaleDateString('ru-RU')}</div>` : ''}${a.fincoins ? `<div class="student-achievement-coins">+${a.fincoins} финкоинов</div>` : ''}</div>`; });
   achHtml += '</div>';
   achSection.innerHTML = achHtml;
   const journalDiv = document.getElementById('student-journal');
-  const txns = cls.transactions.filter(t => t.student_id === student.id).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20);
+    const txns = cls.transactions.filter(t => t.student_id === student.id).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20);
   let jHtml = '<h3>\u{1F4DC} Последние операции</h3>';
   if (txns.length === 0) { jHtml += '<p style="text-align:center;color:#7a6a4f;padding:10px">Операций пока нет</p>'; }
-  else { txns.forEach(txn => { jHtml += `<div class="history-item ${txn.amount > 0 ? 'income' : 'expense'}"><span class="history-icon">${txn.amount > 0 ? '\u{1F4B0}' : '\u{1F4B8}'}</span><div class="history-details"><div class="history-desc">${txn.amount > 0 ? 'Начислено' : 'Списано'}</div><div class="history-date">${escapeHtml(txn.description)} \u2022 ${formatDate(txn.timestamp)}</div></div><span class="history-amount ${txn.amount > 0 ? 'positive' : 'negative'}">${txn.amount > 0 ? '+' : ''}${txn.amount}</span></div>`; }); }
+  else { txns.forEach(txn => { const amount=getTransactionDisplayAmount(txn); jHtml += `<div class="history-item ${amount >= 0 ? 'income' : 'expense'}"><span class="history-icon">${amount >= 0 ? '\u{1F4B0}' : '\u{1F4B8}'}</span><div class="history-details"><div class="history-desc">${isLifetimeOnlyTransaction(txn)?'Коррекция заработка':amount >= 0?'Начислено':'Списано'}</div><div class="history-date">${escapeHtml(txn.description)} \u2022 ${formatDate(txn.timestamp)}</div></div><span class="history-amount ${amount >= 0 ? 'positive' : 'negative'}">${amount > 0 ? '+' : ''}${amount}${isLifetimeOnlyTransaction(txn)?' к заработку':''}</span></div>`; }); }
   journalDiv.innerHTML = jHtml;
 }
 
@@ -2816,10 +2851,10 @@ function init() {
 init();
 </script>
 <script src="sound.js?v=20260929"></script>
-<script src="teacher.js?v=20260929"></script>
+<script src="teacher.js?v=20261015"></script>
 <script src="login.js?v=20260929"></script>
-<script src="student-dashboard.js?v=20260929"></script>
-<script src="achievement-cabin.js?v=20260929"></script>
+<script src="student-dashboard.js?v=20261015"></script>
+<script src="achievement-cabin.js?v=20261015-2"></script>
 <script type="module">
   const connectCloud = () => import('./firebase-sync.js?v=20260929');
   if ('requestIdleCallback' in window) requestIdleCallback(connectCloud, { timeout: 1500 });
