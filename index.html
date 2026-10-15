@@ -1629,7 +1629,15 @@ body {
   </div>
 </div>
 
-<script src="pin-auth.js?v=20260929"></script>
+<link rel="stylesheet" href="secure-auth.css?v=20261015">
+<script>
+window.PIRATE_AUTH_TEST_MODE = ['localhost', '127.0.0.1'].includes(location.hostname)
+  && new URLSearchParams(location.search).get('emulator') === '1';
+window.secureAuthReady = window.PIRATE_AUTH_TEST_MODE
+  ? import('./secure-auth.js?v=20261015')
+  : Promise.resolve(null);
+</script>
+<script src="pin-auth.js?v=20261015"></script>
 <script src="economy.js?v=20261015"></script>
 <script src="achievements.js?v=20261015-2"></script>
 <script>
@@ -1655,6 +1663,20 @@ let currentTxnType = 'income';
 let currentShopCategory = 'all';
 let pinSetupStudentId = null;
 
+window.PirateSecureBridge = {
+  getData() { return appData; },
+  hydrateTeacher(classes) {
+    appData = { classes: classes || [], currentClassId: classes?.[0]?.id || null, currentUser: { role: 'teacher' } };
+  },
+  hydrateStudent(classData, student) {
+    const safeClass = { ...classData, students: [student], transactions: [], requests: [], rewards: [] };
+    appData = { classes: [safeClass], currentClassId: safeClass.id, currentUser: { role: 'student', classId: safeClass.id, studentId: student.id } };
+  },
+  clear() {
+    appData = { classes: [], currentClassId: null, currentUser: null };
+  }
+};
+
 function migrateAssetPaths(value) {
   if (typeof value === 'string') return value.replace(/\.png(?=$|[?#])/gi, '.webp');
   if (Array.isArray(value)) return value.map(migrateAssetPaths);
@@ -1665,6 +1687,10 @@ function migrateAssetPaths(value) {
 }
 
 function loadData() {
+  if (window.PIRATE_AUTH_TEST_MODE) {
+    appData = { classes: [], currentClassId: null, currentUser: null };
+    return;
+  }
   const raw = localStorage.getItem('pirateTracker');
   if (raw) {
     try { appData = migrateAssetPaths(JSON.parse(raw)); } catch(e) { console.error('Ошибка загрузки данных', e); }
@@ -1682,6 +1708,7 @@ function exportPersistentData() {
 }
 
 function saveData() {
+  if (window.PIRATE_AUTH_TEST_MODE) return;
   const persistentData = exportPersistentData();
   localStorage.setItem('pirateTracker', JSON.stringify(persistentData));
   window.PirateCloud?.save(persistentData);
@@ -1789,6 +1816,10 @@ function loginAsStudent(authenticated = false, classId = '', studentId = '') {
 }
 
 function logout() {
+  if (window.PIRATE_AUTH_TEST_MODE && window.SecureAuth) {
+    window.SecureAuth.logout();
+    return;
+  }
   window.PinAuth?.clearSession();
   appData.currentUser = null;
   saveData();
@@ -2856,9 +2887,11 @@ init();
 <script src="student-dashboard.js?v=20261015"></script>
 <script src="achievement-cabin.js?v=20261015-2"></script>
 <script type="module">
-  const connectCloud = () => import('./firebase-sync.js?v=20260929');
-  if ('requestIdleCallback' in window) requestIdleCallback(connectCloud, { timeout: 1500 });
-  else setTimeout(connectCloud, 750);
+  if (!window.PIRATE_AUTH_TEST_MODE) {
+    const connectCloud = () => import('./firebase-sync.js?v=20260929');
+    if ('requestIdleCallback' in window) requestIdleCallback(connectCloud, { timeout: 1500 });
+    else setTimeout(connectCloud, 750);
+  }
 </script>
 </body>
 </html>

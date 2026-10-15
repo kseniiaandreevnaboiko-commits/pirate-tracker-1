@@ -1,4 +1,4 @@
-(function () {
+(async function () {
   'use strict';
   const view = document.getElementById('login-view');
   if (!view) return;
@@ -45,6 +45,17 @@
   const cards = view.querySelector('#login-cards');
   const state = { route: 'home', teacherPin: '', teacherSetupFirst: '', studentPin: '', classId: '', studentId: '', page: 0, busy: false, timer: null };
   const play = name => window.PirateSound?.play(name);
+
+  if (window.PIRATE_AUTH_TEST_MODE) {
+    try {
+      const secureAuth = await window.secureAuthReady;
+      await secureAuth.mountLogin({ view, screen, teacherPage, studentPage, cards, arrow, cap, sabres, play });
+    } catch (error) {
+      console.error('Secure emulator authentication failed to initialize', error);
+      view.querySelector('#teacher-pin-message').textContent = 'Не удалось подключиться к локальным эмуляторам.';
+    }
+    return;
+  }
 
   function routeTo(hash) { if (location.hash !== hash) history.pushState(null, '', hash); applyRoute(); }
   window.LoginRoutes = { home: () => routeTo('#/'), teacher: () => routeTo('#/login/teacher'), student: () => routeTo('#/login/student') };

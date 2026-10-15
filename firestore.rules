@@ -2,8 +2,118 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /trackerApps/main {
-      allow read, write: if request.auth != null;
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAnonymous() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    function isTeacher() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/authorizedTeachers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/authorizedTeachers/$(request.auth.uid)).data.active == true;
+    }
+
+    function ownsClass(classId) {
+      return isTeacher()
+        && exists(/databases/$(database)/documents/classes/$(classId))
+        && get(/databases/$(database)/documents/classes/$(classId)).data.teacherUid == request.auth.uid;
+    }
+
+    function ownsClassAfter(classId) {
+      return isTeacher()
+        && getAfter(/databases/$(database)/documents/classes/$(classId)).data.teacherUid == request.auth.uid;
+    }
+
+    function ownBinding(classId, studentId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/studentBindings/$(request.auth.uid))
+        && get(/databases/$(database)/documents/studentBindings/$(request.auth.uid)).data.classId == classId
+        && get(/databases/$(database)/documents/studentBindings/$(request.auth.uid)).data.studentId == studentId;
+    }
+
+    match /authorizedTeachers/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    match /classes/{classId} {
+      allow get: if ownsClass(classId)
+        || (signedIn()
+          && exists(/databases/$(database)/documents/studentBindings/$(request.auth.uid))
+          && get(/databases/$(database)/documents/studentBindings/$(request.auth.uid)).data.classId == classId);
+      allow list: if isTeacher() && resource.data.teacherUid == request.auth.uid;
+      allow create: if isTeacher()
+        && request.resource.data.keys().hasOnly(['teacherUid', 'name', 'createdAt'])
+        && request.resource.data.teacherUid == request.auth.uid;
+      allow update: if ownsClass(classId)
+        && request.resource.data.teacherUid == resource.data.teacherUid;
+      allow delete: if ownsClass(classId);
+
+      match /students/{studentId} {
+        allow get: if ownsClass(classId)
+          || (ownBinding(classId, studentId) && resource.data.ownerUid == request.auth.uid);
+        allow list: if ownsClass(classId);
+        allow create: if ownsClassAfter(classId)
+          && request.resource.data.keys().hasAll(['teacherUid', 'classId', 'studentId', 'displayName', 'ownerUid'])
+          && request.resource.data.teacherUid == request.auth.uid
+          && request.resource.data.classId == classId
+          && request.resource.data.studentId == studentId
+          && request.resource.data.ownerUid == null;
+        allow update, delete: if ownsClass(classId);
+        allow update: if isAnonymous()
+          && resource.data.ownerUid == null
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ownerUid', 'bindingInviteId'])
+          && request.resource.data.bindingInviteId is string
+          && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.bindingInviteId)).data.claimedBy == request.auth.uid
+          && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.bindingInviteId)).data.classId == classId
+          && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.bindingInviteId)).data.studentId == studentId;
+      }
+    }
+
+    match /studentInvites/{inviteId} {
+      allow get: if ownsClass(resource.data.classId)
+        || (signedIn() && resource.data.claimedBy == null);
+      allow list: if isTeacher() && resource.data.teacherUid == request.auth.uid;
+      allow create: if ownsClass(request.resource.data.classId)
+        && inviteId.size() >= 32
+        && request.resource.data.keys().hasOnly(['teacherUid', 'classId', 'studentId', 'expiresAt', 'claimedBy', 'createdAt'])
+        && request.resource.data.teacherUid == request.auth.uid
+        && request.resource.data.claimedBy == null
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(24, 'h')
+        && getAfter(/databases/$(database)/documents/classes/$(request.resource.data.classId)/students/$(request.resource.data.studentId)).data.ownerUid == null;
+      allow delete: if ownsClass(resource.data.classId);
+      allow update: if isAnonymous()
+          && resource.data.claimedBy == null
+          && resource.data.expiresAt > request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedBy', 'claimedAt'])
+          && request.resource.data.claimedBy == request.auth.uid
+          && getAfter(/databases/$(database)/documents/studentBindings/$(request.auth.uid)).data.inviteId == inviteId
+          && getAfter(/databases/$(database)/documents/studentBindings/$(request.auth.uid)).data.classId == resource.data.classId
+          && getAfter(/databases/$(database)/documents/studentBindings/$(request.auth.uid)).data.studentId == resource.data.studentId
+          && getAfter(/databases/$(database)/documents/classes/$(resource.data.classId)/students/$(resource.data.studentId)).data.ownerUid == request.auth.uid;
+    }
+
+    match /studentBindings/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || ownsClass(resource.data.classId));
+      allow list: if isTeacher() && resource.data.teacherUid == request.auth.uid;
+      allow create: if isAnonymous()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['teacherUid', 'classId', 'studentId', 'inviteId', 'createdAt'])
+        && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.inviteId)).data.claimedBy == uid
+        && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.inviteId)).data.classId == request.resource.data.classId
+        && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.inviteId)).data.studentId == request.resource.data.studentId
+        && getAfter(/databases/$(database)/documents/classes/$(request.resource.data.classId)/students/$(request.resource.data.studentId)).data.ownerUid == uid;
+      allow update: if false;
+      allow delete: if ownsClass(resource.data.classId);
+    }
+
+    match /trackerApps/{document} {
+      allow read, write: if false;
     }
 
     match /{document=**} {
