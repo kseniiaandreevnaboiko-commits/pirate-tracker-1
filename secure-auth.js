@@ -1,24 +1,18 @@
 const FIREBASE_VERSION = '12.19.0';
-const PROJECT_ID = 'demo-pirate-auth';
-const AUTH_EMULATOR = 'http://127.0.0.1:9099';
-const FIRESTORE_HOST = '127.0.0.1';
-const FIRESTORE_PORT = 8080;
+const runtime = window.PirateFirebaseConfig.forLocation(window.location);
 
 const appModule = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`);
 const authModule = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js`);
 const storeModule = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js`);
 const { default: makeQrCode } = await import('./vendor/qrcode.mjs');
 
-const app = appModule.initializeApp({
-  apiKey: 'demo-api-key',
-  authDomain: `${PROJECT_ID}.firebaseapp.com`,
-  projectId: PROJECT_ID,
-  appId: 'demo-pirate-auth'
-}, 'pirate-secure-emulator');
+const app = appModule.initializeApp(runtime.firebase, runtime.useEmulators ? 'pirate-secure-emulator' : 'pirate-secure-production');
 const auth = authModule.getAuth(app);
 const db = storeModule.getFirestore(app);
-authModule.connectAuthEmulator(auth, AUTH_EMULATOR, { disableWarnings: true });
-storeModule.connectFirestoreEmulator(db, FIRESTORE_HOST, FIRESTORE_PORT);
+if (runtime.useEmulators) {
+  authModule.connectAuthEmulator(auth, runtime.authEmulatorUrl, { disableWarnings: true });
+  storeModule.connectFirestoreEmulator(db, runtime.firestoreEmulatorHost, runtime.firestoreEmulatorPort);
+}
 const { configure: configureSecureData } = await import('./secure-data.js?v=20261015');
 const secureData = configureSecureData({ db, auth, storeModule });
 
@@ -301,12 +295,15 @@ async function logout() {
   await authModule.signOut(auth);
   setSession(null);
   window.PirateSecureBridge.clear();
-  history.replaceState(null, '', `${location.pathname}?emulator=1#/`);
+  history.replaceState(null, '', `${location.pathname}${runtime.useEmulators ? '?emulator=1' : ''}#/`);
   location.reload();
 }
 
 function inviteUrl(inviteId) {
-  return `${location.origin}${location.pathname}?emulator=1&invite=${encodeURIComponent(inviteId)}#/login/student`;
+  const params = new URLSearchParams();
+  if (runtime.useEmulators) params.set('emulator', '1');
+  params.set('invite', inviteId);
+  return `${location.origin}${location.pathname}?${params.toString()}#/login/student`;
 }
 
 function installTeacherPanel() {
@@ -316,8 +313,8 @@ function installTeacherPanel() {
     <div id="secure-auth-panel" class="modal-overlay" onclick="closeModalOverlay(event)">
       <div class="secure-panel" role="dialog" aria-modal="true" aria-labelledby="secure-panel-title">
         <button class="secure-panel-close" type="button" aria-label="Закрыть">×</button>
-        <h2 id="secure-panel-title">Защищённый доступ · тестовая среда</h2>
-        <p class="secure-note">Эти записи существуют только в локальном Firebase Emulator.</p>
+        <h2 id="secure-panel-title">Защищённый доступ</h2>
+        <p class="secure-note">${runtime.useEmulators ? 'Локальная тестовая среда Firebase Emulator.' : 'Защищённый доступ Firebase к текущему приложению «ФинЗОЖ».'}</p>
         <section><h3>Класс</h3><div class="secure-row"><input id="secure-class-name" placeholder="Название класса"><button id="secure-create-class" type="button">Создать</button></div></section>
         <section><h3>Ученик и приглашение</h3><label>Класс<select id="secure-class-select"></select></label><div class="secure-row"><input id="secure-student-name" placeholder="Имя ученика"><button id="secure-create-student" type="button">Создать и выдать код</button></div><div id="secure-students"></div></section>
         <section><h3>Смена пароля учителя</h3><div class="secure-row"><input id="secure-current-password" type="password" autocomplete="current-password" placeholder="Текущий пароль"><input id="secure-new-password" type="password" autocomplete="new-password" placeholder="Новый пароль"><button id="secure-change-password" type="button">Сменить</button></div></section>
@@ -414,7 +411,7 @@ function renderPanelStudents(classId, highlightInvite = '') {
 export async function mountLogin({ view, screen, teacherPage, studentPage, cards, arrow, play }) {
   await restoreSession();
   teacherPage.querySelector('.pin-dialog').innerHTML = `
-    <h2>Вход учителя</h2><p>Firebase Authentication · локальный эмулятор</p>
+    <h2>Вход учителя</h2><p>${runtime.useEmulators ? 'Firebase Authentication · локальный эмулятор' : 'Защищённый вход Firebase Authentication'}</p>
     <label class="secure-login-label">Email<input id="secure-teacher-email" type="email" autocomplete="username"></label>
     <label class="secure-login-label">Пароль<input id="secure-teacher-password" type="password" autocomplete="current-password"></label>
     <label class="secure-remember"><input id="secure-teacher-remember" type="checkbox" checked> Сохранить вход на этом устройстве</label>
@@ -484,7 +481,7 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
   document.getElementById('secure-teacher-reset').addEventListener('click', async () => {
     try {
       await resetPassword(document.getElementById('secure-teacher-email').value.trim());
-      showMessage('secure-teacher-message', 'Ссылка восстановления создана эмулятором и показана в его консоли.', true);
+      showMessage('secure-teacher-message', runtime.useEmulators ? 'Ссылка восстановления создана эмулятором и показана в его консоли.' : 'Письмо для восстановления пароля отправлено.', true);
     } catch (error) { showMessage('secure-teacher-message', messageFor(error)); }
   });
   document.getElementById('secure-student-submit').addEventListener('click', async () => {

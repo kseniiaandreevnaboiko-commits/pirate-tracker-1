@@ -46,13 +46,13 @@
   const state = { route: 'home', teacherPin: '', teacherSetupFirst: '', studentPin: '', classId: '', studentId: '', page: 0, busy: false, timer: null };
   const play = name => window.PirateSound?.play(name);
 
-  if (window.PIRATE_AUTH_TEST_MODE) {
+  if (window.PIRATE_SECURE_MODE) {
     try {
       const secureAuth = await window.secureAuthReady;
       await secureAuth.mountLogin({ view, screen, teacherPage, studentPage, cards, arrow, cap, sabres, play });
     } catch (error) {
-      console.error('Secure emulator authentication failed to initialize', error);
-      view.querySelector('#teacher-pin-message').textContent = 'Не удалось подключиться к локальным эмуляторам.';
+      console.error('Secure Firebase authentication failed to initialize', error);
+      view.querySelector('#teacher-pin-message').textContent = 'Не удалось подключить защищённую авторизацию.';
     }
     return;
   }

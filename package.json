@@ -6,11 +6,16 @@
     "emulators": "scripts\\start-emulators.cmd",
     "test:emulators": "scripts\\test-emulators.cmd",
     "seed:teacher": "node scripts/seed-emulator-teacher.js",
-    "migrate:emulator": "node scripts/migrate-emulator-data.js"
+    "migrate:emulator": "node scripts/migrate-emulator-data.js",
+    "data:backup": "node scripts/production-data-tool.js backup",
+    "data:plan": "node scripts/production-data-tool.js plan",
+    "data:apply": "node scripts/production-data-tool.js apply",
+    "data:verify": "node scripts/production-data-tool.js verify"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",
     "firebase": "^12.4.0",
+    "firebase-admin": "^14.5.0",
     "qrcode-generator": "^2.0.4"
   },
   "overrides": {

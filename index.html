@@ -1630,12 +1630,12 @@ body {
 </div>
 
 <link rel="stylesheet" href="secure-auth.css?v=20261015">
+<script src="firebase-config.js?v=20261015-prod1"></script>
 <script>
+window.PIRATE_SECURE_MODE = true;
 window.PIRATE_AUTH_TEST_MODE = ['localhost', '127.0.0.1'].includes(location.hostname)
   && new URLSearchParams(location.search).get('emulator') === '1';
-window.secureAuthReady = window.PIRATE_AUTH_TEST_MODE
-  ? import('./secure-auth.js?v=20261015-4b')
-  : Promise.resolve(null);
+window.secureAuthReady = import('./secure-auth.js?v=20261015-prod1');
 </script>
 <script src="pin-auth.js?v=20261015"></script>
 <script src="economy.js?v=20261015"></script>
@@ -1688,7 +1688,7 @@ function migrateAssetPaths(value) {
 }
 
 function loadData() {
-  if (window.PIRATE_AUTH_TEST_MODE) {
+  if (window.PIRATE_SECURE_MODE) {
     appData = { classes: [], currentClassId: null, currentUser: null };
     return;
   }
@@ -1709,7 +1709,7 @@ function exportPersistentData() {
 }
 
 function saveData() {
-  if (window.PIRATE_AUTH_TEST_MODE) return;
+  if (window.PIRATE_SECURE_MODE) return;
   const persistentData = exportPersistentData();
   localStorage.setItem('pirateTracker', JSON.stringify(persistentData));
   window.PirateCloud?.save(persistentData);
@@ -1755,7 +1755,7 @@ function getNextRank(lifetimeEarned) { return window.PirateEconomy.getNextRank(l
 function getProgressPercent(lifetimeEarned) { return window.PirateEconomy.getProgressPercent(lifetimeEarned); }
 
 function showView(viewId) {
-  const session = window.PinAuth?.getSession();
+  const session = window.PIRATE_SECURE_MODE ? window.__pirateSecureSession : window.PinAuth?.getSession();
   if (viewId === 'teacher-view' && session?.role !== 'teacher') { window.LoginRoutes?.teacher(); return; }
   if (viewId === 'student-view' && session?.role !== 'student') { window.LoginRoutes?.student(); return; }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -1763,7 +1763,7 @@ function showView(viewId) {
 }
 
 function loginAsTeacher(authenticated = false) {
-  const session = window.PinAuth?.getSession();
+  const session = window.PIRATE_SECURE_MODE ? window.__pirateSecureSession : window.PinAuth?.getSession();
   if (!authenticated || session?.role !== 'teacher') { window.LoginRoutes?.teacher(); return; }
   appData.currentUser = { role: 'teacher' };
   if (appData.classes.length > 0 && !appData.currentClassId) appData.currentClassId = appData.classes[0].id;
@@ -1807,7 +1807,7 @@ function onLoginClassChange() {
 }
 
 function loginAsStudent(authenticated = false, classId = '', studentId = '') {
-  const session = window.PinAuth?.getSession();
+  const session = window.PIRATE_SECURE_MODE ? window.__pirateSecureSession : window.PinAuth?.getSession();
   if (!authenticated || session?.role !== 'student' || session.classId !== classId || session.studentId !== studentId) { window.LoginRoutes?.student(); return; }
   appData.currentUser = { role: 'student', classId, studentId };
   appData.currentClassId = classId;
@@ -1817,7 +1817,7 @@ function loginAsStudent(authenticated = false, classId = '', studentId = '') {
 }
 
 function logout() {
-  if (window.PIRATE_AUTH_TEST_MODE && window.SecureAuth) {
+  if (window.PIRATE_SECURE_MODE && window.SecureAuth) {
     window.SecureAuth.logout();
     return;
   }
@@ -3047,7 +3047,7 @@ init();
 <script src="student-dashboard.js?v=20261015"></script>
 <script src="achievement-cabin.js?v=20261015-2"></script>
 <script type="module">
-  if (!window.PIRATE_AUTH_TEST_MODE) {
+  if (!window.PIRATE_SECURE_MODE) {
     const connectCloud = () => import('./firebase-sync.js?v=20260929');
     if ('requestIdleCallback' in window) requestIdleCallback(connectCloud, { timeout: 1500 });
     else setTimeout(connectCloud, 750);

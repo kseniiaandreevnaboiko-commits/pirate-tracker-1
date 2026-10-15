@@ -3,6 +3,8 @@ tmp/
 output/
 
 # Local backup files
+backups/
+migration-plans/
 index.original.html
 firebase-debug.log
 firestore-debug.log
