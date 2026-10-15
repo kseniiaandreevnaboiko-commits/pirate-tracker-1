@@ -252,3 +252,20 @@ test('only class teacher can create or close seasons', { skip: !emulatorAvailabl
   const otherDb = environment.authenticatedContext('teacher-2').firestore();
   await assertFails(setDoc(doc(otherDb, 'classes', 'class-1', 'seasons', 'bad'), { teacherUid: 'teacher-2', classId: 'class-1', status: 'active' }));
 });
+
+test('an anonymous pupil cannot approve purchases, forge achievements, read legacy data, or grant teacher role', { skip: !emulatorAvailable }, async () => {
+  await seedBase({ bound: true });
+  await environment.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'studentBindings', 'student-old'), { teacherUid: 'teacher-1', classId: 'class-1', studentId: 'student-1', inviteId: 'used' });
+    await setDoc(doc(db, 'classes', 'class-1', 'purchaseRequests', 'pending-1'), { teacherUid: 'teacher-1', classId: 'class-1', requestId: 'pending-1', studentId: 'student-1', status: 'pending' });
+    await setDoc(doc(db, 'trackerApps', 'main'), { secret: 'legacy' });
+  });
+  const db = environment.authenticatedContext('student-old', { firebase: { sign_in_provider: 'anonymous' } }).firestore();
+  await assertFails(updateDoc(doc(db, 'classes', 'class-1', 'purchaseRequests', 'pending-1'), { status: 'approved' }));
+  await assertFails(setDoc(doc(db, 'classes', 'class-1', 'studentAchievements', 'forged'), {
+    teacherUid: 'teacher-1', classId: 'class-1', studentId: 'student-1', achievementId: 'forged', type: 'manual', fincoins: 50
+  }));
+  await assertFails(getDoc(doc(db, 'trackerApps', 'main')));
+  await assertFails(setDoc(doc(db, 'authorizedTeachers', 'student-old'), { active: true }));
+});
