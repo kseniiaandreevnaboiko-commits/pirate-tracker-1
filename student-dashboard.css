@@ -558,3 +558,4 @@
   #student-view .sd-voyage-card .sd-voyage-summary{grid-column:auto!important;justify-content:center!important}
   #student-view .sd-voyage-card .sd-voyage-summary p{text-align:left!important}
 }
+.sd-balance span b{font:800 12px/1.15 Manrope,'Segoe UI',sans-serif}

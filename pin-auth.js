@@ -50,6 +50,7 @@
   }
 
   function getSession() {
+    if (window.PIRATE_AUTH_TEST_MODE) return window.__pirateSecureSession || null;
     try {
       const session = JSON.parse(sessionStorage.getItem(sessionKey) || 'null');
       if (!session?.token || !['teacher', 'student'].includes(session.role)) return null;
@@ -58,7 +59,13 @@
     } catch (error) { return null; }
   }
 
-  function clearSession() { sessionStorage.removeItem(sessionKey); }
+  function clearSession() {
+    if (window.PIRATE_AUTH_TEST_MODE) {
+      window.__pirateSecureSession = null;
+      return;
+    }
+    sessionStorage.removeItem(sessionKey);
+  }
 
   function getAttempt(key) {
     try { return JSON.parse(sessionStorage.getItem(attemptsKey) || '{}')[key] || { count: 0, lockedUntil: 0 }; }

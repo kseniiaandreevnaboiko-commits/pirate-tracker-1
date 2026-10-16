@@ -1,0 +1,25 @@
+{
+  "name": "pirate-financial-literacy",
+  "private": true,
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "emulators": "scripts\\start-emulators.cmd",
+    "test:emulators": "scripts\\test-emulators.cmd",
+    "test:emulator-restart": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\test-emulator-restart.ps1",
+    "seed:teacher": "node scripts/seed-emulator-teacher.js",
+    "migrate:emulator": "node scripts/migrate-emulator-data.js",
+    "data:backup": "node scripts/production-data-tool.js backup",
+    "data:plan": "node scripts/production-data-tool.js plan",
+    "data:apply": "node scripts/production-data-tool.js apply",
+    "data:verify": "node scripts/production-data-tool.js verify"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase": "^12.4.0",
+    "firebase-admin": "^14.5.0",
+    "qrcode-generator": "^2.0.4"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.6"
+  }
+}

@@ -1,0 +1,17 @@
+exclude:
+  - tests
+  - scripts
+  - node_modules
+  - tmp
+  - backups
+  - migration-plans
+  - package.json
+  - package-lock.json
+  - firebase.json
+  - firestore.rules
+  - FIRESTORE-SCHEMA.md
+  - README-EMULATORS.md
+  - PRODUCTION-CUTOVER.md
+  - TZ4B-REPORT.md
+  - TZ4-PRODUCTION-INTEGRATION-REPORT.md
+  - TZ4V-STAGE1-REPORT.md

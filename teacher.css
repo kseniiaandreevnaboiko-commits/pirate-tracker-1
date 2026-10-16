@@ -671,3 +671,4 @@
   filter:drop-shadow(0 3px 3px rgba(0,0,0,.4))!important;
 }
 #teacher-view .td-avatar img{filter:drop-shadow(0 3px 3px rgba(0,0,0,.4))!important}
+.td-balance small{color:#8faebe;font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}

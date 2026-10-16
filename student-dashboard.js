@@ -60,7 +60,7 @@
         </div>
         <section class="sd-hero">
           <div class="sd-greeting"><h1>Привет, <span id="sd-greeting-name">ученик</span>!</h1><p>Продолжай свой путь к финансовой свободе!</p></div>
-          <div class="sd-balance"><img src="Монета.webp" alt=""><strong id="sd-balance">0</strong><span>финкоинов</span></div>
+          <div class="sd-balance"><img src="Монета.webp" alt=""><strong id="sd-balance">0</strong><span>доступно · всего <b id="sd-earned">0</b></span></div>
         </section>
         <section class="sd-progress-card sd-voyage-card" aria-labelledby="sd-progress-title">
           <div class="sd-voyage-intro">
@@ -99,15 +99,17 @@
   function render() {
     const {student} = currentData();
     if (!student) { if (appData?.currentUser?.role === 'student') logout(); return; }
-    const coins = Math.max(0, Number(student.fincoins_balance || 0));
-    const rank = getRank(coins);
-    const next = getNextRank(coins);
-    const progress = next ? Math.min(100, Math.max(0, ((coins - rank.min) / (next.min - rank.min)) * 100)) : 100;
+    const balance = getStudentBalance(student);
+    const earned = getStudentLifetimeEarned(student);
+    const rank = getRank(earned);
+    const next = getNextRank(earned);
+    const progress = getProgressPercent(earned);
     document.getElementById('sd-avatar').innerHTML = renderStudentAvatar(student);
     document.getElementById('sd-name').textContent = student.name;
     document.getElementById('sd-rank').textContent = rank.name;
     document.getElementById('sd-greeting-name').textContent = student.name;
-    document.getElementById('sd-balance').textContent = Number(student.fincoins_balance || 0).toLocaleString('ru-RU');
+    document.getElementById('sd-balance').textContent = balance.toLocaleString('ru-RU');
+    document.getElementById('sd-earned').textContent = earned.toLocaleString('ru-RU');
     const progressCard = document.querySelector('.sd-progress-card');
     document.getElementById('sd-current-rank').textContent = rank.name;
     document.getElementById('sd-target-rank').textContent = next ? next.name : rank.name;
@@ -115,8 +117,8 @@
     document.getElementById('sd-current-rank-badge').alt = `Эмблема ранга ${rank.name}`;
     document.getElementById('sd-target-rank-badge').src = rankBadgeAsset(next || rank);
     document.getElementById('sd-target-rank-badge').alt = `Эмблема ранга ${next?.name || rank.name}`;
-    document.getElementById('sd-next-rank').textContent = next ? `До ранга «${next.name}»: ${Math.max(0, next.min - coins)} финкоинов` : 'Высший ранг достигнут';
-    document.getElementById('sd-progress-current').textContent = coins.toLocaleString('ru-RU');
+    document.getElementById('sd-next-rank').textContent = next ? `До ранга «${next.name}»: ${Math.max(0, next.min - earned)} финкоинов` : 'Высший ранг достигнут';
+    document.getElementById('sd-progress-current').textContent = earned.toLocaleString('ru-RU');
     document.getElementById('sd-progress-target').textContent = next ? ` из ${next.min.toLocaleString('ru-RU')} финкоинов` : ' финкоинов';
     progressCard?.classList.toggle('is-complete', !next);
     requestAnimationFrame(() => positionVoyageMarker(progress));
@@ -149,7 +151,7 @@
 
   function achievementRows(student, cls) {
     const base = AUTO_ACHIEVEMENTS.map(a => ({...a, earned:(student.achievements || []).includes(a.id)}));
-    const custom = (cls.achievements || []).filter(a => (a.awarded_to || []).includes(student.id)).map(a => ({...a, desc:a.description || '', earned:true}));
+    const custom = window.PirateAchievements.getStudentManualAchievements(student,cls).map(a => ({...a, desc:a.description || '', earned:true}));
     return [...base,...custom];
   }
 
@@ -162,25 +164,25 @@
     const heading = {leaderboard:'Лидерборд класса',achievements:'Мои достижения',statistics:'Статистика',tasks:'Мои задания',settings:'Настройки'}[type];
     let body = '';
     if (type === 'leaderboard') {
-      body = [...cls.students].sort((a,b)=>b.fincoins_balance-a.fincoins_balance).map((s,i)=>`<div class="sd-list-row ${s.id===student.id?'current':''}"><b>${i+1}</b>${renderStudentAvatar(s,'sd-list-avatar')}<span>${safe(s.name)}${s.id===student.id?' · вы':''}</span><strong>${Number(s.fincoins_balance).toLocaleString('ru-RU')}</strong></div>`).join('');
+      body = [...cls.students].sort((a,b)=>getStudentLifetimeEarned(b)-getStudentLifetimeEarned(a)).map((s,i)=>`<div class="sd-list-row ${s.id===student.id?'current':''}"><b>${i+1}</b>${renderStudentAvatar(s,'sd-list-avatar')}<span>${safe(s.name)}${s.id===student.id?' · вы':''}</span><strong>${getStudentLifetimeEarned(s).toLocaleString('ru-RU')}</strong></div>`).join('');
     } else if (type === 'achievements') {
       body = `<div class="sd-achievement-grid">${achievementRows(student,cls).map(a=>`<article class="${a.earned?'earned':'locked'}"><span>${safe(a.emoji || '★')}</span><strong>${safe(a.name)}</strong><small>${safe(a.desc || '')}</small></article>`).join('')}</div>`;
     } else if (type === 'statistics') {
-      const tx=(cls.transactions||[]).filter(t=>t.student_id===student.id); const income=tx.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0); const spent=Math.abs(tx.filter(t=>t.amount<0).reduce((s,t)=>s+t.amount,0));
+      const tx=(cls.transactions||[]).filter(t=>t.student_id===student.id); const income=getStudentLifetimeEarned(student); const spent=Math.abs(tx.filter(t=>t.amount<0).reduce((s,t)=>s+t.amount,0));
       const flowTotal=Math.max(1,income+spent); const incomePart=Math.round(income/flowTotal*100); const spentPart=100-incomePart;
       const dated=t=>typeof formatDate==='function'&&t.timestamp?formatDate(t.timestamp):'';
       body=`<div class="sd-stats">
-        <article class="sd-stat-balance"><span class="sd-stat-icon">${svg('anchor')}</span><div><strong>${Number(student.fincoins_balance||0).toLocaleString('ru-RU')}</strong><span>Текущий баланс</span></div></article>
-        <article class="sd-stat-income"><span class="sd-stat-icon">${svg('arrow')}</span><div><strong>${Number(income).toLocaleString('ru-RU')}</strong><span>Всего заработано</span></div></article>
+        <article class="sd-stat-balance"><span class="sd-stat-icon">${svg('anchor')}</span><div><strong>${getStudentBalance(student).toLocaleString('ru-RU')}</strong><span>Доступный баланс</span></div></article>
+        <article class="sd-stat-income"><span class="sd-stat-icon">${svg('arrow')}</span><div><strong>${getStudentLifetimeEarned(student).toLocaleString('ru-RU')}</strong><span>Всего заработано за курс</span></div></article>
         <article class="sd-stat-spent"><span class="sd-stat-icon">${svg('arrow')}</span><div><strong>${Number(spent).toLocaleString('ru-RU')}</strong><span>Потрачено</span></div></article>
       </div>
       <section class="sd-cash-flow" aria-label="Соотношение доходов и расходов"><header><div><strong>Движение финкоинов</strong><span>За всё время</span></div><small>${tx.length} ${tx.length===1?'операция':tx.length>1&&tx.length<5?'операции':'операций'}</small></header><div class="sd-flow-track"><i style="width:${incomePart}%"></i><b style="width:${spentPart}%"></b></div><div class="sd-flow-legend"><span><i></i>Заработано <strong>+${Number(income).toLocaleString('ru-RU')}</strong></span><span><i></i>Потрачено <strong>−${Number(spent).toLocaleString('ru-RU')}</strong></span></div></section>
       <div class="sd-history-heading"><div><strong>Последние операции</strong><span>История начислений и покупок</span></div></div>
-      <div class="sd-history">${tx.slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,8).map(t=>`<div class="sd-transaction ${t.amount>0?'income':'expense'}"><span class="sd-transaction-icon">${svg('arrow')}</span><div><strong>${safe(t.description || (t.amount>0?'Начисление':'Покупка'))}</strong><time>${safe(dated(t))}</time></div><b>${t.amount>0?'+':'−'}${Math.abs(t.amount).toLocaleString('ru-RU')}</b></div>`).join('') || '<p class="sd-empty">Операций пока нет</p>'}</div>`;
+      <div class="sd-history">${tx.slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,8).map(t=>{const amount=getTransactionDisplayAmount(t);return `<div class="sd-transaction ${amount>=0?'income':'expense'}"><span class="sd-transaction-icon">${svg('arrow')}</span><div><strong>${safe(t.description || (amount>=0?'Начисление':'Покупка'))}</strong><time>${safe(dated(t))}</time></div><b>${amount>0?'+':amount<0?'−':''}${Math.abs(amount).toLocaleString('ru-RU')}${isLifetimeOnlyTransaction(t)?' к заработку':''}</b></div>`}).join('') || '<p class="sd-empty">Операций пока нет</p>'}</div>`;
     } else if (type === 'tasks') {
       const requests=(cls.requests||[]).filter(r=>r.student_id===student.id); body=requests.length?requests.map(r=>`<div class="sd-list-row sd-detail-row"><b>${r.status==='approved'?'✓':'•'}</b><span>${safe(r.reward_name || 'Заявка на награду')}</span><strong>${r.status==='approved'?'Выполнено':'На проверке'}</strong></div>`).join(''):'<p class="sd-empty">Новых заданий пока нет. Капитан скоро подготовит следующий маршрут.</p>';
     } else {
-      body=`<div class="sd-settings-card">${renderStudentAvatar(student,'sd-settings-avatar')}<div><strong>${safe(student.name)}</strong><span>${safe(getRank(student.fincoins_balance).name)}</span><small>Профиль ученика управляется учителем</small></div></div>`;
+      body=`<div class="sd-settings-card">${renderStudentAvatar(student,'sd-settings-avatar')}<div><strong>${safe(student.name)}</strong><span>${safe(getRank(getStudentLifetimeEarned(student)).name)}</span><small>Профиль ученика управляется учителем</small></div></div>`;
     }
     content.innerHTML=`<header><span>${svg(type==='leaderboard'?'trophy':type==='achievements'?'star':type==='statistics'?'chart':type==='tasks'?'scroll':'settings')}</span><div><h2>${heading}</h2><p>Личный кабинет ученика</p></div></header><div class="sd-section-body">${body}</div>`;
     document.getElementById('modal-student-section').dataset.section = type;

@@ -1,0 +1,27 @@
+.secure-login-label { display: grid; gap: 6px; margin: 12px auto; max-width: 360px; color: #f5dfaa; text-align: left; font-weight: 700; }
+.secure-login-label input, .secure-login-label select, .secure-panel input, .secure-panel select { box-sizing: border-box; width: 100%; border: 1px solid #8e6b35; border-radius: 8px; padding: 11px 12px; background: #fff7df; color: #25170b; font: inherit; }
+.secure-remember { display: flex; justify-content: center; gap: 8px; margin: 12px 0; color: #f5dfaa; }
+.secure-link { border: 0; background: none; color: #f2ce78; text-decoration: underline; cursor: pointer; }
+.secure-student-auth { max-width: 560px; margin: auto; padding: 42px; }
+.secure-panel-button { position: fixed; right: 20px; bottom: 20px; z-index: 1500; border: 2px solid #c79a44; border-radius: 999px; padding: 12px 18px; background: #3a200e; color: #ffe7a2; font-weight: 800; box-shadow: 0 8px 28px #0008; cursor: pointer; }
+.secure-panel { width: min(900px, calc(100vw - 32px)); max-height: calc(100vh - 40px); overflow: auto; position: relative; border: 3px solid #9c6c2c; border-radius: 16px; padding: 24px; background: #f2dfb6; color: #30200f; box-shadow: 0 24px 80px #000a; }
+.secure-panel-close { position: absolute; right: 12px; top: 8px; border: 0; background: none; font-size: 32px; cursor: pointer; }
+.secure-panel section { margin-top: 18px; border-top: 1px solid #b8965e; padding-top: 14px; }
+.secure-panel h2, .secure-panel h3 { margin: 0 0 10px; }
+.secure-note { border-left: 4px solid #b8731a; padding: 8px 12px; background: #fff2cf; }
+.secure-row { display: flex; gap: 10px; align-items: end; }
+.secure-row input { flex: 1; }
+.secure-panel button { border: 1px solid #6b421b; border-radius: 8px; padding: 10px 14px; background: #6f3f17; color: #fff3cb; cursor: pointer; }
+.secure-student-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; padding: 8px; background: #fff7df; border-radius: 8px; }
+.secure-message { display: block; white-space: pre-wrap; margin-top: 16px; padding: 10px; border-radius: 8px; }
+.secure-message.success { background: #d9ebc5; color: #234613; }
+.secure-message.error { background: #f2cbc1; color: #6d1d12; }
+.secure-invite-qr { width: min(280px, 100%); margin: 12px auto 0; }
+.secure-invite-qr svg { display: block; width: 100%; height: auto; background: #fff; border: 8px solid #fff; }
+.secure-pin-prototype .add-student-pin-field { display: none; }
+.secure-pin-card { width: min(440px, calc(100vw - 32px)); position: relative; border: 3px solid #9c6c2c; border-radius: 18px; padding: 28px; background: linear-gradient(145deg, #fff2cf, #e7c98e); color: #30200f; text-align: center; box-shadow: 0 24px 80px #000a; }
+.secure-pin-card h2 { margin: 4px 0; font-family: 'Pirata One', cursive; font-size: 32px; }
+.secure-pin-wheel { color: #7b4a1c; font-size: 44px; }
+.secure-pin-card output { display: block; margin: 18px auto; padding: 12px 18px; border: 2px dashed #8e6b35; border-radius: 12px; background: #fff8e7; color: #3a200e; font: 800 38px/1 monospace; letter-spacing: .22em; }
+.secure-pin-card > button:not(.secure-panel-close) { border: 1px solid #6b421b; border-radius: 9px; padding: 11px 18px; background: #6f3f17; color: #fff3cb; font-weight: 800; cursor: pointer; }
+@media (max-width: 700px) { .secure-row { align-items: stretch; flex-direction: column; } .secure-panel-button { right: 10px; bottom: 10px; } }

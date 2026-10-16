@@ -3,8 +3,12 @@ tmp/
 output/
 
 # Local backup files
+backups/
+migration-plans/
 index.original.html
 firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
 # Common editor and OS files
 .DS_Store
@@ -12,5 +16,11 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Dependency folders if tooling is added later
+# Dependency folders and local emulator tooling
 node_modules/
+.tools/
+.emulator-data/
+
+# Local working documents are not part of the published web application
+*.docx
+~$*.docx
