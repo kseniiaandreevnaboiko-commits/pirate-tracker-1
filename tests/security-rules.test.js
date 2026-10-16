@@ -1,5 +1,6 @@
 const { readFileSync } = require('node:fs');
 const { after, before, beforeEach, test } = require('node:test');
+const assert = require('node:assert/strict');
 const {
   assertFails,
   assertSucceeds,
@@ -17,7 +18,7 @@ const {
   writeBatch
 } = require('firebase/firestore');
 
-const projectId = 'demo-pirate-auth';
+const projectId = 'demo-pirate-tests';
 const emulatorAvailable = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
 let environment;
 
@@ -42,6 +43,7 @@ async function seedBase({ bound = false, expired = false } = {}) {
     const db = context.firestore();
     await setDoc(doc(db, 'authorizedTeachers', 'teacher-1'), { active: true });
     await setDoc(doc(db, 'authorizedTeachers', 'teacher-2'), { active: true });
+    await setDoc(doc(db, 'authorizedTeachers', 'teacher-inactive'), { active: false });
     await setDoc(doc(db, 'classes', 'class-1'), { teacherUid: 'teacher-1', name: '7A', createdAt: new Date() });
     await setDoc(doc(db, 'classes', 'class-2'), { teacherUid: 'teacher-2', name: '7B', createdAt: new Date() });
     await setDoc(doc(db, 'classes', 'class-1', 'students', 'student-1'), {
@@ -69,6 +71,33 @@ test('only an authorized teacher can create and manage own classes', { skip: !em
   await assertFails(getDoc(doc(teacherDb, 'classes', 'class-2')));
 });
 
+test('teacher profile is private to its authorized Firebase UID and rejects secret fields', { skip: !emulatorAvailable }, async () => {
+  await seedBase();
+  const ownerDb = environment.authenticatedContext('teacher-1').firestore();
+  const otherTeacherDb = environment.authenticatedContext('teacher-2').firestore();
+  const inactiveTeacherDb = environment.authenticatedContext('teacher-inactive').firestore();
+  const anonymousDb = environment.authenticatedContext('anonymous-1', { firebase: { sign_in_provider: 'anonymous' } }).firestore();
+  const profile = {
+    teacherUid: 'teacher-1',
+    name: 'Анна',
+    displayName: 'Анна Сергеевна',
+    organization: 'Школа № 1',
+    avatarId: 'captain-redhead',
+    avatarSrc: 'teacher-avatar-captain-redhead.webp',
+    updatedAt: new Date()
+  };
+  const ownRef = doc(ownerDb, 'teacherProfiles', 'teacher-1');
+  await assertSucceeds(setDoc(ownRef, profile));
+  assert.equal((await assertSucceeds(getDoc(ownRef))).data().displayName, profile.displayName);
+  await assertSucceeds(updateDoc(ownRef, { organization: 'Лицей' }));
+  await assertFails(getDoc(doc(otherTeacherDb, 'teacherProfiles', 'teacher-1')));
+  await assertFails(getDocs(collection(ownerDb, 'teacherProfiles')));
+  await assertFails(getDoc(doc(anonymousDb, 'teacherProfiles', 'teacher-1')));
+  await assertFails(setDoc(doc(inactiveTeacherDb, 'teacherProfiles', 'teacher-inactive'), { ...profile, teacherUid: 'teacher-inactive' }));
+  await assertFails(setDoc(doc(otherTeacherDb, 'teacherProfiles', 'teacher-1'), { ...profile, teacherUid: 'teacher-2' }));
+  await assertFails(setDoc(ownRef, { ...profile, password: 'must-never-be-stored' }));
+});
+
 test('teacher can atomically create an unbound pupil and a 24-hour invitation', { skip: !emulatorAvailable }, async () => {
   await seedBase();
   const db = environment.authenticatedContext('teacher-1').firestore();
@@ -91,6 +120,101 @@ test('an unbound anonymous user cannot enumerate or read class data', { skip: !e
   await assertFails(getDocs(collection(db, 'classes')));
   await assertFails(getDoc(doc(db, 'classes', 'class-1')));
   await assertFails(getDoc(doc(db, 'classes', 'class-1', 'students', 'student-1')));
+});
+
+test('PIN login directory exposes only aliases while teacher exclusively creates password bindings', { skip: !emulatorAvailable }, async () => {
+  await seedBase();
+  const teacherDb = environment.authenticatedContext('teacher-1').firestore();
+  const batch = writeBatch(teacherDb);
+  batch.set(doc(teacherDb, 'studentLoginCatalogOwners', 'catalog-1'), {
+    teacherUid: 'teacher-1', classId: 'class-1', createdAt: new Date()
+  });
+  batch.set(doc(teacherDb, 'studentLoginClasses', 'catalog-1'), {
+    displayName: '7А — Пираты', active: true, updatedAt: new Date()
+  });
+  batch.set(doc(teacherDb, 'studentLoginClasses', 'catalog-1', 'students', 'entry-1'), {
+    displayName: 'Алый Парус', avatarId: 'captain-boy', avatarSrc: 'student-avatar-captain-boy.webp',
+    authLogin: 'opaque-login@students.finzozh.invalid', active: true, updatedAt: new Date()
+  });
+  batch.update(doc(teacherDb, 'classes', 'class-1', 'students', 'student-1'), {
+    ownerUid: 'password-student', authMode: 'pin-password', loginCatalogId: 'catalog-1',
+    loginEntryId: 'entry-1', credentialVersion: 1
+  });
+  batch.set(doc(teacherDb, 'studentBindings', 'password-student'), {
+    teacherUid: 'teacher-1', classId: 'class-1', studentId: 'student-1', loginCatalogId: 'catalog-1',
+    loginEntryId: 'entry-1', credentialVersion: 1, createdAt: new Date()
+  });
+  await assertSucceeds(batch.commit());
+
+  const anonymousDb = environment.authenticatedContext('catalog-reader', { firebase: { sign_in_provider: 'anonymous' } }).firestore();
+  const publicClass = await assertSucceeds(getDoc(doc(anonymousDb, 'studentLoginClasses', 'catalog-1')));
+  const publicStudent = await assertSucceeds(getDoc(doc(anonymousDb, 'studentLoginClasses', 'catalog-1', 'students', 'entry-1')));
+  assert.deepEqual(Object.keys(publicClass.data()).sort(), ['active', 'displayName', 'updatedAt']);
+  assert.deepEqual(Object.keys(publicStudent.data()).sort(), ['active', 'authLogin', 'avatarId', 'avatarSrc', 'displayName', 'updatedAt']);
+  await assertFails(getDoc(doc(anonymousDb, 'studentLoginCatalogOwners', 'catalog-1')));
+
+  const pupilDb = environment.authenticatedContext('password-student', { firebase: { sign_in_provider: 'password' } }).firestore();
+  await assertSucceeds(getDoc(doc(pupilDb, 'classes', 'class-1', 'students', 'student-1')));
+  await assertFails(updateDoc(doc(pupilDb, 'classes', 'class-1', 'students', 'student-1'), { balance: 999999 }));
+  await setDoc(doc(teacherDb, 'classes', 'class-1', 'students', 'student-2'), {
+    teacherUid: 'teacher-1', classId: 'class-1', studentId: 'student-2', displayName: 'Синий Кит',
+    ownerUid: null, balance: 0, lifetimeEarned: 0, createdAt: new Date()
+  });
+  await updateDoc(doc(teacherDb, 'classes', 'class-1', 'students', 'student-2'), { ownerUid: 'other-password-student' });
+  await assertFails(getDoc(doc(pupilDb, 'classes', 'class-1', 'students', 'student-2')));
+  await setDoc(doc(teacherDb, 'classes', 'class-1', 'rewards', 'pin-reward'), {
+    teacherUid: 'teacher-1', classId: 'class-1', rewardId: 'pin-reward', name: 'Карта',
+    price: 10, limit: 1, active: true
+  });
+  await assertSucceeds(setDoc(doc(pupilDb, 'classes', 'class-1', 'purchaseRequests', 'pin-request'), {
+    teacherUid: 'teacher-1', classId: 'class-1', requestId: 'pin-request', studentId: 'student-1',
+    student_id: 'student-1', rewardId: 'pin-reward', reward_id: 'pin-reward', status: 'pending',
+    createdAt: new Date(), processedAt: null
+  }));
+  await assertFails(setDoc(doc(pupilDb, 'studentBindings', 'attacker-binding'), {
+    teacherUid: 'teacher-1', classId: 'class-1', studentId: 'student-1', loginCatalogId: 'catalog-1',
+    loginEntryId: 'entry-1', credentialVersion: 1, createdAt: new Date()
+  }));
+});
+
+test('teacher PIN reset revokes every old session without changing pupil economy', { skip: !emulatorAvailable }, async () => {
+  await seedBase();
+  await environment.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await updateDoc(doc(db, 'classes', 'class-1', 'students', 'student-1'), {
+      ownerUid: 'old-password-uid', authMode: 'pin-password', credentialVersion: 1,
+      loginCatalogId: 'catalog-1', loginEntryId: 'entry-1'
+    });
+    await setDoc(doc(db, 'studentBindings', 'old-password-uid'), {
+      teacherUid: 'teacher-1', classId: 'class-1', studentId: 'student-1', loginCatalogId: 'catalog-1',
+      loginEntryId: 'entry-1', credentialVersion: 1, createdAt: new Date()
+    });
+    await setDoc(doc(db, 'studentLoginCatalogOwners', 'catalog-1'), { teacherUid: 'teacher-1', classId: 'class-1', createdAt: new Date() });
+    await setDoc(doc(db, 'studentLoginClasses', 'catalog-1'), { displayName: '7А', active: true, updatedAt: new Date() });
+    await setDoc(doc(db, 'studentLoginClasses', 'catalog-1', 'students', 'entry-1'), {
+      displayName: 'Алый Парус', avatarId: 'captain-boy', avatarSrc: 'student-avatar-captain-boy.webp',
+      authLogin: 'old-login@students.finzozh.invalid', active: true, updatedAt: new Date()
+    });
+  });
+  const teacherDb = environment.authenticatedContext('teacher-1').firestore();
+  const reset = writeBatch(teacherDb);
+  reset.delete(doc(teacherDb, 'studentBindings', 'old-password-uid'));
+  reset.update(doc(teacherDb, 'classes', 'class-1', 'students', 'student-1'), { ownerUid: 'new-password-uid', credentialVersion: 2 });
+  reset.set(doc(teacherDb, 'studentBindings', 'new-password-uid'), {
+    teacherUid: 'teacher-1', classId: 'class-1', studentId: 'student-1', loginCatalogId: 'catalog-1',
+    loginEntryId: 'entry-1', credentialVersion: 2, createdAt: new Date()
+  });
+  reset.update(doc(teacherDb, 'studentLoginClasses', 'catalog-1', 'students', 'entry-1'), {
+    authLogin: 'new-login@students.finzozh.invalid', updatedAt: new Date()
+  });
+  await assertSucceeds(reset.commit());
+
+  const oldDb = environment.authenticatedContext('old-password-uid', { firebase: { sign_in_provider: 'password' } }).firestore();
+  const newDb = environment.authenticatedContext('new-password-uid', { firebase: { sign_in_provider: 'password' } }).firestore();
+  await assertFails(getDoc(doc(oldDb, 'classes', 'class-1', 'students', 'student-1')));
+  const profile = await assertSucceeds(getDoc(doc(newDb, 'classes', 'class-1', 'students', 'student-1')));
+  assert.equal(profile.data().balance, 75);
+  assert.equal(profile.data().lifetimeEarned, 120);
 });
 
 test('invitation redemption atomically binds one UID and cannot be replayed', { skip: !emulatorAvailable }, async () => {

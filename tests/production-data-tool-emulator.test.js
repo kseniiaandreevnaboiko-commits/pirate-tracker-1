@@ -30,6 +30,7 @@ test('backup, dry-run, guarded apply, and verification preserve trackerApps/main
   const projectId = 'tracker-progress-2b682';
   const teacherUid = 'existing-teacher-uid';
   environment = await initializeTestEnvironment({ projectId });
+  await environment.clearFirestore();
   await environment.withSecurityRulesDisabled(async context => {
     const db = context.firestore();
     await setDoc(doc(db, 'authorizedTeachers', teacherUid), { active: true });

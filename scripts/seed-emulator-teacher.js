@@ -1,5 +1,5 @@
 const { initializeTestEnvironment } = require('@firebase/rules-unit-testing');
-const { doc, setDoc } = require('firebase/firestore');
+const { doc, getDoc, setDoc } = require('firebase/firestore');
 
 const projectId = 'demo-pirate-auth';
 const email = process.env.PIRATE_TEACHER_EMAIL;
@@ -13,24 +13,41 @@ if (!email || !password) {
   throw new Error('Set PIRATE_TEACHER_EMAIL and PIRATE_TEACHER_PASSWORD.');
 }
 
-(async () => {
-  const response = await fetch(`http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo`, {
+async function authRequest(operation) {
+  const response = await fetch(`http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:${operation}?key=demo`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email, password, returnSecureToken: true })
   });
-  const account = await response.json();
-  if (!response.ok) throw new Error(account.error?.message || 'Could not create emulator account.');
+  const result = await response.json();
+  if (!response.ok) {
+    const error = new Error(result.error?.message || `Auth emulator ${operation} failed.`);
+    error.code = result.error?.message || '';
+    throw error;
+  }
+  return result;
+}
+
+(async () => {
+  let account;
+  try {
+    account = await authRequest('signUp');
+  } catch (error) {
+    if (!String(error.code).includes('EMAIL_EXISTS')) throw error;
+    account = await authRequest('signInWithPassword');
+  }
   const environment = await initializeTestEnvironment({ projectId });
   try {
     await environment.withSecurityRulesDisabled(async context => {
-      await setDoc(doc(context.firestore(), 'authorizedTeachers', account.localId), {
+      const roleRef = doc(context.firestore(), 'authorizedTeachers', account.localId);
+      const existingRole = await getDoc(roleRef);
+      await setDoc(roleRef, {
         active: true,
         email,
-        createdAt: new Date()
-      });
+        createdAt: existingRole.data()?.createdAt || new Date()
+      }, { merge: true });
     });
-    console.log(`Emulator teacher created: ${email} (${account.localId})`);
+    console.log(`Emulator teacher is ready: ${email} (${account.localId})`);
   } finally {
     await environment.cleanup();
   }

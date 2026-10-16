@@ -1630,12 +1630,12 @@ body {
 </div>
 
 <link rel="stylesheet" href="secure-auth.css?v=20261015">
-<script src="firebase-config.js?v=20261015-prod1"></script>
+<script src="firebase-config.js?v=20261016-emulatorfix1"></script>
 <script>
 window.PIRATE_SECURE_MODE = true;
 window.PIRATE_AUTH_TEST_MODE = ['localhost', '127.0.0.1'].includes(location.hostname)
   && new URLSearchParams(location.search).get('emulator') === '1';
-window.secureAuthReady = import('./secure-auth.js?v=20261015-prod1');
+window.secureAuthReady = import('./secure-auth.js?v=20261016-pinprod1');
 </script>
 <script src="pin-auth.js?v=20261015"></script>
 <script src="economy.js?v=20261015"></script>
@@ -1666,8 +1666,8 @@ let editingRewardId = null;
 
 window.PirateSecureBridge = {
   getData() { return appData; },
-  hydrateTeacher(classes) {
-    appData = { classes: classes || [], currentClassId: classes?.[0]?.id || null, currentUser: { role: 'teacher' } };
+  hydrateTeacher(classes, teacherProfile = null) {
+    appData = { classes: classes || [], currentClassId: classes?.[0]?.id || null, currentUser: { role: 'teacher' }, teacherProfile };
   },
   hydrateStudent(classData, student, visibleStudents = null) {
     const safeClass = { ...classData, students: visibleStudents || [student] };
@@ -1886,7 +1886,9 @@ async function addClass() {
   const name = input.value.trim();
   if (!name) { showToast('Введите название класса.'); return; }
   try {
-    const classId = await window.SecureData.createClass(name);
+    const classId = window.SecureAuth?.pinPrototype
+      ? await window.SecureAuth.createClass(name)
+      : await window.SecureData.createClass(name);
     appData.currentClassId = classId;
     input.value = '';
     closeModal('modal-add-class');
@@ -1988,16 +1990,34 @@ async function addStudent() {
   if (!cls || !name) { showToast('Выберите класс и введите имя ученика.'); return; }
   const avatar = selectedAvatar && selectedAvatar.src ? selectedAvatar : STUDENT_AVATARS[0];
   try {
-    await window.SecureData.createStudent(cls.id, { displayName: name, avatarId: avatar.id, avatarSrc: avatar.src });
+    const result = window.SecureAuth?.pinPrototype
+      ? await window.SecureAuth.createStudentWithPin(cls.id, { displayName: name, avatarId: avatar.id, avatarSrc: avatar.src })
+      : await window.SecureData.createStudent(cls.id, { displayName: name, avatarId: avatar.id, avatarSrc: avatar.src });
     input.value = '';
     document.getElementById('new-student-pin').value = '';
     closeModal('modal-add-student');
     renderTeacherView();
-    showToast('Ученик создан. Приглашение можно выдать в панели защищённого доступа.');
+    if (window.SecureAuth?.pinPrototype) {
+      window.SecureAuth.showGeneratedPin(name, result.pin);
+      showToast('Ученик создан. ПИН показан один раз.');
+    } else showToast('Ученик создан. Приглашение можно выдать в панели защищённого доступа.');
   } catch (error) { showToast(error.message); }
 }
 
 function openStudentPinSetup(studentId) {
+  if (window.SecureAuth?.pinPrototype) {
+    const cls = getCurrentClass();
+    const student = cls?.students.find(item => item.id === studentId);
+    if (!student) return;
+    showConfirm('Сбросить ПИН?', 'Старый ПИН и все ранее открытые ученические сессии потеряют доступ. Баланс и достижения сохранятся.', async () => {
+      try {
+        const result = await window.SecureAuth.resetStudentPin(cls.id, studentId);
+        window.SecureAuth.showGeneratedPin(student.name, result.pin, true);
+        showToast('ПИН обновлён, прежние сессии отозваны.');
+      } catch (error) { showToast(error.message); }
+    });
+    return;
+  }
   if (window.PinAuth?.getSession()?.role !== 'teacher') { window.LoginRoutes?.teacher(); return; }
   const cls = getCurrentClass();
   const student = cls?.students.find(item => item.id === studentId);

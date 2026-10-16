@@ -9,17 +9,18 @@ const achievements = require('../achievements.js');
 const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
 
 test('normalized economy, shop, achievements, idempotency, and season work atomically', { skip: !enabled }, async () => {
-  const projectId = 'demo-pirate-auth';
+  const projectId = 'demo-pirate-tests';
   const environment = await initializeTestEnvironment({ projectId, firestore: { rules: readFileSync('firestore.rules', 'utf8') } });
   const teacherUid = 'economy-teacher';
   await environment.withSecurityRulesDisabled(async context => {
     await firestore.setDoc(firestore.doc(context.firestore(), 'authorizedTeachers', teacherUid), { active: true });
   });
   const db = environment.authenticatedContext(teacherUid).firestore();
+  let hydratedTeacherProfile;
   global.window = {
     PirateEconomy: economy,
     PirateAchievements: achievements,
-    PirateSecureBridge: { hydrateTeacher() {}, hydrateStudent() {} },
+    PirateSecureBridge: { hydrateTeacher(_classes, profile) { hydratedTeacherProfile = profile; }, hydrateStudent() {} },
     dispatchEvent() {}
   };
   global.CustomEvent ||= class CustomEvent { constructor(type) { this.type = type; } };
@@ -28,6 +29,27 @@ test('normalized economy, shop, achievements, idempotency, and season work atomi
   const service = module.configure({ db, auth: { currentUser: { uid: teacherUid } }, storeModule: firestore });
   try {
     await service.startRealtime({ role: 'teacher', uid: teacherUid }, { listen: false });
+    assert.equal(hydratedTeacherProfile, null);
+    const teacherProfile = {
+      name: 'Анна', displayName: 'Анна Сергеевна', organization: 'Школа № 1',
+      avatarId: 'captain-redhead', avatarSrc: 'teacher-avatar-captain-redhead.webp'
+    };
+    await service.saveTeacherProfile(teacherProfile);
+    const storedTeacherProfile = (await firestore.getDoc(firestore.doc(db, 'teacherProfiles', teacherUid))).data();
+    assert.deepEqual({
+      name: storedTeacherProfile.name,
+      displayName: storedTeacherProfile.displayName,
+      organization: storedTeacherProfile.organization,
+      avatarId: storedTeacherProfile.avatarId,
+      avatarSrc: storedTeacherProfile.avatarSrc
+    }, teacherProfile);
+    assert.equal(storedTeacherProfile.teacherUid, teacherUid);
+    assert.equal(Object.hasOwn(storedTeacherProfile, 'password'), false);
+    service.stopRealtime();
+    hydratedTeacherProfile = null;
+    await service.startRealtime({ role: 'teacher', uid: teacherUid }, { listen: false });
+    assert.deepEqual(hydratedTeacherProfile, teacherProfile);
+
     const classId = await service.createClass('Test crew');
     const definitions = await firestore.getDocs(firestore.collection(db, 'classes', classId, 'automaticAchievementDefinitions'));
     assert.equal(definitions.size, 6);

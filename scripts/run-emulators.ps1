@@ -11,8 +11,20 @@ if (-not (Test-Path -LiteralPath $javaPath)) {
 $env:JAVA_HOME = $jdkPath
 $env:Path = "$jdkPath\bin;$env:Path"
 if ($Test) {
-  & firebase.cmd emulators:exec --project demo-pirate-auth --only auth,firestore 'npm.cmd test'
+  # Automated tests use a separate logical project so clearFirestore() can
+  # never erase the data used for manual browser checks.
+  & firebase.cmd emulators:exec --project demo-pirate-tests --only auth,firestore 'npm.cmd test'
 } else {
-  & firebase.cmd emulators:start --project demo-pirate-auth --only auth,firestore,hosting
+  $emulatorDataPath = Join-Path $projectRoot '.emulator-data'
+  $arguments = @(
+    'emulators:start',
+    '--project', 'demo-pirate-auth',
+    '--only', 'auth,firestore,hosting',
+    "--export-on-exit=$emulatorDataPath"
+  )
+  if (Test-Path -LiteralPath (Join-Path $emulatorDataPath 'firebase-export-metadata.json')) {
+    $arguments += "--import=$emulatorDataPath"
+  }
+  & firebase.cmd @arguments
 }
 exit $LASTEXITCODE

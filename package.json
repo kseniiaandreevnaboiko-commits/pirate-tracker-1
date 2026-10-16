@@ -5,6 +5,7 @@
     "test": "node --test --test-concurrency=1 tests/*.test.js",
     "emulators": "scripts\\start-emulators.cmd",
     "test:emulators": "scripts\\test-emulators.cmd",
+    "test:emulator-restart": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\test-emulator-restart.ps1",
     "seed:teacher": "node scripts/seed-emulator-teacher.js",
     "migrate:emulator": "node scripts/migrate-emulator-data.js",
     "data:backup": "node scripts/production-data-tool.js backup",

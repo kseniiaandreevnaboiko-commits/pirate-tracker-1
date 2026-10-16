@@ -1,5 +1,5 @@
 .secure-login-label { display: grid; gap: 6px; margin: 12px auto; max-width: 360px; color: #f5dfaa; text-align: left; font-weight: 700; }
-.secure-login-label input, .secure-panel input, .secure-panel select { box-sizing: border-box; width: 100%; border: 1px solid #8e6b35; border-radius: 8px; padding: 11px 12px; background: #fff7df; color: #25170b; font: inherit; }
+.secure-login-label input, .secure-login-label select, .secure-panel input, .secure-panel select { box-sizing: border-box; width: 100%; border: 1px solid #8e6b35; border-radius: 8px; padding: 11px 12px; background: #fff7df; color: #25170b; font: inherit; }
 .secure-remember { display: flex; justify-content: center; gap: 8px; margin: 12px 0; color: #f5dfaa; }
 .secure-link { border: 0; background: none; color: #f2ce78; text-decoration: underline; cursor: pointer; }
 .secure-student-auth { max-width: 560px; margin: auto; padding: 42px; }
@@ -18,4 +18,10 @@
 .secure-message.error { background: #f2cbc1; color: #6d1d12; }
 .secure-invite-qr { width: min(280px, 100%); margin: 12px auto 0; }
 .secure-invite-qr svg { display: block; width: 100%; height: auto; background: #fff; border: 8px solid #fff; }
+.secure-pin-prototype .add-student-pin-field { display: none; }
+.secure-pin-card { width: min(440px, calc(100vw - 32px)); position: relative; border: 3px solid #9c6c2c; border-radius: 18px; padding: 28px; background: linear-gradient(145deg, #fff2cf, #e7c98e); color: #30200f; text-align: center; box-shadow: 0 24px 80px #000a; }
+.secure-pin-card h2 { margin: 4px 0; font-family: 'Pirata One', cursive; font-size: 32px; }
+.secure-pin-wheel { color: #7b4a1c; font-size: 44px; }
+.secure-pin-card output { display: block; margin: 18px auto; padding: 12px 18px; border: 2px dashed #8e6b35; border-radius: 12px; background: #fff8e7; color: #3a200e; font: 800 38px/1 monospace; letter-spacing: .22em; }
+.secure-pin-card > button:not(.secure-panel-close) { border: 1px solid #6b421b; border-radius: 9px; padding: 11px 18px; background: #6f3f17; color: #fff3cb; font-weight: 800; cursor: pointer; }
 @media (max-width: 700px) { .secure-row { align-items: stretch; flex-direction: column; } .secure-panel-button { right: 10px; bottom: 10px; } }

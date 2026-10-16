@@ -165,13 +165,17 @@
     renderTeacherAvatarPicker();updateTeacherProfilePreview();document.getElementById('td-profile-menu')?.classList.remove('open');openModal('modal-teacher-profile');
     if(editMode)setTimeout(()=>document.getElementById('teacher-profile-name')?.focus(),80);
   };
-  window.saveTeacherProfile=function(){
+  window.saveTeacherProfile=async function(){
     const name=document.getElementById('teacher-profile-name').value.trim();
     const displayName=document.getElementById('teacher-profile-display-name').value.trim();
     if(!name||!displayName){showToast('Заполните имя и отображаемое имя');return}
     const avatar=teacherAvatars.find(item=>item.id===selectedTeacherAvatar)||teacherAvatars[0];
-    appData.teacherProfile={name,displayName,organization:document.getElementById('teacher-profile-organization').value.trim(),avatarSrc:avatar.src,avatarId:avatar.id};
-    saveData();renderTeacherView();closeModal('modal-teacher-profile');window.PirateSound?.play('success');showToast('Профиль учителя сохранён');
+    const profile={name,displayName,organization:document.getElementById('teacher-profile-organization').value.trim(),avatarSrc:avatar.src,avatarId:avatar.id};
+    try{
+      if(window.SecureData)await window.SecureData.saveTeacherProfile(profile);
+      else{appData.teacherProfile=profile;saveData()}
+      renderTeacherView();closeModal('modal-teacher-profile');window.PirateSound?.play('success');showToast('Профиль учителя сохранён');
+    }catch(error){console.error('Не удалось сохранить профиль учителя',error);showToast('Не удалось сохранить профиль. Попробуйте ещё раз')}
   };
 
   function render(){

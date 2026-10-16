@@ -24,11 +24,15 @@
   function forLocation(locationLike) {
     const hostname = String(locationLike?.hostname || '');
     const params = new URLSearchParams(String(locationLike?.search || ''));
-    const useEmulators = ['localhost', '127.0.0.1'].includes(hostname) && params.get('emulator') === '1';
+    // A trailing full stop is easy to copy from prose as part of the URL.
+    // Accept it only on loopback hosts; remote hosts can never enable emulators.
+    const emulatorFlag = String(params.get('emulator') || '').replace(/[.]+$/, '');
+    const useEmulators = ['localhost', '127.0.0.1'].includes(hostname) && emulatorFlag === '1';
     return {
       firebase: useEmulators ? EMULATOR_CONFIG : PRODUCTION_CONFIG,
       projectId: useEmulators ? EMULATOR_CONFIG.projectId : PRODUCTION_PROJECT_ID,
       useEmulators,
+      studentPinLoginEnabled: true,
       authEmulatorUrl: 'http://127.0.0.1:9099',
       firestoreEmulatorHost: '127.0.0.1',
       firestoreEmulatorPort: 8080

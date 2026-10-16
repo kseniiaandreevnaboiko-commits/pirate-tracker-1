@@ -3,6 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function anonymous() { return signedIn() && request.auth.token.firebase.sign_in_provider == 'anonymous'; }
+    function passwordUser() { return signedIn() && request.auth.token.firebase.sign_in_provider == 'password'; }
     function teacher() { return signedIn() && exists(/databases/$(database)/documents/authorizedTeachers/$(request.auth.uid)) && get(/databases/$(database)/documents/authorizedTeachers/$(request.auth.uid)).data.active == true; }
     function ownsClass(classId) { return teacher() && exists(/databases/$(database)/documents/classes/$(classId)) && get(/databases/$(database)/documents/classes/$(classId)).data.teacherUid == request.auth.uid; }
     function ownsClassAfter(classId) { return teacher() && getAfter(/databases/$(database)/documents/classes/$(classId)).data.teacherUid == request.auth.uid; }
@@ -10,11 +11,29 @@ service cloud.firestore {
     function binding() { return get(/databases/$(database)/documents/studentBindings/$(request.auth.uid)).data; }
     function classMember(classId) { return hasBinding() && binding().classId == classId; }
     function ownStudent(classId, studentId) { return classMember(classId) && binding().studentId == studentId; }
+    function catalogOwner(catalogId) { return teacher() && exists(/databases/$(database)/documents/studentLoginCatalogOwners/$(catalogId)) && get(/databases/$(database)/documents/studentLoginCatalogOwners/$(catalogId)).data.teacherUid == request.auth.uid && ownsClass(get(/databases/$(database)/documents/studentLoginCatalogOwners/$(catalogId)).data.classId); }
+    function catalogOwnerAfter(catalogId) { return teacher() && getAfter(/databases/$(database)/documents/studentLoginCatalogOwners/$(catalogId)).data.teacherUid == request.auth.uid && ownsClass(getAfter(/databases/$(database)/documents/studentLoginCatalogOwners/$(catalogId)).data.classId); }
     function teacherOwnedNew(classId) { return request.resource.data.teacherUid == request.auth.uid && request.resource.data.classId == classId; }
+    function validTeacherProfile(uid) {
+      return request.resource.data.keys().hasOnly(['teacherUid','name','displayName','organization','avatarId','avatarSrc','updatedAt'])
+        && request.resource.data.keys().hasAll(['teacherUid','name','displayName','organization','avatarId','avatarSrc','updatedAt'])
+        && request.resource.data.teacherUid == uid
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+        && request.resource.data.displayName is string && request.resource.data.displayName.size() > 0 && request.resource.data.displayName.size() <= 80
+        && request.resource.data.organization is string && request.resource.data.organization.size() <= 100
+        && request.resource.data.avatarId is string && request.resource.data.avatarId.size() > 0 && request.resource.data.avatarId.size() <= 60
+        && request.resource.data.avatarSrc is string && request.resource.data.avatarSrc.size() > 0 && request.resource.data.avatarSrc.size() <= 200
+        && request.resource.data.updatedAt is timestamp;
+    }
 
     match /authorizedTeachers/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
       allow list, create, update, delete: if false;
+    }
+    match /teacherProfiles/{uid} {
+      allow get: if teacher() && request.auth.uid == uid;
+      allow list, delete: if false;
+      allow create, update: if teacher() && request.auth.uid == uid && validTeacherProfile(uid);
     }
     match /classes/{classId} {
       allow get: if ownsClass(classId) || classMember(classId);
@@ -42,7 +61,7 @@ service cloud.firestore {
       }
       match /purchaseRequests/{requestId} {
         allow get, list: if ownsClass(classId) || ownStudent(classId, resource.data.studentId);
-        allow create: if anonymous() && ownStudent(classId, request.resource.data.studentId) && request.resource.data.keys().hasOnly(['teacherUid','classId','requestId','studentId','student_id','rewardId','reward_id','status','createdAt','processedAt']) && request.resource.data.classId == classId && request.resource.data.requestId == requestId && request.resource.data.student_id == request.resource.data.studentId && request.resource.data.reward_id == request.resource.data.rewardId && request.resource.data.status == 'pending' && request.resource.data.processedAt == null && get(/databases/$(database)/documents/classes/$(classId)/rewards/$(request.resource.data.rewardId)).data.active == true && request.resource.data.teacherUid == get(/databases/$(database)/documents/classes/$(classId)).data.teacherUid;
+        allow create: if (anonymous() || passwordUser()) && ownStudent(classId, request.resource.data.studentId) && request.resource.data.keys().hasOnly(['teacherUid','classId','requestId','studentId','student_id','rewardId','reward_id','status','createdAt','processedAt']) && request.resource.data.classId == classId && request.resource.data.requestId == requestId && request.resource.data.student_id == request.resource.data.studentId && request.resource.data.reward_id == request.resource.data.rewardId && request.resource.data.status == 'pending' && request.resource.data.processedAt == null && get(/databases/$(database)/documents/classes/$(classId)/rewards/$(request.resource.data.rewardId)).data.active == true && request.resource.data.teacherUid == get(/databases/$(database)/documents/classes/$(classId)).data.teacherUid;
         allow update: if ownsClass(classId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','processedAt','processedBy']) && resource.data.status == 'pending' && request.resource.data.status in ['approved','rejected'];
         allow delete: if false;
       }
@@ -90,8 +109,42 @@ service cloud.firestore {
       allow get: if signedIn() && (request.auth.uid == uid || ownsClass(resource.data.classId));
       allow list: if teacher() && resource.data.teacherUid == request.auth.uid;
       allow create: if anonymous() && request.auth.uid == uid && request.resource.data.keys().hasOnly(['teacherUid','classId','studentId','inviteId','createdAt']) && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.inviteId)).data.claimedBy == uid && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.inviteId)).data.classId == request.resource.data.classId && getAfter(/databases/$(database)/documents/studentInvites/$(request.resource.data.inviteId)).data.studentId == request.resource.data.studentId && getAfter(/databases/$(database)/documents/classes/$(request.resource.data.classId)/students/$(request.resource.data.studentId)).data.ownerUid == uid;
+      allow create: if ownsClass(request.resource.data.classId)
+        && request.resource.data.keys().hasOnly(['teacherUid','classId','studentId','loginCatalogId','loginEntryId','credentialVersion','createdAt'])
+        && request.resource.data.teacherUid == request.auth.uid
+        && request.resource.data.credentialVersion is int && request.resource.data.credentialVersion > 0
+        && getAfter(/databases/$(database)/documents/classes/$(request.resource.data.classId)/students/$(request.resource.data.studentId)).data.ownerUid == uid;
       allow update: if false;
       allow delete: if ownsClass(resource.data.classId);
+    }
+    match /studentLoginCatalogOwners/{catalogId} {
+      allow get: if catalogOwner(catalogId);
+      allow list: if false;
+      allow create: if teacher()
+        && request.resource.data.keys().hasOnly(['teacherUid','classId','createdAt'])
+        && request.resource.data.teacherUid == request.auth.uid
+        && ownsClass(request.resource.data.classId);
+      allow update: if false;
+      allow delete: if catalogOwner(catalogId);
+    }
+    match /studentLoginClasses/{catalogId} {
+      allow get, list: if signedIn();
+      allow create, update: if catalogOwnerAfter(catalogId)
+        && request.resource.data.keys().hasOnly(['displayName','active','updatedAt'])
+        && request.resource.data.displayName is string && request.resource.data.displayName.size() > 0 && request.resource.data.displayName.size() <= 60
+        && request.resource.data.active is bool && request.resource.data.updatedAt is timestamp;
+      allow delete: if catalogOwner(catalogId);
+      match /students/{entryId} {
+        allow get, list: if signedIn();
+        allow create, update: if catalogOwnerAfter(catalogId)
+          && request.resource.data.keys().hasOnly(['displayName','avatarId','avatarSrc','authLogin','active','updatedAt'])
+          && request.resource.data.displayName is string && request.resource.data.displayName.size() > 0 && request.resource.data.displayName.size() <= 40
+          && request.resource.data.avatarId is string && request.resource.data.avatarId.size() <= 60
+          && request.resource.data.avatarSrc is string && request.resource.data.avatarSrc.size() <= 200
+          && request.resource.data.authLogin is string && request.resource.data.authLogin.size() >= 12 && request.resource.data.authLogin.size() <= 160
+          && request.resource.data.active is bool && request.resource.data.updatedAt is timestamp;
+        allow delete: if catalogOwner(catalogId);
+      }
     }
     match /trackerApps/{document} { allow read, write: if false; }
     match /{document=**} { allow read, write: if false; }

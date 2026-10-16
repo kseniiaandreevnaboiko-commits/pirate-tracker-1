@@ -19,3 +19,8 @@ Thumbs.db
 # Dependency folders and local emulator tooling
 node_modules/
 .tools/
+.emulator-data/
+
+# Local working documents are not part of the published web application
+*.docx
+~$*.docx

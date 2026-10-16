@@ -18,7 +18,7 @@ const { initializeTestEnvironment, assertFails } = require('@firebase/rules-unit
 const enabled = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST && process.env.FIRESTORE_EMULATOR_HOST);
 
 test('teacher email/password, role check, reset, and password change work in emulators', { skip: !enabled }, async () => {
-  const projectId = 'demo-pirate-auth';
+  const projectId = 'demo-pirate-tests';
   const app = initializeApp({ apiKey: 'demo', projectId }, `auth-test-${Date.now()}`);
   const auth = getAuth(app);
   connectAuthEmulator(auth, `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}`, { disableWarnings: true });
@@ -39,9 +39,23 @@ test('teacher email/password, role check, reset, and password change work in emu
     const role = await getDoc(doc(db, 'authorizedTeachers', signedIn.user.uid));
     assert.equal(role.data().active, true);
     await assertFails(setDoc(doc(db, 'authorizedTeachers', signedIn.user.uid), { active: true }));
+    const teacherProfile = {
+      teacherUid: signedIn.user.uid,
+      name: 'Анна',
+      displayName: 'Анна Сергеевна',
+      organization: 'Школа № 1',
+      avatarId: 'captain-redhead',
+      avatarSrc: 'teacher-avatar-captain-redhead.webp',
+      updatedAt: new Date()
+    };
+    await setDoc(doc(db, 'teacherProfiles', signedIn.user.uid), teacherProfile);
+    await signOut(auth);
+    const restored = await signInWithEmailAndPassword(auth, email, firstPassword);
+    const restoredProfile = await getDoc(doc(db, 'teacherProfiles', restored.user.uid));
+    assert.equal(restoredProfile.data().displayName, teacherProfile.displayName);
     await sendPasswordResetEmail(auth, email);
-    await reauthenticateWithCredential(signedIn.user, EmailAuthProvider.credential(email, firstPassword));
-    await updatePassword(signedIn.user, nextPassword);
+    await reauthenticateWithCredential(restored.user, EmailAuthProvider.credential(email, firstPassword));
+    await updatePassword(restored.user, nextPassword);
     await signOut(auth);
     await assert.rejects(signInWithEmailAndPassword(auth, email, firstPassword));
     const changed = await signInWithEmailAndPassword(auth, email, nextPassword);

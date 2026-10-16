@@ -13,10 +13,40 @@ if (runtime.useEmulators) {
   authModule.connectAuthEmulator(auth, runtime.authEmulatorUrl, { disableWarnings: true });
   storeModule.connectFirestoreEmulator(db, runtime.firestoreEmulatorHost, runtime.firestoreEmulatorPort);
 }
-const { configure: configureSecureData } = await import('./secure-data.js?v=20261015');
+const { configure: configureSecureData } = await import('./secure-data.js?v=20261015-pin1');
 const secureData = configureSecureData({ db, auth, storeModule });
 
 let currentSession = null;
+let provisioningAuth = null;
+let revokingStudentSession = false;
+
+function requirePinLogin() {
+  if (!runtime.studentPinLoginEnabled) throw new Error('Вход учеников по ПИН временно недоступен.');
+}
+
+function randomDigits(length = 6) {
+  const range = 10 ** length;
+  const limit = Math.floor(0x100000000 / range) * range;
+  const values = new Uint32Array(1);
+  do crypto.getRandomValues(values); while (values[0] >= limit);
+  return String(values[0] % range).padStart(length, '0');
+}
+
+function technicalLogin() {
+  return `pupil-${crypto.randomUUID().replaceAll('-', '')}@students.finzozh.invalid`;
+}
+
+function getProvisioningAuth() {
+  requirePinLogin();
+  if (provisioningAuth) return provisioningAuth;
+  const name = runtime.useEmulators ? 'pirate-student-provisioning-emulator' : 'pirate-student-provisioning-production';
+  const secondary = appModule.getApps().find(item => item.name === name) || appModule.initializeApp(runtime.firebase, name);
+  provisioningAuth = authModule.getAuth(secondary);
+  if (runtime.useEmulators) {
+    authModule.connectAuthEmulator(provisioningAuth, runtime.authEmulatorUrl, { disableWarnings: true });
+  }
+  return provisioningAuth;
+}
 
 function escapeMarkup(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
@@ -39,6 +69,11 @@ function messageFor(error) {
   if (code.includes('weak-password')) return 'Новый пароль должен содержать не менее 6 символов.';
   if (code.includes('permission-denied')) return 'Доступ запрещён правилами безопасности.';
   return error?.message || 'Не удалось выполнить операцию.';
+}
+
+function studentLoginMessage(error) {
+  if (String(error?.code || '').includes('too-many-requests')) return 'Слишком много попыток. Повторите позже.';
+  return 'Не удалось войти. Проверьте выбранное имя и ПИН.';
 }
 
 function setSession(session) {
@@ -140,6 +175,8 @@ async function restoreSession() {
   if (!user) return null;
   if (user.isAnonymous) return loadStudentData(user);
   if (await authorizedTeacher(user)) return loadTeacherData(user);
+  const student = await loadStudentData(user).catch(() => null);
+  if (student) return student;
   await authModule.signOut(auth);
   return null;
 }
@@ -166,6 +203,161 @@ async function changePassword(currentPassword, newPassword) {
   const credential = authModule.EmailAuthProvider.credential(user.email, currentPassword);
   await authModule.reauthenticateWithCredential(user, credential);
   await authModule.updatePassword(user, newPassword);
+}
+
+async function ensureLoginCatalog(classId) {
+  requirePinLogin();
+  const classDocument = storeModule.doc(db, 'classes', classId);
+  const classSnapshot = await storeModule.getDoc(classDocument);
+  if (!classSnapshot.exists()) throw new Error('Класс не найден.');
+  const existing = classSnapshot.data().loginCatalogId;
+  if (existing) return existing;
+  const catalogId = safeId('catalog');
+  const batch = storeModule.writeBatch(db);
+  batch.update(classDocument, { loginCatalogId: catalogId });
+  batch.set(storeModule.doc(db, 'studentLoginCatalogOwners', catalogId), {
+    teacherUid: auth.currentUser.uid,
+    classId,
+    createdAt: storeModule.serverTimestamp()
+  });
+  batch.set(storeModule.doc(db, 'studentLoginClasses', catalogId), {
+    displayName: String(classSnapshot.data().name || 'Класс').slice(0, 60),
+    active: true,
+    updatedAt: storeModule.serverTimestamp()
+  });
+  await batch.commit();
+  return catalogId;
+}
+
+async function createPasswordAccount(pin) {
+  requirePinLogin();
+  if (!/^\d{6}$/.test(pin)) throw new Error('ПИН должен состоять ровно из шести цифр.');
+  const secondaryAuth = getProvisioningAuth();
+  if (!runtime.useEmulators) {
+    const passwordStatus = await authModule.validatePassword(secondaryAuth, pin);
+    if (!passwordStatus.isValid) {
+      throw new Error('Политика паролей Firebase не допускает шестизначный цифровой ПИН. Проверьте Authentication → Settings → Password policy.');
+    }
+  }
+  if (secondaryAuth.currentUser) await authModule.signOut(secondaryAuth);
+  const authLogin = technicalLogin();
+  const credential = await authModule.createUserWithEmailAndPassword(secondaryAuth, authLogin, pin);
+  const uid = credential.user.uid;
+  await authModule.signOut(secondaryAuth);
+  return { uid, authLogin };
+}
+
+async function bindPasswordStudent({ classId, studentId, displayName, avatarId, avatarSrc, account, reset = false }) {
+  const catalogId = await ensureLoginCatalog(classId);
+  const profileRef = storeModule.doc(db, 'classes', classId, 'students', studentId);
+  const profileSnapshot = await storeModule.getDoc(profileRef);
+  if (!profileSnapshot.exists()) throw new Error('Ученик не найден.');
+  const profile = profileSnapshot.data();
+  const entryId = profile.loginEntryId || safeId('pupil');
+  const version = Number(profile.credentialVersion || 0) + 1;
+  const batch = storeModule.writeBatch(db);
+  if (reset && profile.ownerUid) batch.delete(storeModule.doc(db, 'studentBindings', profile.ownerUid));
+  batch.update(profileRef, {
+    ownerUid: account.uid,
+    authMode: 'pin-password',
+    loginCatalogId: catalogId,
+    loginEntryId: entryId,
+    credentialVersion: version,
+    bindingInviteId: null,
+    updatedAt: storeModule.serverTimestamp()
+  });
+  batch.set(storeModule.doc(db, 'studentBindings', account.uid), {
+    teacherUid: profile.teacherUid,
+    classId,
+    studentId,
+    loginCatalogId: catalogId,
+    loginEntryId: entryId,
+    credentialVersion: version,
+    createdAt: storeModule.serverTimestamp()
+  });
+  batch.set(storeModule.doc(db, 'studentLoginClasses', catalogId, 'students', entryId), {
+    displayName: String(displayName || profile.displayName || 'Ученик').trim().slice(0, 40),
+    avatarId: String(avatarId || profile.avatarId || '').slice(0, 60),
+    avatarSrc: String(avatarSrc || profile.avatarSrc || '').slice(0, 200),
+    authLogin: account.authLogin,
+    active: true,
+    updatedAt: storeModule.serverTimestamp()
+  });
+  await batch.commit();
+  await secureData.refresh();
+  return { catalogId, entryId, version };
+}
+
+async function createStudentWithPin(classId, input) {
+  requirePinLogin();
+  const teacherUid = auth.currentUser?.uid;
+  if (!currentSession || currentSession.role !== 'teacher' || !teacherUid) throw new Error('Требуется вход учителя.');
+  const displayName = String(input?.displayName || '').trim();
+  if (!displayName || displayName.length > 40) throw new Error('Укажите игровой псевдоним длиной до 40 символов.');
+  const studentId = await secureData.createStudent(classId, { ...input, displayName });
+  const pin = randomDigits(6);
+  const account = await createPasswordAccount(pin);
+  if (auth.currentUser?.uid !== teacherUid) throw new Error('Сессия учителя неожиданно изменилась.');
+  await bindPasswordStudent({ classId, studentId, displayName, avatarId: input.avatarId, avatarSrc: input.avatarSrc, account });
+  return { studentId, pin };
+}
+
+async function resetStudentPin(classId, studentId) {
+  requirePinLogin();
+  if (!currentSession || currentSession.role !== 'teacher' || !auth.currentUser) throw new Error('Требуется вход учителя.');
+  const profile = await storeModule.getDoc(storeModule.doc(db, 'classes', classId, 'students', studentId));
+  if (!profile.exists()) throw new Error('Ученик не найден.');
+  const pin = randomDigits(6);
+  const account = await createPasswordAccount(pin);
+  await bindPasswordStudent({
+    classId,
+    studentId,
+    displayName: profile.data().displayName,
+    avatarId: profile.data().avatarId,
+    avatarSrc: profile.data().avatarSrc,
+    account,
+    reset: true
+  });
+  return { pin };
+}
+
+async function ensureCatalogReader() {
+  if (!auth.currentUser) {
+    await authModule.setPersistence(auth, authModule.browserSessionPersistence);
+    await authModule.signInAnonymously(auth);
+  }
+}
+
+async function loadStudentLoginCatalog() {
+  requirePinLogin();
+  await ensureCatalogReader();
+  const classes = await storeModule.getDocs(storeModule.collection(db, 'studentLoginClasses'));
+  const result = [];
+  for (const classDocument of classes.docs.filter(item => item.data().active === true)) {
+    const students = await storeModule.getDocs(storeModule.collection(db, 'studentLoginClasses', classDocument.id, 'students'));
+    result.push({
+      id: classDocument.id,
+      displayName: classDocument.data().displayName,
+      students: students.docs.filter(item => item.data().active === true).map(item => ({ id: item.id, ...item.data() }))
+    });
+  }
+  return result.sort((a, b) => a.displayName.localeCompare(b.displayName, 'ru'));
+}
+
+async function studentPinLogin(catalogId, entryId, pin) {
+  requirePinLogin();
+  if (!/^\d{6}$/.test(String(pin || ''))) throw new Error('invalid-pin');
+  await ensureCatalogReader();
+  const entry = await storeModule.getDoc(storeModule.doc(db, 'studentLoginClasses', catalogId, 'students', entryId));
+  if (!entry.exists() || entry.data().active !== true) throw new Error('invalid-student');
+  await authModule.setPersistence(auth, authModule.browserLocalPersistence);
+  const credential = await authModule.signInWithEmailAndPassword(auth, entry.data().authLogin, pin);
+  const session = await loadStudentData(credential.user);
+  if (!session) {
+    await authModule.signOut(auth);
+    throw new Error('invalid-binding');
+  }
+  return session;
 }
 
 async function claimInvitation(rawToken) {
@@ -242,7 +434,9 @@ async function createStudentWithInviteLegacy(classId, displayName) {
 }
 
 async function createClass(name) {
-  return secureData.createClass(name);
+  const classId = await secureData.createClass(name);
+  if (runtime.studentPinLoginEnabled) await ensureLoginCatalog(classId);
+  return classId;
 }
 
 async function createStudentWithInvite(classId, displayName) {
@@ -299,11 +493,51 @@ async function logout() {
   location.reload();
 }
 
+async function closeRevokedStudentSession() {
+  if (revokingStudentSession || currentSession?.role !== 'student') return;
+  revokingStudentSession = true;
+  secureData.stopRealtime();
+  await authModule.signOut(auth).catch(() => {});
+  setSession(null);
+  window.PirateSecureBridge.clear();
+  history.replaceState(null, '', `${location.pathname}${runtime.useEmulators ? '?emulator=1' : ''}#/login/student`);
+  location.reload();
+}
+
 function inviteUrl(inviteId) {
   const params = new URLSearchParams();
   if (runtime.useEmulators) params.set('emulator', '1');
   params.set('invite', inviteId);
   return `${location.origin}${location.pathname}?${params.toString()}#/login/student`;
+}
+
+function showGeneratedPin(displayName, pin, reset = false) {
+  let modal = document.getElementById('secure-generated-pin');
+  if (!modal) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="secure-generated-pin" class="modal-overlay" onclick="closeModalOverlay(event)">
+        <div class="secure-pin-card" role="dialog" aria-modal="true" aria-labelledby="secure-generated-pin-title">
+          <button class="secure-panel-close" type="button" aria-label="Закрыть">×</button>
+          <span class="secure-pin-wheel" aria-hidden="true">☸</span>
+          <h2 id="secure-generated-pin-title">Новый ПИН ученика</h2>
+          <p id="secure-generated-pin-name"></p>
+          <output id="secure-generated-pin-value"></output>
+          <p class="secure-note">Покажите или распечатайте ПИН сейчас. В приложении он больше не отображается и не сохраняется.</p>
+          <button id="secure-copy-pin" type="button">Скопировать ПИН</button>
+        </div>
+      </div>`);
+    modal = document.getElementById('secure-generated-pin');
+    modal.querySelector('.secure-panel-close').addEventListener('click', () => modal.classList.remove('active'));
+  }
+  modal.querySelector('#secure-generated-pin-title').textContent = reset ? 'ПИН ученика обновлён' : 'ПИН ученика создан';
+  modal.querySelector('#secure-generated-pin-name').textContent = displayName;
+  modal.querySelector('#secure-generated-pin-value').textContent = pin;
+  modal.querySelector('#secure-copy-pin').onclick = async () => {
+    await navigator.clipboard.writeText(pin);
+    modal.querySelector('#secure-copy-pin').textContent = 'Скопировано';
+  };
+  modal.querySelector('#secure-copy-pin').textContent = 'Скопировать ПИН';
+  modal.classList.add('active');
 }
 
 function installTeacherPanel() {
@@ -316,7 +550,7 @@ function installTeacherPanel() {
         <h2 id="secure-panel-title">Защищённый доступ</h2>
         <p class="secure-note">${runtime.useEmulators ? 'Локальная тестовая среда Firebase Emulator.' : 'Защищённый доступ Firebase к текущему приложению «ФинЗОЖ».'}</p>
         <section><h3>Класс</h3><div class="secure-row"><input id="secure-class-name" placeholder="Название класса"><button id="secure-create-class" type="button">Создать</button></div></section>
-        <section><h3>Ученик и приглашение</h3><label>Класс<select id="secure-class-select"></select></label><div class="secure-row"><input id="secure-student-name" placeholder="Имя ученика"><button id="secure-create-student" type="button">Создать и выдать код</button></div><div id="secure-students"></div></section>
+        <section><h3>${runtime.studentPinLoginEnabled ? 'Ученик и ПИН' : 'Ученик и приглашение'}</h3><label>Класс<select id="secure-class-select"></select></label><div class="secure-row"><input id="secure-student-name" placeholder="Игровое имя ученика"><button id="secure-create-student" type="button">${runtime.studentPinLoginEnabled ? 'Создать и выдать ПИН' : 'Создать и выдать код'}</button></div><div id="secure-students"></div></section>
         <section><h3>Смена пароля учителя</h3><div class="secure-row"><input id="secure-current-password" type="password" autocomplete="current-password" placeholder="Текущий пароль"><input id="secure-new-password" type="password" autocomplete="new-password" placeholder="Новый пароль"><button id="secure-change-password" type="button">Сменить</button></div></section>
         <output id="secure-panel-message" class="secure-message"></output><div id="secure-invite-qr" class="secure-invite-qr" aria-label="QR-код приглашения"></div>
       </div>
@@ -339,10 +573,16 @@ function installTeacherPanel() {
     const classId = document.getElementById('secure-class-select').value;
     const name = document.getElementById('secure-student-name').value.trim();
     if (!classId || !name) throw new Error('Выберите класс и введите имя ученика.');
-    const result = await createStudentWithInvite(classId, name);
+    const result = runtime.studentPinLoginEnabled
+      ? await createStudentWithPin(classId, { displayName: name })
+      : await createStudentWithInvite(classId, name);
     document.getElementById('secure-student-name').value = '';
-    renderTeacherPanel(result.inviteId);
+    renderTeacherPanel(result.inviteId || '');
     renderTeacherView();
+    if (runtime.studentPinLoginEnabled) {
+      showGeneratedPin(name, result.pin);
+      return 'Ученик создан. ПИН показан один раз.';
+    }
     return `Одноразовый код создан и действует 24 часа: ${result.inviteId}`;
   }));
   document.getElementById('secure-change-password').addEventListener('click', async () => runPanelAction(async () => {
@@ -383,9 +623,17 @@ function renderPanelStudents(classId, highlightInvite = '') {
   const output = document.getElementById('secure-students');
   const students = selectedClass?.students || [];
   output.innerHTML = students.length ? students.map(student => {
-    return `<div class="secure-student-row"><span>${escapeMarkup(student.name)}</span><button type="button" data-reissue="${escapeMarkup(student.id)}">Новое приглашение</button></div>`;
+    return `<div class="secure-student-row"><span>${escapeMarkup(student.name)}</span><button type="button" data-reissue="${escapeMarkup(student.id)}">${runtime.studentPinLoginEnabled ? 'Сбросить ПИН' : 'Новое приглашение'}</button></div>`;
   }).join('') : '<p>В выбранном классе пока нет учеников.</p>';
   output.querySelectorAll('[data-reissue]').forEach(button => button.addEventListener('click', () => runPanelAction(async () => {
+    if (runtime.studentPinLoginEnabled) {
+      const student = selectedClass.students.find(item => item.id === button.dataset.reissue);
+      const result = await resetStudentPin(classId, button.dataset.reissue);
+      renderTeacherPanel();
+      renderTeacherView();
+      showGeneratedPin(student?.name || 'Ученик', result.pin, true);
+      return 'Старые сессии отозваны. Новый ПИН показан один раз.';
+    }
     const nextToken = await reissueInvitation(classId, button.dataset.reissue);
     renderTeacherPanel(nextToken);
     renderTeacherView();
@@ -410,6 +658,7 @@ function renderPanelStudents(classId, highlightInvite = '') {
 
 export async function mountLogin({ view, screen, teacherPage, studentPage, cards, arrow, play }) {
   await restoreSession();
+  document.documentElement.classList.toggle('secure-pin-prototype', runtime.studentPinLoginEnabled);
   teacherPage.querySelector('.pin-dialog').innerHTML = `
     <h2>Вход учителя</h2><p>${runtime.useEmulators ? 'Firebase Authentication · локальный эмулятор' : 'Защищённый вход Firebase Authentication'}</p>
     <label class="secure-login-label">Email<input id="secure-teacher-email" type="email" autocomplete="username"></label>
@@ -419,7 +668,16 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
     <button class="pin-submit" id="secure-teacher-submit" type="button"><span>Войти</span>${arrow}</button>
     <button class="secure-link" id="secure-teacher-reset" type="button">Восстановить пароль</button>
     <button class="pin-home" type="button" data-login-home>← На главную</button>`;
-  studentPage.querySelector('.pin-dialog').innerHTML = `
+  studentPage.querySelector('.pin-dialog').innerHTML = runtime.studentPinLoginEnabled ? `
+    <section class="pin-student-auth secure-student-auth">
+      <h2>Вход ученика</h2><p>Выберите свой экипаж и введите личный ПИН</p>
+      <label class="secure-login-label">Класс<select id="secure-student-class"><option value="">Загрузка классов…</option></select></label>
+      <label class="secure-login-label">Игровое имя<select id="secure-student-name"><option value="">Сначала выберите класс</option></select></label>
+      <label class="secure-login-label">ПИН-код<input id="secure-student-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" placeholder="6 цифр"></label>
+      <p class="pin-message" id="secure-student-message" role="alert"></p>
+      <button class="pin-submit" id="secure-student-submit" type="button"><span>Открыть кабинет</span>${arrow}</button>
+      <button class="pin-home" type="button" data-login-home>← На главную</button>
+    </section>` : `
     <section class="pin-student-auth secure-student-auth">
       <h2>Вход ученика</h2><p>Введите персональный одноразовый код приглашения</p>
       <label class="secure-login-label">Код приглашения<input id="secure-invite-code" type="text" autocomplete="one-time-code" spellcheck="false"></label>
@@ -484,22 +742,71 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
       showMessage('secure-teacher-message', runtime.useEmulators ? 'Ссылка восстановления создана эмулятором и показана в его консоли.' : 'Письмо для восстановления пароля отправлено.', true);
     } catch (error) { showMessage('secure-teacher-message', messageFor(error)); }
   });
-  document.getElementById('secure-student-submit').addEventListener('click', async () => {
-    try {
-      const session = await claimInvitation(document.getElementById('secure-invite-code').value);
-      history.replaceState(null, '', '#/student');
-      play('success');
-      loginAsStudent(true, session.classId, session.studentId);
-    } catch (error) { showMessage('secure-student-message', messageFor(error)); }
-  });
-  const queryInvite = new URLSearchParams(location.search).get('invite');
-  if (queryInvite) document.getElementById('secure-invite-code').value = queryInvite;
+  if (runtime.studentPinLoginEnabled) {
+    const classSelect = document.getElementById('secure-student-class');
+    const studentSelect = document.getElementById('secure-student-name');
+    let catalog = [];
+    const fillStudents = () => {
+      const selected = catalog.find(item => item.id === classSelect.value);
+      studentSelect.innerHTML = selected?.students.length
+        ? selected.students.map(item => `<option value="${escapeMarkup(item.id)}">${escapeMarkup(item.displayName)}</option>`).join('')
+        : '<option value="">В этом классе пока нет учеников</option>';
+    };
+    const refreshCatalog = async () => {
+      catalog = await loadStudentLoginCatalog();
+      classSelect.innerHTML = catalog.length
+        ? catalog.map(item => `<option value="${escapeMarkup(item.id)}">${escapeMarkup(item.displayName)}</option>`).join('')
+        : '<option value="">Классы пока не созданы</option>';
+      fillStudents();
+    };
+    classSelect.addEventListener('change', fillStudents);
+    document.getElementById('secure-student-pin').addEventListener('input', event => {
+      event.target.value = event.target.value.replace(/\D/g, '').slice(0, 6);
+    });
+    document.getElementById('secure-student-submit').addEventListener('click', async () => {
+      try {
+        const session = await studentPinLogin(classSelect.value, studentSelect.value, document.getElementById('secure-student-pin').value);
+        history.replaceState(null, '', '#/student');
+        play('success');
+        loginAsStudent(true, session.classId, session.studentId);
+      } catch (error) { showMessage('secure-student-message', studentLoginMessage(error)); }
+    });
+    view.querySelector('#lr-student-enter').addEventListener('click', () => refreshCatalog().catch(error => showMessage('secure-student-message', messageFor(error))));
+    await refreshCatalog();
+  } else {
+    document.getElementById('secure-student-submit').addEventListener('click', async () => {
+      try {
+        const session = await claimInvitation(document.getElementById('secure-invite-code').value);
+        history.replaceState(null, '', '#/student');
+        play('success');
+        loginAsStudent(true, session.classId, session.studentId);
+      } catch (error) { showMessage('secure-student-message', messageFor(error)); }
+    });
+    const queryInvite = new URLSearchParams(location.search).get('invite');
+    if (queryInvite) document.getElementById('secure-invite-code').value = queryInvite;
+  }
   window.addEventListener('hashchange', route);
+  window.addEventListener('pirate-student-access-revoked', closeRevokedStudentSession);
   window.SecureData = secureData;
-  window.SecureAuth = { enabled: true, logout, changePassword, createClass, createStudentWithInvite, reissueInvitation };
+  window.SecureAuth = {
+    enabled: true,
+    pinPrototype: runtime.studentPinLoginEnabled,
+    pinLoginEnabled: runtime.studentPinLoginEnabled,
+    logout,
+    changePassword,
+    createClass,
+    createStudentWithInvite,
+    reissueInvitation,
+    createStudentWithPin,
+    resetStudentPin,
+    showGeneratedPin
+  };
   if (currentSession?.role === 'teacher') history.replaceState(null, '', '#/teacher');
   else if (currentSession?.role === 'student') history.replaceState(null, '', '#/student');
   await route();
 }
 
-export { changePassword, claimInvitation, createClass, createStudentWithInvite, logout, reissueInvitation };
+export {
+  changePassword, claimInvitation, createClass, createStudentWithInvite, createStudentWithPin,
+  loadStudentLoginCatalog, logout, randomDigits, reissueInvitation, resetStudentPin, studentPinLogin
+};

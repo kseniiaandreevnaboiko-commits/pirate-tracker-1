@@ -11,6 +11,11 @@
       "**/.*",
       "**/node_modules/**",
       "tmp/**",
+      "tests/**",
+      "scripts/**",
+      "*.docx",
+      "package*.json",
+      "*.md",
       "index.original.html"
     ],
     "rewrites": [

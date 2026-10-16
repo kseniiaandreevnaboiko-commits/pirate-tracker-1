@@ -22,6 +22,7 @@ const int = value => Number.isSafeInteger(Number(value)) ? Number(value) : NaN;
 const classRef = classId => fs.doc(db, 'classes', classId);
 const studentRef = (classId, studentId) => fs.doc(db, 'classes', classId, 'students', studentId);
 const subRef = (classId, collectionName, documentId) => fs.doc(db, 'classes', classId, collectionName, documentId);
+const teacherProfileRef = uid => fs.doc(db, 'teacherProfiles', uid);
 
 function requireTeacher() {
   if (!activeSession || activeSession.role !== 'teacher' || !auth.currentUser) throw new Error('Требуется защищённая сессия учителя.');
@@ -30,6 +31,27 @@ function requireTeacher() {
 
 function publicRank(lifetimeEarned) {
   return window.PirateEconomy.getRank(lifetimeEarned).name;
+}
+
+function normalizeTeacherProfile(profile) {
+  if (!profile) return null;
+  return {
+    name: String(profile.name || '').trim(),
+    displayName: String(profile.displayName || '').trim(),
+    organization: String(profile.organization || '').trim(),
+    avatarId: String(profile.avatarId || '').trim(),
+    avatarSrc: String(profile.avatarSrc || '').trim()
+  };
+}
+
+function validateTeacherProfile(profile) {
+  const normalized = normalizeTeacherProfile(profile);
+  if (!normalized?.name || normalized.name.length > 60) throw new Error('Некорректное имя учителя.');
+  if (!normalized.displayName || normalized.displayName.length > 80) throw new Error('Некорректное отображаемое имя.');
+  if (normalized.organization.length > 100) throw new Error('Название организации слишком длинное.');
+  if (!normalized.avatarId || normalized.avatarId.length > 60) throw new Error('Некорректный аватар учителя.');
+  if (!normalized.avatarSrc || normalized.avatarSrc.length > 200) throw new Error('Некорректный путь к аватару учителя.');
+  return normalized;
 }
 
 function leaderboardData(studentId, data) {
@@ -133,6 +155,18 @@ async function createClass(name, legacyId = null) {
   await batch.commit();
   await refresh();
   return classId;
+}
+
+async function saveTeacherProfile(profile) {
+  const user = requireTeacher();
+  const normalized = validateTeacherProfile(profile);
+  await fs.setDoc(teacherProfileRef(user.uid), {
+    teacherUid: user.uid,
+    ...normalized,
+    updatedAt: fs.serverTimestamp()
+  }, { merge: true });
+  await refresh();
+  return normalized;
 }
 
 async function createStudent(classId, input) {
@@ -438,7 +472,8 @@ function normalizeStudent(snapshot, awards = []) {
     avatarSrc: data.avatarSrc, balance: Number(data.balance || 0), fincoins_balance: Number(data.balance || 0),
     lifetimeEarned: Number(data.lifetimeEarned || 0), achievements: [...autoIds, ...manualAwards.map(item => `manual_${item.achievementId}`)],
     awardedAchievements: manualAwards, seasonId: data.seasonId, ownerUid: data.ownerUid,
-    purchaseCount: Number(data.purchaseCount || 0), active: data.active !== false, pinAuth: { secureInvite: true }
+    purchaseCount: Number(data.purchaseCount || 0), active: data.active !== false,
+    pinAuth: data.authMode === 'pin-password' ? { securePin: true } : { secureInvite: true }
   };
 }
 
@@ -490,9 +525,12 @@ async function loadClass(classSnapshot, teacherMode, ownStudentId = null) {
 async function refresh() {
   if (!activeSession) return;
   if (activeSession.role === 'teacher') {
-    const classesSnapshot = await fs.getDocs(fs.query(fs.collection(db, 'classes'), fs.where('teacherUid', '==', activeSession.uid)));
+    const [classesSnapshot, profileSnapshot] = await Promise.all([
+      fs.getDocs(fs.query(fs.collection(db, 'classes'), fs.where('teacherUid', '==', activeSession.uid))),
+      fs.getDoc(teacherProfileRef(activeSession.uid))
+    ]);
     const classes = await Promise.all(classesSnapshot.docs.map(item => loadClass(item, true)));
-    window.PirateSecureBridge.hydrateTeacher(classes);
+    window.PirateSecureBridge.hydrateTeacher(classes, profileSnapshot.exists() ? normalizeTeacherProfile(profileSnapshot.data()) : null);
   } else {
     const bindingSnapshot = await fs.getDoc(fs.doc(db, 'studentBindings', activeSession.uid));
     if (!bindingSnapshot.exists()) throw new Error('Привязка ученика отозвана.');
@@ -540,6 +578,7 @@ async function startRealtime(session, options = {}) {
   }
   if (session.role === 'teacher') {
     const classesQuery = fs.query(fs.collection(db, 'classes'), fs.where('teacherUid', '==', session.uid));
+    listen('teacherProfile', teacherProfileRef(session.uid));
     if (!wiredKeys.has('classes')) {
       wiredKeys.add('classes');
       unsubscribers.push(fs.onSnapshot(classesQuery, () => { wireTeacherCollections(generation).then(scheduleRefresh).catch(error => {
@@ -550,8 +589,16 @@ async function startRealtime(session, options = {}) {
     }
     await wireTeacherCollections(generation);
   } else {
-    listen('binding', fs.doc(db, 'studentBindings', session.uid));
-    const bindingSnapshot = await fs.getDoc(fs.doc(db, 'studentBindings', session.uid));
+    const bindingRef = fs.doc(db, 'studentBindings', session.uid);
+    wiredKeys.add('binding');
+    unsubscribers.push(fs.onSnapshot(bindingRef, snapshot => {
+      if (!snapshot.exists()) {
+        window.dispatchEvent(new CustomEvent('pirate-student-access-revoked'));
+        return;
+      }
+      scheduleRefresh();
+    }, () => window.dispatchEvent(new CustomEvent('pirate-student-access-revoked'))));
+    const bindingSnapshot = await fs.getDoc(bindingRef);
     if (bindingSnapshot.exists()) {
       const binding = bindingSnapshot.data();
       listen('profile', studentRef(binding.classId, binding.studentId));
@@ -584,7 +631,7 @@ export function configure(options) {
 const api = {
   applyTeacherTransaction, applyTeacherTransactionsBulk, approvePurchase, archiveStudent, awardManualAchievement,
   awardManualAchievementBulk, createClass, createPurchaseRequest, createStudent, createStudentWithInvite,
-  hideReward, refresh, rejectPurchase, saveManualAchievement, saveReward,
+  hideReward, refresh, rejectPurchase, saveManualAchievement, saveReward, saveTeacherProfile,
   startNewSeason, startRealtime, stopRealtime
 };
 
