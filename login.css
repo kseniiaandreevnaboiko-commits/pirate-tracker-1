@@ -49,7 +49,7 @@
 .lr-title-rule i { width:min(14vw,215px); height:1px; background:linear-gradient(90deg,transparent,#e0ad45); }
 .lr-title-rule i:last-child { transform:scaleX(-1); }
 .lr-title-rule svg { width:30px; height:30px; fill:#e4b44e; filter:drop-shadow(0 2px 2px #000); }
-.lr-header>p { margin:0; color:#d7dfe6; font:500 clamp(20px,1.55vw,26px)/1.08 'Cormorant Garamond',Georgia,serif; text-shadow:0 2px 4px #000; }
+.lr-header>p { margin:8px 0 0; color:#d7dfe6; font:500 clamp(20px,1.55vw,26px)/1.08 'Cormorant Garamond',Georgia,serif; text-shadow:0 2px 4px #000; }
 .lr-motto { display:flex; align-items:center; justify-content:center; gap:17px; margin-top:clamp(6px,.8vh,9px); }
 .lr-motto i { width:70px; height:1px; background:linear-gradient(90deg,transparent,#d6a73a); }
 .lr-motto i:last-child { transform:scaleX(-1); }
@@ -156,7 +156,7 @@
   .lr-header h1 { font-size:clamp(47px,13vw,61px); }
   .lr-title-rule { height:24px; }
   .lr-title-rule i { width:21vw; }
-  .lr-header>p { padding:0 12px; font-size:17px; }
+  .lr-header>p { margin-top:6px; padding:0 12px; font-size:17px; }
   .lr-motto { gap:8px; }
   .lr-motto i { width:25px; }
   .lr-motto strong { font-size:9px; letter-spacing:.19em; }

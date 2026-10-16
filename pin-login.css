@@ -130,3 +130,51 @@
   .pin-student-grid { min-height:300px; }
   .pin-student-home { bottom:12px; }
 }
+
+/* Mobile PIN flow: student selection and PIN entry are separate, viewport-safe steps. */
+.pin-change-student { display:none; }
+@media (max-width:720px) {
+  #login-view.lr-view.active { min-height:100dvh!important; overflow-y:auto!important; overscroll-behavior-y:contain; }
+  .lr-screen.is-pin-route { min-height:100dvh; overflow:visible; }
+  .lr-screen.is-pin-route .lr-center { width:100%; min-height:100dvh; padding:0 0 max(14px,env(safe-area-inset-bottom)); }
+  .lr-screen.is-pin-route .lr-header { display:none; }
+  .lr-screen.is-pin-route .lr-audio-control { top:max(8px,env(safe-area-inset-top)); }
+  .pin-page.active { position:relative; min-height:100dvh; padding:64px 12px 12px; }
+  .pin-dialog { position:relative; top:auto; left:auto; transform:none; margin:0 auto; animation:none; }
+  .pin-student-dialog {
+    width:min(100%,470px); height:auto; min-height:0; padding:20px 16px 58px;
+    display:block; border-radius:18px;
+  }
+  .pin-student-picker { padding:0; border:0; }
+  .pin-student-picker header { min-height:0; text-align:center; }
+  .pin-student-picker header h2 { font-size:clamp(25px,8vw,31px); }
+  .pin-class-row { height:auto; min-height:38px; gap:10px; }
+  .pin-class-row select { min-width:0; max-width:62%; }
+  .pin-student-grid { min-height:0; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:none; gap:9px; }
+  .pin-student-card { min-height:122px; padding:8px 5px; }
+  .pin-student-card>span { width:68px; height:68px; flex-basis:68px; }
+  .pin-student-auth.disabled { display:none; }
+  .pin-student-dialog:has(.pin-student-auth:not(.disabled)) { padding:18px 16px 66px; }
+  .pin-student-dialog:has(.pin-student-auth:not(.disabled)) .pin-student-picker { display:none; }
+  .pin-student-auth { padding:0; }
+  .pin-selected-avatar { width:72px; height:72px; }
+  .pin-student-auth h2 { margin-top:7px; font-size:25px; }
+  .pin-student-auth>p { margin:2px 0 4px; }
+  .pin-student-auth .pin-slots { min-height:36px; gap:6px; }
+  .pin-student-auth .pin-slots i { width:30px; height:30px; }
+  .pin-student-auth .pin-keypad { width:min(210px,100%); gap:6px; margin-bottom:8px; }
+  .pin-student-auth .pin-keypad button { width:48px; height:44px; }
+  .pin-student-auth .pin-submit { width:min(230px,100%); min-height:42px; }
+  .pin-change-student { display:block; margin:7px auto 0; padding:7px 12px; border:0; color:#e9be5b; background:transparent; font-weight:700; }
+  .pin-student-home { bottom:13px; white-space:nowrap; }
+  .pin-teacher-dialog { width:min(420px,100%); height:auto; min-height:0; padding:44px 30px 20px; }
+}
+@media (max-width:380px), (max-height:620px) and (max-width:720px) {
+  .pin-page.active { padding-top:54px; }
+  .pin-student-dialog { padding-top:13px; }
+  .pin-selected-avatar { width:58px; height:58px; }
+  .pin-student-auth h2 { font-size:22px; }
+  .pin-student-auth .pin-keypad button { height:36px; }
+  .pin-student-card { min-height:108px; }
+  .pin-student-card>span { width:56px; height:56px; flex-basis:56px; }
+}

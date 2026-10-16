@@ -703,6 +703,7 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
       <p class="pin-message" id="secure-student-message" role="alert"></p>
       ${securePinKeypad()}
       <button class="pin-submit" id="secure-student-submit" type="button"><span>Открыть кабинет</span>${arrow}</button>
+      <button class="pin-change-student" type="button" data-change-student>← Сменить ученика</button>
     </section>
     <button class="pin-home pin-student-home" type="button" data-login-home>← На главную</button>` : `
     <section class="pin-student-auth secure-student-auth">
@@ -820,6 +821,10 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
       showMessage('secure-student-message', '', true);
       renderStudentHeroes();
     };
+    document.querySelector('[data-change-student]')?.addEventListener('click', () => {
+      resetHeroSelection();
+      play('click');
+    });
     const refreshCatalog = async () => {
       catalog = await loadStudentLoginCatalog();
       classSelect.innerHTML = catalog.length

@@ -559,3 +559,63 @@
   #student-view .sd-voyage-card .sd-voyage-summary p{text-align:left!important}
 }
 .sd-balance span b{font:800 12px/1.15 Manrope,'Segoe UI',sans-serif}
+
+/* Mobile student cabinet: compact header, thumb-friendly navigation and fluid content. */
+@media(max-width:780px){
+  #student-view.sd-view{height:auto!important;min-height:100dvh;overflow:visible!important;--sd-layout-pad:12px}
+  #student-view.sd-view.active{position:relative;inset:auto;width:auto;height:auto!important;overflow:visible!important}
+  .sd-shell{display:block;min-height:100dvh;overflow:visible;background-attachment:scroll}
+  .sd-sidebar{position:relative;top:auto;height:auto;min-height:0;padding:max(10px,env(safe-area-inset-top)) 12px 10px;border-right:0;border-bottom:1px solid rgba(232,170,62,.42)}
+  .sd-brand,.sd-sidebar-art{display:none}
+  .sd-profile{display:grid;grid-template-columns:52px minmax(0,1fr);grid-template-rows:auto auto;column-gap:11px;margin:0 60px 9px 0;text-align:left}
+  .sd-avatar{grid-row:1/3;width:52px;height:52px;margin:0;padding:2px;border-width:2px}
+  .sd-profile>strong{align-self:end;overflow:hidden;font-size:19px;text-overflow:ellipsis;white-space:nowrap}
+  .sd-profile>span{align-self:start;margin-top:2px;padding:0;font-size:12px;text-align:left}
+  .sd-nav{display:flex;gap:6px;overflow-x:auto;padding:2px 1px 5px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .sd-nav::-webkit-scrollbar{display:none}
+  .sd-nav button{width:46px;min-width:46px;height:44px;padding:0;justify-content:center;scroll-snap-align:start}
+  .sd-nav button span,.sd-nav button.active:after{display:none}
+  .sd-nav button svg{width:22px;height:22px}
+  .sd-logout{position:absolute;top:max(12px,env(safe-area-inset-top));right:12px;width:46px;height:44px;margin:0;padding:0}
+  .sd-logout span{display:none}
+  .sd-main{min-height:0;overflow:visible;padding-bottom:max(18px,env(safe-area-inset-bottom))}
+  .sd-audio-control{top:10px;right:12px;width:126px;height:36px}
+  #student-view .sd-sound-popover,#student-view .sd-audio-control[data-sound-inline] .sd-sound-popover{width:78px}
+  .sd-hero{height:auto;min-height:194px;display:block;padding:54px 16px 14px}
+  .sd-greeting h1{font-size:clamp(31px,10vw,42px);line-height:1.04;letter-spacing:-.5px}
+  .sd-greeting p{max-width:100%;margin-top:8px;font-size:15px}
+  .sd-balance{top:auto;width:158px;min-width:158px;height:72px;margin:14px 0 0;padding:14px 14px 10px 62px}
+  .sd-balance img{left:18px;top:17px;width:38px;height:38px}.sd-balance strong{font-size:24px}.sd-balance span{font-size:10px}
+  #student-view.sd-view .sd-main>.sd-progress-card.sd-voyage-card{width:auto!important;min-height:238px!important;margin:0 12px 12px!important;padding:7px 13px 10px!important;grid-template-columns:1fr!important;grid-template-rows:66px 92px auto!important;background-size:auto 190%!important}
+  #student-view .sd-voyage-card .sd-voyage-intro{height:66px!important;grid-template-columns:64px minmax(0,1fr)!important;gap:7px!important}
+  #student-view .sd-voyage-card .sd-voyage-intro>img{width:64px!important;height:64px!important}
+  #student-view .sd-voyage-card .sd-voyage-intro h2{font-size:18px!important}
+  #student-view .sd-voyage-card .sd-voyage-intro p{margin-top:3px!important;font-size:10px!important}
+  #student-view .sd-voyage-card .sd-voyage-route{grid-row:auto!important;height:92px!important;grid-template-columns:47px minmax(0,1fr) 47px!important}
+  #student-view .sd-voyage-card .sd-rank-emblem img{width:41px!important;height:41px!important}
+  #student-view .sd-voyage-card #sd-voyage-map{height:62px!important}
+  #student-view .sd-voyage-card .sd-voyage-summary{grid-column:auto!important;padding:4px 0 0!important;justify-content:space-between!important;gap:8px!important}
+  #student-view .sd-voyage-card .sd-voyage-summary>strong{font-size:17px!important}
+  #student-view .sd-voyage-card .sd-voyage-summary p{margin:0!important;font-size:10px!important;text-align:right!important}
+  .sd-action-grid{grid-template-columns:1fr;gap:10px;margin:0 12px}
+  .sd-action-card{height:164px;min-height:164px;border-radius:15px}
+  .sd-action-card>img,.sd-card-achievements>img,.sd-card-shop>img,.sd-card-statistics>img,.sd-card-tasks>img,.sd-card-settings>img{height:72%}
+  .sd-card-copy{left:16px;right:58px;bottom:13px}.sd-card-copy strong{font-size:22px}.sd-card-copy small{margin-top:3px;font-size:12px}
+  .sd-card-arrow{right:13px;bottom:13px;width:40px;height:40px}
+  .sd-motto{margin:10px 12px 0;padding:10px 14px;font-size:12px}
+  .sd-section-overlay{padding:8px;align-items:flex-end}
+  .sd-section-dialog{width:100%;max-height:calc(100dvh - 16px);border-radius:18px 18px 10px 10px}
+  .sd-section-dialog header{padding:18px 58px 14px 16px}.sd-section-dialog h2{font-size:23px}.sd-section-dialog header p{font-size:12px}
+  .sd-section-close{top:12px;right:12px;width:38px;height:38px}
+  .sd-section-body{padding:16px 13px 20px}
+  .sd-achievement-grid,.sd-stats{grid-template-columns:1fr}
+  .sd-settings-card{align-items:flex-start;gap:14px;padding:16px}.sd-settings-avatar,.sd-settings-avatar.student-avatar-image{width:68px;height:68px}
+}
+@media(min-width:520px) and (max-width:780px){
+  .sd-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:390px){
+  .sd-list-row{grid-template-columns:24px 34px minmax(0,1fr);gap:8px;padding-inline:8px}
+  .sd-list-row>strong{grid-column:3}
+  .sd-flow-legend{display:grid;gap:8px}
+}
