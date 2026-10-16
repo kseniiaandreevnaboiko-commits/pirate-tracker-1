@@ -166,7 +166,7 @@
     if (type === 'leaderboard') {
       body = [...cls.students].sort((a,b)=>getStudentLifetimeEarned(b)-getStudentLifetimeEarned(a)).map((s,i)=>`<div class="sd-list-row ${s.id===student.id?'current':''}"><b>${i+1}</b>${renderStudentAvatar(s,'sd-list-avatar')}<span>${safe(s.name)}${s.id===student.id?' · вы':''}</span><strong>${getStudentLifetimeEarned(s).toLocaleString('ru-RU')}</strong></div>`).join('');
     } else if (type === 'achievements') {
-      body = `<div class="sd-achievement-grid">${achievementRows(student,cls).map(a=>`<article class="${a.earned?'earned':'locked'}"><span>${safe(a.emoji || '★')}</span><strong>${safe(a.name)}</strong><small>${safe(a.desc || '')}</small></article>`).join('')}</div>`;
+      body = `<div class="sd-achievement-grid">${achievementRows(student,cls).map(a=>`<article class="${a.earned?'earned':'locked'}"><span class="sd-achievement-icon"><img src="${safe(a.iconPath || 'assets/achievements/12-star.webp')}" alt=""></span><strong>${safe(a.name)}</strong><small>${safe(a.desc || a.description || '')}</small></article>`).join('')}</div>`;
     } else if (type === 'statistics') {
       const tx=(cls.transactions||[]).filter(t=>t.student_id===student.id); const income=getStudentLifetimeEarned(student); const spent=Math.abs(tx.filter(t=>t.amount<0).reduce((s,t)=>s+t.amount,0));
       const flowTotal=Math.max(1,income+spent); const incomePart=Math.round(income/flowTotal*100); const spentPart=100-incomePart;

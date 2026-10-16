@@ -216,11 +216,52 @@ async function createStudentWithInvite(classId, input, inviteId, expiresAt) {
 
 async function archiveStudent(classId, studentId) {
   requireTeacher();
+  const profileSnapshot = await fs.getDoc(studentRef(classId, studentId));
+  if (!profileSnapshot.exists()) throw new Error('Ученик не найден.');
+  const profile = profileSnapshot.data();
+  const entryRef = profile.loginCatalogId && profile.loginEntryId
+    ? fs.doc(db, 'studentLoginClasses', profile.loginCatalogId, 'students', profile.loginEntryId)
+    : null;
+  const bindingRef = profile.ownerUid ? fs.doc(db, 'studentBindings', profile.ownerUid) : null;
+  const [entrySnapshot, bindingSnapshot] = await Promise.all([
+    entryRef ? fs.getDoc(entryRef) : Promise.resolve(null),
+    bindingRef ? fs.getDoc(bindingRef) : Promise.resolve(null)
+  ]);
   const batch = fs.writeBatch(db);
   batch.update(studentRef(classId, studentId), { active: false, archivedAt: fs.serverTimestamp() });
   batch.delete(subRef(classId, 'leaderboard', studentId));
+  if (entrySnapshot?.exists()) batch.update(entryRef, { active: false, updatedAt: fs.serverTimestamp() });
+  if (bindingSnapshot?.exists()) batch.delete(bindingRef);
   await batch.commit();
   await refresh();
+}
+
+async function reconcileArchivedStudentCatalogs() {
+  const user = requireTeacher();
+  const classesSnapshot = await fs.getDocs(fs.query(fs.collection(db, 'classes'), fs.where('teacherUid', '==', user.uid)));
+  for (const classSnapshot of classesSnapshot.docs) {
+    const students = await fs.getDocs(fs.collection(db, 'classes', classSnapshot.id, 'students'));
+    const activeEntryIds = new Set(students.docs
+      .filter(item => item.data().active !== false && item.data().loginEntryId)
+      .map(item => item.data().loginEntryId));
+    const catalogId = classSnapshot.data().loginCatalogId;
+    const catalogEntries = catalogId
+      ? await fs.getDocs(fs.collection(db, 'studentLoginClasses', catalogId, 'students'))
+      : null;
+    const staleEntries = catalogEntries?.docs.filter(item => item.data().active !== false && !activeEntryIds.has(item.id)) || [];
+    const archivedStudents = students.docs.filter(item => item.data().active === false);
+    const staleBindings = [];
+    for (const studentSnapshot of archivedStudents) {
+      const profile = studentSnapshot.data();
+      const bindingRef = profile.ownerUid ? fs.doc(db, 'studentBindings', profile.ownerUid) : null;
+      if (bindingRef && (await fs.getDoc(bindingRef)).exists()) staleBindings.push(bindingRef);
+    }
+    if (!staleEntries.length && !staleBindings.length) continue;
+    const batch = fs.writeBatch(db);
+    staleEntries.forEach(entry => batch.update(entry.ref, { active: false, updatedAt: fs.serverTimestamp() }));
+    staleBindings.forEach(bindingRef => batch.delete(bindingRef));
+    await batch.commit();
+  }
 }
 
 async function saveReward(classId, reward) {
@@ -572,6 +613,7 @@ async function startRealtime(session, options = {}) {
   stopRealtime();
   activeSession = session;
   const generation = realtimeGeneration;
+  if (session.role === 'teacher') await reconcileArchivedStudentCatalogs();
   if (options.listen === false) {
     await refresh();
     return;

@@ -46,6 +46,41 @@ test('secure pupil login uses avatar selection and a six-digit keypad', () => {
   assert.doesNotMatch(source, /<select id="secure-student-name"/);
 });
 
+test('reward shop filters use the same categories as the teacher reward form', () => {
+  const source = readFileSync('index.html', 'utf8');
+  const categoryBlock = source.match(/const SHOP_CATEGORIES = \[([\s\S]*?)\];/)?.[1] || '';
+  assert.match(categoryBlock, /label: 'Вкусняшки'/);
+  assert.match(categoryBlock, /label: 'Учёба'/);
+  assert.match(categoryBlock, /label: 'Призы'/);
+  assert.match(categoryBlock, /label: 'Привилегии'/);
+  assert.doesNotMatch(categoryBlock, /Внешний вид|Подсказки/);
+  assert.match(source, /return getRewardCategoryUi\(reward && reward\.category\)\.type;/);
+});
+
+test('student achievement cards use the same image catalog as the teacher cabin', () => {
+  const dashboard = readFileSync('student-dashboard.js', 'utf8');
+  const catalog = readFileSync('achievements.js', 'utf8');
+  assert.match(dashboard, /a\.iconPath \|\| 'assets\/achievements\/12-star\.webp'/);
+  assert.match(dashboard, /class="sd-achievement-icon"/);
+  assert.doesNotMatch(dashboard, /safe\(a\.emoji \|\| '★'\)/);
+  assert.match(catalog, /iconPath:'assets\/achievements\/03-coins\.webp'/);
+  assert.match(catalog, /iconPath:'assets\/achievements\/09-crown\.webp'/);
+});
+
+test('archiving a pupil removes the public login card and revokes its binding', () => {
+  const source = readFileSync('secure-data.js', 'utf8');
+  const archive = source.slice(source.indexOf('async function archiveStudent'), source.indexOf('async function reconcileArchivedStudentCatalogs'));
+  assert.match(archive, /studentLoginClasses/);
+  assert.match(archive, /active: false/);
+  assert.match(archive, /studentBindings/);
+  assert.match(source, /if \(session\.role === 'teacher'\) await reconcileArchivedStudentCatalogs\(\);/);
+});
+
+test('student PIN keypad keeps enlarged touch targets', () => {
+  const source = readFileSync('pin-login.css', 'utf8');
+  assert.match(source, /\.pin-student-auth \.pin-keypad button \{ width:48px; height:42px; font-size:18px; \}/);
+});
+
 test('backup checksum detects any legacy-data change', () => {
   const source = { state: { classes: [] }, schemaVersion: 1 };
   const backup = { format: 'finzozh-legacy-backup-v1', projectId: safety.PRODUCTION_PROJECT_ID, sourcePath: 'trackerApps/main', source, sourceSha256: safety.sha256(source) };

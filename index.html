@@ -1265,13 +1265,13 @@ body {
 <link rel="stylesheet" href="redesign.css?v=20260929">
 <link rel="stylesheet" href="teacher.css?v=20261015">
 <link rel="stylesheet" href="login.css?v=20260929">
-<link rel="stylesheet" href="pin-login.css?v=20260929">
+<link rel="stylesheet" href="pin-login.css?v=20261016">
 <link rel="stylesheet" href="student-modal.css?v=20260929">
 <link rel="stylesheet" href="reward-modal.css?v=20260929">
 <link rel="stylesheet" href="achievement-cabin.css?v=20261015-2">
 <link rel="stylesheet" href="analytics.css?v=20260929">
 <link rel="stylesheet" href="sound.css?v=20260929">
-<link rel="stylesheet" href="student-dashboard.css?v=20261015">
+<link rel="stylesheet" href="student-dashboard.css?v=20261016">
 <link rel="stylesheet" href="transaction-modal.css?v=20261015">
 <link rel="stylesheet" href="history-modal.css?v=20261015-2">
 <link rel="stylesheet" href="selection-backdrops.css?v=20260929">
@@ -1635,7 +1635,7 @@ body {
 window.PIRATE_SECURE_MODE = true;
 window.PIRATE_AUTH_TEST_MODE = ['localhost', '127.0.0.1'].includes(location.hostname)
   && new URLSearchParams(location.search).get('emulator') === '1';
-window.secureAuthReady = import('./secure-auth.js?v=20261016-panel2');
+window.secureAuthReady = import('./secure-auth.js?v=20261016-panel3');
 </script>
 <script src="pin-auth.js?v=20261015"></script>
 <script src="economy.js?v=20261015"></script>
@@ -2422,29 +2422,25 @@ const SHOP_REWARD_IMAGES = [
 
 const SHOP_CATEGORIES = [
   { id: 'all', label: 'Все', type: 'all' },
-  { id: 'appearance', label: 'Внешний вид', type: 'appearance' },
+  { id: 'treat', label: 'Вкусняшки', type: 'treat' },
   { id: 'study', label: 'Учёба', type: 'study' },
-  { id: 'hints', label: 'Подсказки', type: 'hints' },
-  { id: 'privileges', label: 'Привилегии', type: 'privileges' }
+  { id: 'prize', label: 'Призы', type: 'prize' },
+  { id: 'privilege', label: 'Привилегии', type: 'privilege' }
 ];
 
 function getShopCategoryIcon(type) {
   const icons = {
     all: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
-    appearance: '<svg viewBox="0 0 24 24"><path d="M3 15c3.5-1.2 5.4-4.3 6.1-9h5.8c.7 4.7 2.6 7.8 6.1 9-3.2 2.7-14.8 2.7-18 0Z"/><path d="M8.5 6 12 3l3.5 3M6 17c2.8 2.2 9.2 2.2 12 0"/></svg>',
+    treat: '<svg viewBox="0 0 24 24"><path d="m8 8 8 8M5 5l3 3-3 3-3-3Zm14 8 3 3-3 3-3-3ZM9 7l8 8M7 9l8 8"/></svg>',
     study: '<svg viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4zM20 4h-4a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h4z"/></svg>',
-    hints: '<svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.3 14.8A7 7 0 1 1 15.7 14.8C14.5 15.7 14 16.6 14 18h-4c0-1.4-.5-2.3-1.7-3.2Z"/></svg>',
-    privileges: '<svg viewBox="0 0 24 24"><path d="m12 2 3 6.2 6.8 1-4.9 4.8 1.2 6.8-6.1-3.2-6.1 3.2 1.2-6.8-4.9-4.8 6.8-1Z"/></svg>'
+    prize: '<svg viewBox="0 0 24 24"><path d="M4 10h16v11H4zM2 6h20v4H2zM12 6v15M12 6H8a2 2 0 1 1 2-2c0 1.1 2 2 2 2Zm0 0h4a2 2 0 1 0-2-2c0 1.1-2 2-2 2Z"/></svg>',
+    privilege: '<svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 11H5zM5 21h14"/></svg>'
   };
   return icons[type] || icons.all;
 }
 
 function getShopFilterForReward(reward) {
-  const type = getRewardCategoryUi(reward && reward.category).type;
-  if (type === 'study') return 'study';
-  if (type === 'privilege') return 'privileges';
-  if (type === 'treat') return 'hints';
-  return 'appearance';
+  return getRewardCategoryUi(reward && reward.category).type;
 }
 
 function getShopRewardImage(reward, index) {
@@ -3064,7 +3060,7 @@ init();
 <script src="sound.js?v=20260929"></script>
 <script src="teacher.js?v=20261015"></script>
 <script src="login.js?v=20260929"></script>
-<script src="student-dashboard.js?v=20261015"></script>
+<script src="student-dashboard.js?v=20261016"></script>
 <script src="achievement-cabin.js?v=20261015-2"></script>
 <script type="module">
   if (!window.PIRATE_SECURE_MODE) {

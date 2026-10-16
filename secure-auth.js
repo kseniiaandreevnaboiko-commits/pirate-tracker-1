@@ -13,7 +13,7 @@ if (runtime.useEmulators) {
   authModule.connectAuthEmulator(auth, runtime.authEmulatorUrl, { disableWarnings: true });
   storeModule.connectFirestoreEmulator(db, runtime.firestoreEmulatorHost, runtime.firestoreEmulatorPort);
 }
-const { configure: configureSecureData } = await import('./secure-data.js?v=20261015-pin1');
+const { configure: configureSecureData } = await import('./secure-data.js?v=20261016-archive1');
 const secureData = configureSecureData({ db, auth, storeModule });
 
 let currentSession = null;

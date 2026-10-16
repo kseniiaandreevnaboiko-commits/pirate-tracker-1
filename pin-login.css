@@ -69,8 +69,8 @@
 .pin-student-auth .pin-slots i { width:34px; height:34px; }
 .pin-student-auth .pin-slots { min-height:41px; }
 .pin-student-auth .pin-message { margin:0!important; }
-.pin-student-auth .pin-keypad { width:185px; gap:5px; margin-bottom:7px; }
-.pin-student-auth .pin-keypad button { width:42px; height:36px; font-size:16px; }
+.pin-student-auth .pin-keypad { width:210px; gap:7px; margin-bottom:9px; }
+.pin-student-auth .pin-keypad button { width:48px; height:42px; font-size:18px; }
 .pin-student-auth .pin-submit { width:210px; min-height:39px; }
 .pin-student-home { position:absolute; left:50%; bottom:12px; transform:translateX(-50%); margin:0; }
 .pin-teacher-dialog.pin-shake { animation:pin-teacher-shake .32s ease; }
