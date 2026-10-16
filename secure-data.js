@@ -236,34 +236,6 @@ async function archiveStudent(classId, studentId) {
   await refresh();
 }
 
-async function reconcileArchivedStudentCatalogs() {
-  const user = requireTeacher();
-  const classesSnapshot = await fs.getDocs(fs.query(fs.collection(db, 'classes'), fs.where('teacherUid', '==', user.uid)));
-  for (const classSnapshot of classesSnapshot.docs) {
-    const students = await fs.getDocs(fs.collection(db, 'classes', classSnapshot.id, 'students'));
-    const activeEntryIds = new Set(students.docs
-      .filter(item => item.data().active !== false && item.data().loginEntryId)
-      .map(item => item.data().loginEntryId));
-    const catalogId = classSnapshot.data().loginCatalogId;
-    const catalogEntries = catalogId
-      ? await fs.getDocs(fs.collection(db, 'studentLoginClasses', catalogId, 'students'))
-      : null;
-    const staleEntries = catalogEntries?.docs.filter(item => item.data().active !== false && !activeEntryIds.has(item.id)) || [];
-    const archivedStudents = students.docs.filter(item => item.data().active === false);
-    const staleBindings = [];
-    for (const studentSnapshot of archivedStudents) {
-      const profile = studentSnapshot.data();
-      const bindingRef = profile.ownerUid ? fs.doc(db, 'studentBindings', profile.ownerUid) : null;
-      if (bindingRef && (await fs.getDoc(bindingRef)).exists()) staleBindings.push(bindingRef);
-    }
-    if (!staleEntries.length && !staleBindings.length) continue;
-    const batch = fs.writeBatch(db);
-    staleEntries.forEach(entry => batch.update(entry.ref, { active: false, updatedAt: fs.serverTimestamp() }));
-    staleBindings.forEach(bindingRef => batch.delete(bindingRef));
-    await batch.commit();
-  }
-}
-
 async function saveReward(classId, reward) {
   const user = requireTeacher();
   const rewardId = reward.id || id('reward');
@@ -613,7 +585,6 @@ async function startRealtime(session, options = {}) {
   stopRealtime();
   activeSession = session;
   const generation = realtimeGeneration;
-  if (session.role === 'teacher') await reconcileArchivedStudentCatalogs();
   if (options.listen === false) {
     await refresh();
     return;

@@ -69,11 +69,11 @@ test('student achievement cards use the same image catalog as the teacher cabin'
 
 test('archiving a pupil removes the public login card and revokes its binding', () => {
   const source = readFileSync('secure-data.js', 'utf8');
-  const archive = source.slice(source.indexOf('async function archiveStudent'), source.indexOf('async function reconcileArchivedStudentCatalogs'));
+  const archive = source.slice(source.indexOf('async function archiveStudent'), source.indexOf('async function saveReward'));
   assert.match(archive, /studentLoginClasses/);
   assert.match(archive, /active: false/);
   assert.match(archive, /studentBindings/);
-  assert.match(source, /if \(session\.role === 'teacher'\) await reconcileArchivedStudentCatalogs\(\);/);
+  assert.doesNotMatch(source, /reconcileArchivedStudentCatalogs/);
 });
 
 test('student PIN keypad keeps enlarged touch targets', () => {

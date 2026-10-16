@@ -101,3 +101,57 @@ test('normalized economy, shop, achievements, idempotency, and season work atomi
     delete global.window;
   }
 });
+
+test('teacher login succeeds when an archived pupil binding is already absent', { skip: !enabled }, async () => {
+  const projectId = 'demo-pirate-tests';
+  const environment = await initializeTestEnvironment({ projectId, firestore: { rules: readFileSync('firestore.rules', 'utf8') } });
+  const teacherUid = 'archived-binding-teacher';
+  const classId = 'archived-binding-class';
+  const catalogId = 'archived-binding-catalog';
+  const entryId = 'archived-binding-entry';
+  await environment.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await Promise.all([
+      firestore.setDoc(firestore.doc(db, 'authorizedTeachers', teacherUid), { active: true }),
+      firestore.setDoc(firestore.doc(db, 'classes', classId), { teacherUid, name: 'Archive', loginCatalogId: catalogId, createdAt: new Date() }),
+      firestore.setDoc(firestore.doc(db, 'studentLoginCatalogOwners', catalogId), { teacherUid, classId, createdAt: new Date() }),
+      firestore.setDoc(firestore.doc(db, 'studentLoginClasses', catalogId), { displayName: 'Archive', active: true, updatedAt: new Date() }),
+      firestore.setDoc(firestore.doc(db, 'studentLoginClasses', catalogId, 'students', entryId), {
+        displayName: 'Archived pupil', avatarId: 'captain-boy', avatarSrc: 'student-avatar-captain-boy.webp',
+        authLogin: 'archived-pupil@students.finzozh.invalid', active: true, updatedAt: new Date()
+      }),
+      firestore.setDoc(firestore.doc(db, 'classes', classId, 'students', 'archived-pupil'), {
+        teacherUid, classId, studentId: 'archived-pupil', displayName: 'Archived pupil',
+        ownerUid: 'deleted-binding-uid', loginCatalogId: catalogId, loginEntryId: entryId,
+        balance: 0, lifetimeEarned: 0, active: false
+      })
+    ]);
+  });
+  const db = environment.authenticatedContext(teacherUid).firestore();
+  let hydratedClasses;
+  global.window = {
+    PirateEconomy: economy,
+    PirateAchievements: achievements,
+    PirateSecureBridge: { hydrateTeacher(classes) { hydratedClasses = classes; }, hydrateStudent() {} },
+    dispatchEvent() {}
+  };
+  global.CustomEvent ||= class CustomEvent { constructor(type) { this.type = type; } };
+  const source = readFileSync('secure-data.js', 'utf8');
+  const module = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}#archived-binding`);
+  const service = module.configure({ db, auth: { currentUser: { uid: teacherUid } }, storeModule: firestore });
+  try {
+    await service.startRealtime({ role: 'teacher', uid: teacherUid });
+    const entryRef = firestore.doc(db, 'studentLoginClasses', catalogId, 'students', entryId);
+    assert.equal(hydratedClasses.length, 1);
+    assert.equal((await firestore.getDoc(entryRef)).data().active, true);
+    service.stopRealtime();
+    await environment.withSecurityRulesDisabled(async context => {
+      const binding = await firestore.getDoc(firestore.doc(context.firestore(), 'studentBindings', 'deleted-binding-uid'));
+      assert.equal(binding.exists(), false);
+    });
+  } finally {
+    service.stopRealtime();
+    await environment.cleanup();
+    delete global.window;
+  }
+});
