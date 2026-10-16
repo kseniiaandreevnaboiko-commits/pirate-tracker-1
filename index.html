@@ -1629,13 +1629,13 @@ body {
   </div>
 </div>
 
-<link rel="stylesheet" href="secure-auth.css?v=20261015">
+<link rel="stylesheet" href="secure-auth.css?v=20261016-panel2">
 <script src="firebase-config.js?v=20261016-emulatorfix1"></script>
 <script>
 window.PIRATE_SECURE_MODE = true;
 window.PIRATE_AUTH_TEST_MODE = ['localhost', '127.0.0.1'].includes(location.hostname)
   && new URLSearchParams(location.search).get('emulator') === '1';
-window.secureAuthReady = import('./secure-auth.js?v=20261016-pinprod1');
+window.secureAuthReady = import('./secure-auth.js?v=20261016-panel2');
 </script>
 <script src="pin-auth.js?v=20261015"></script>
 <script src="economy.js?v=20261015"></script>

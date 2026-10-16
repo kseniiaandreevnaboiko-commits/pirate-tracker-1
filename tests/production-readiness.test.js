@@ -35,6 +35,17 @@ test('browser runtime files contain no emulator teacher credentials', () => {
   assert.doesNotMatch(source, /teacher@example\.test|Pirate123|change-this-test-password|Restart-Test/);
 });
 
+test('secure pupil login uses avatar selection and a six-digit keypad', () => {
+  const source = readFileSync('secure-auth.js', 'utf8');
+  assert.match(source, /Выбери своего героя/);
+  assert.match(source, /id="secure-student-grid"/);
+  assert.match(source, /id="secure-student-keypad"/);
+  assert.match(source, /Array\.from\(\{ length: 6 \}/);
+  assert.match(source, /enteredPin\.length !== 6/);
+  assert.doesNotMatch(source, /id="secure-student-pin"/);
+  assert.doesNotMatch(source, /<select id="secure-student-name"/);
+});
+
 test('backup checksum detects any legacy-data change', () => {
   const source = { state: { classes: [] }, schemaVersion: 1 };
   const backup = { format: 'finzozh-legacy-backup-v1', projectId: safety.PRODUCTION_PROJECT_ID, sourcePath: 'trackerApps/main', source, sourceSha256: safety.sha256(source) };

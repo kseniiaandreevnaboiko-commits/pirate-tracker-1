@@ -547,11 +547,29 @@ function installTeacherPanel() {
     <div id="secure-auth-panel" class="modal-overlay" onclick="closeModalOverlay(event)">
       <div class="secure-panel" role="dialog" aria-modal="true" aria-labelledby="secure-panel-title">
         <button class="secure-panel-close" type="button" aria-label="Закрыть">×</button>
-        <h2 id="secure-panel-title">Защищённый доступ</h2>
-        <p class="secure-note">${runtime.useEmulators ? 'Локальная тестовая среда Firebase Emulator.' : 'Защищённый доступ Firebase к текущему приложению «ФинЗОЖ».'}</p>
-        <section><h3>Класс</h3><div class="secure-row"><input id="secure-class-name" placeholder="Название класса"><button id="secure-create-class" type="button">Создать</button></div></section>
-        <section><h3>${runtime.studentPinLoginEnabled ? 'Ученик и ПИН' : 'Ученик и приглашение'}</h3><label>Класс<select id="secure-class-select"></select></label><div class="secure-row"><input id="secure-student-name" placeholder="Игровое имя ученика"><button id="secure-create-student" type="button">${runtime.studentPinLoginEnabled ? 'Создать и выдать ПИН' : 'Создать и выдать код'}</button></div><div id="secure-students"></div></section>
-        <section><h3>Смена пароля учителя</h3><div class="secure-row"><input id="secure-current-password" type="password" autocomplete="current-password" placeholder="Текущий пароль"><input id="secure-new-password" type="password" autocomplete="new-password" placeholder="Новый пароль"><button id="secure-change-password" type="button">Сменить</button></div></section>
+        <header class="secure-panel-header">
+          <span class="secure-panel-emblem" aria-hidden="true">⚓</span>
+          <div>
+            <span class="secure-panel-kicker">Капитанская карта доступа</span>
+            <h2 id="secure-panel-title">Защищённый доступ</h2>
+            <p>Управление экипажами и личными ключами учеников</p>
+          </div>
+        </header>
+        <p class="secure-note"><span aria-hidden="true">🔐</span><span>${runtime.useEmulators ? 'Локальная тестовая гавань Firebase Emulator. Рабочие данные не используются.' : 'Доступ защищён Firebase и связан с текущим приложением «ФинЗОЖ».'}</span></p>
+        <section class="secure-panel-section">
+          <div class="secure-section-heading"><span class="secure-section-icon" aria-hidden="true">🏴‍☠️</span><div><h3>Новый класс</h3><p>Создайте экипаж для учеников курса</p></div></div>
+          <div class="secure-row"><input id="secure-class-name" placeholder="Например: 8А — Морские волки"><button id="secure-create-class" type="button">Создать класс</button></div>
+        </section>
+        <section class="secure-panel-section">
+          <div class="secure-section-heading"><span class="secure-section-icon" aria-hidden="true">🗝️</span><div><h3>${runtime.studentPinLoginEnabled ? 'Ученик и ПИН' : 'Ученик и приглашение'}</h3><p>${runtime.studentPinLoginEnabled ? 'Добавьте пирата в экипаж и выдайте личный ключ' : 'Добавьте ученика и подготовьте персональное приглашение'}</p></div></div>
+          <label class="secure-field-label"><span>Выберите класс</span><select id="secure-class-select"></select></label>
+          <div class="secure-row"><input id="secure-student-name" placeholder="Игровое имя или псевдоним"><button id="secure-create-student" type="button">${runtime.studentPinLoginEnabled ? 'Создать и выдать ПИН' : 'Создать и выдать код'}</button></div>
+          <div id="secure-students" class="secure-student-list"></div>
+        </section>
+        <section class="secure-panel-section secure-password-section">
+          <div class="secure-section-heading"><span class="secure-section-icon" aria-hidden="true">🧭</span><div><h3>Пароль капитана</h3><p>Обновите пароль учительской учётной записи</p></div></div>
+          <div class="secure-row"><input id="secure-current-password" type="password" autocomplete="current-password" placeholder="Текущий пароль"><input id="secure-new-password" type="password" autocomplete="new-password" placeholder="Новый пароль"><button id="secure-change-password" type="button">Сменить пароль</button></div>
+        </section>
         <output id="secure-panel-message" class="secure-message"></output><div id="secure-invite-qr" class="secure-invite-qr" aria-label="QR-код приглашения"></div>
       </div>
     </div>`);
@@ -623,7 +641,7 @@ function renderPanelStudents(classId, highlightInvite = '') {
   const output = document.getElementById('secure-students');
   const students = selectedClass?.students || [];
   output.innerHTML = students.length ? students.map(student => {
-    return `<div class="secure-student-row"><span>${escapeMarkup(student.name)}</span><button type="button" data-reissue="${escapeMarkup(student.id)}">${runtime.studentPinLoginEnabled ? 'Сбросить ПИН' : 'Новое приглашение'}</button></div>`;
+    return `<div class="secure-student-row"><span class="secure-student-name"><span class="secure-student-mark" aria-hidden="true">⚓</span>${escapeMarkup(student.name)}</span><button type="button" data-reissue="${escapeMarkup(student.id)}">${runtime.studentPinLoginEnabled ? 'Сбросить ПИН' : 'Новое приглашение'}</button></div>`;
   }).join('') : '<p>В выбранном классе пока нет учеников.</p>';
   output.querySelectorAll('[data-reissue]').forEach(button => button.addEventListener('click', () => runPanelAction(async () => {
     if (runtime.studentPinLoginEnabled) {
@@ -656,9 +674,11 @@ function renderPanelStudents(classId, highlightInvite = '') {
   }
 }
 
-export async function mountLogin({ view, screen, teacherPage, studentPage, cards, arrow, play }) {
+export async function mountLogin({ view, screen, teacherPage, studentPage, cards, arrow, sabres, play }) {
   await restoreSession();
   document.documentElement.classList.toggle('secure-pin-prototype', runtime.studentPinLoginEnabled);
+  const securePinSlots = () => `<div class="pin-slots" id="secure-student-slots" aria-label="ПИН-код из шести цифр">${Array.from({ length: 6 }, () => '<i></i>').join('')}</div>`;
+  const securePinKeypad = () => `<div class="pin-keypad" id="secure-student-keypad">${['1','2','3','4','5','6','7','8','9'].map(value => `<button type="button" data-pin-value="${value}">${value}</button>`).join('')}<button type="button" class="pin-key-special" data-pin-action="back" aria-label="Удалить последнюю цифру">⌫</button><button type="button" data-pin-value="0">0</button><button type="button" class="pin-key-special" data-pin-action="submit" aria-label="Открыть кабинет">→</button></div>`;
   teacherPage.querySelector('.pin-dialog').innerHTML = `
     <h2>Вход учителя</h2><p>${runtime.useEmulators ? 'Firebase Authentication · локальный эмулятор' : 'Защищённый вход Firebase Authentication'}</p>
     <label class="secure-login-label">Email<input id="secure-teacher-email" type="email" autocomplete="username"></label>
@@ -669,15 +689,22 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
     <button class="secure-link" id="secure-teacher-reset" type="button">Восстановить пароль</button>
     <button class="pin-home" type="button" data-login-home>← На главную</button>`;
   studentPage.querySelector('.pin-dialog').innerHTML = runtime.studentPinLoginEnabled ? `
-    <section class="pin-student-auth secure-student-auth">
-      <h2>Вход ученика</h2><p>Выберите свой экипаж и введите личный ПИН</p>
-      <label class="secure-login-label">Класс<select id="secure-student-class"><option value="">Загрузка классов…</option></select></label>
-      <label class="secure-login-label">Игровое имя<select id="secure-student-name"><option value="">Сначала выберите класс</option></select></label>
-      <label class="secure-login-label">ПИН-код<input id="secure-student-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" placeholder="6 цифр"></label>
+    <section class="pin-student-picker">
+      <header><h2>Выбери своего героя</h2><p>Нажми на аватар со своим игровым именем</p></header>
+      <label class="pin-class-row" id="secure-student-class-row">Наш класс<select id="secure-student-class" aria-label="Выберите класс"><option value="">Загрузка классов…</option></select></label>
+      <div class="pin-student-grid" id="secure-student-grid"></div>
+      <div class="pin-pagination" id="secure-student-pagination"></div>
+    </section>
+    <section class="pin-student-auth disabled" id="secure-student-auth" aria-live="polite">
+      <div class="pin-selected-avatar" id="secure-selected-avatar">${sabres || ''}</div>
+      <h2 id="secure-selected-name">Выберите героя</h2>
+      <p id="secure-student-copy">Сначала нажмите на свой аватар</p>
+      ${securePinSlots()}
       <p class="pin-message" id="secure-student-message" role="alert"></p>
+      ${securePinKeypad()}
       <button class="pin-submit" id="secure-student-submit" type="button"><span>Открыть кабинет</span>${arrow}</button>
-      <button class="pin-home" type="button" data-login-home>← На главную</button>
-    </section>` : `
+    </section>
+    <button class="pin-home pin-student-home" type="button" data-login-home>← На главную</button>` : `
     <section class="pin-student-auth secure-student-auth">
       <h2>Вход ученика</h2><p>Введите персональный одноразовый код приглашения</p>
       <label class="secure-login-label">Код приглашения<input id="secure-invite-code" type="text" autocomplete="one-time-code" spellcheck="false"></label>
@@ -744,32 +771,109 @@ export async function mountLogin({ view, screen, teacherPage, studentPage, cards
   });
   if (runtime.studentPinLoginEnabled) {
     const classSelect = document.getElementById('secure-student-class');
-    const studentSelect = document.getElementById('secure-student-name');
     let catalog = [];
-    const fillStudents = () => {
-      const selected = catalog.find(item => item.id === classSelect.value);
-      studentSelect.innerHTML = selected?.students.length
-        ? selected.students.map(item => `<option value="${escapeMarkup(item.id)}">${escapeMarkup(item.displayName)}</option>`).join('')
-        : '<option value="">В этом классе пока нет учеников</option>';
+    let selectedEntryId = '';
+    let enteredPin = '';
+    let studentPageIndex = 0;
+    const currentCatalogClass = () => catalog.find(item => item.id === classSelect.value);
+    const currentCatalogStudent = () => currentCatalogClass()?.students.find(item => item.id === selectedEntryId);
+    const updateSecurePinSlots = () => {
+      document.querySelectorAll('#secure-student-slots i').forEach((slot, index) => slot.classList.toggle('filled', index < enteredPin.length));
+    };
+    const updateSelectedHero = () => {
+      const student = currentCatalogStudent();
+      const authPanel = document.getElementById('secure-student-auth');
+      authPanel.classList.toggle('disabled', !student);
+      document.getElementById('secure-selected-avatar').innerHTML = student ? window.renderStudentAvatar(student) : (sabres || '');
+      document.getElementById('secure-selected-name').textContent = student?.displayName || 'Выберите героя';
+      document.getElementById('secure-student-copy').textContent = student ? 'Введите личный ПИН из шести цифр' : 'Сначала нажмите на свой аватар';
+    };
+    const renderStudentHeroes = () => {
+      const students = currentCatalogClass()?.students || [];
+      const pageSize = 6;
+      const pageCount = Math.max(1, Math.ceil(students.length / pageSize));
+      studentPageIndex = Math.min(studentPageIndex, pageCount - 1);
+      const visible = students.slice(studentPageIndex * pageSize, studentPageIndex * pageSize + pageSize);
+      const grid = document.getElementById('secure-student-grid');
+      grid.innerHTML = visible.length
+        ? visible.map(student => `<button class="pin-student-card${student.id === selectedEntryId ? ' selected' : ''}" type="button" data-student-id="${escapeMarkup(student.id)}"><span>${window.renderStudentAvatar(student)}</span><strong>${escapeMarkup(student.displayName)}</strong></button>`).join('')
+        : '<p class="pin-empty">В этом классе пока нет учеников</p>';
+      grid.querySelectorAll('[data-student-id]').forEach(button => button.addEventListener('click', () => {
+        selectedEntryId = button.dataset.studentId;
+        enteredPin = '';
+        updateSecurePinSlots();
+        showMessage('secure-student-message', '', true);
+        renderStudentHeroes();
+        play('click');
+      }));
+      const pagination = document.getElementById('secure-student-pagination');
+      pagination.innerHTML = pageCount > 1 ? `<button type="button" data-page="prev" aria-label="Предыдущая страница">‹</button><span>${studentPageIndex + 1} / ${pageCount}</span><button type="button" data-page="next" aria-label="Следующая страница">›</button>` : '';
+      pagination.querySelector('[data-page="prev"]')?.addEventListener('click', () => { studentPageIndex = Math.max(0, studentPageIndex - 1); renderStudentHeroes(); });
+      pagination.querySelector('[data-page="next"]')?.addEventListener('click', () => { studentPageIndex = Math.min(pageCount - 1, studentPageIndex + 1); renderStudentHeroes(); });
+      updateSelectedHero();
+    };
+    const resetHeroSelection = () => {
+      selectedEntryId = '';
+      enteredPin = '';
+      studentPageIndex = 0;
+      updateSecurePinSlots();
+      showMessage('secure-student-message', '', true);
+      renderStudentHeroes();
     };
     const refreshCatalog = async () => {
       catalog = await loadStudentLoginCatalog();
       classSelect.innerHTML = catalog.length
         ? catalog.map(item => `<option value="${escapeMarkup(item.id)}">${escapeMarkup(item.displayName)}</option>`).join('')
         : '<option value="">Классы пока не созданы</option>';
-      fillStudents();
+      document.getElementById('secure-student-class-row').hidden = catalog.length <= 1;
+      resetHeroSelection();
     };
-    classSelect.addEventListener('change', fillStudents);
-    document.getElementById('secure-student-pin').addEventListener('input', event => {
-      event.target.value = event.target.value.replace(/\D/g, '').slice(0, 6);
-    });
-    document.getElementById('secure-student-submit').addEventListener('click', async () => {
+    const addSecurePinDigit = digit => {
+      if (!currentCatalogStudent() || enteredPin.length >= 6) return;
+      enteredPin += digit;
+      updateSecurePinSlots();
+      showMessage('secure-student-message', '', true);
+      play('click');
+    };
+    const removeSecurePinDigit = () => {
+      enteredPin = enteredPin.slice(0, -1);
+      updateSecurePinSlots();
+      play('click');
+    };
+    const submitSecureStudent = async () => {
+      const student = currentCatalogStudent();
+      if (!student) {
+        showMessage('secure-student-message', 'Выберите своего героя.');
+        return;
+      }
+      if (enteredPin.length !== 6) {
+        showMessage('secure-student-message', 'Введите все шесть цифр ПИН.');
+        const authPanel = document.getElementById('secure-student-auth');
+        authPanel.classList.remove('pin-shake');
+        requestAnimationFrame(() => authPanel.classList.add('pin-shake'));
+        return;
+      }
       try {
-        const session = await studentPinLogin(classSelect.value, studentSelect.value, document.getElementById('secure-student-pin').value);
+        const session = await studentPinLogin(classSelect.value, selectedEntryId, enteredPin);
         history.replaceState(null, '', '#/student');
         play('success');
         loginAsStudent(true, session.classId, session.studentId);
-      } catch (error) { showMessage('secure-student-message', studentLoginMessage(error)); }
+      } catch (error) {
+        enteredPin = '';
+        updateSecurePinSlots();
+        showMessage('secure-student-message', studentLoginMessage(error));
+      }
+    };
+    classSelect.addEventListener('change', resetHeroSelection);
+    document.querySelectorAll('#secure-student-keypad [data-pin-value]').forEach(button => button.addEventListener('click', () => addSecurePinDigit(button.dataset.pinValue)));
+    document.querySelector('#secure-student-keypad [data-pin-action="back"]').addEventListener('click', removeSecurePinDigit);
+    document.querySelector('#secure-student-keypad [data-pin-action="submit"]').addEventListener('click', submitSecureStudent);
+    document.getElementById('secure-student-submit').addEventListener('click', submitSecureStudent);
+    document.addEventListener('keydown', event => {
+      if (!studentPage.classList.contains('active') || !view.classList.contains('active')) return;
+      if (/^\d$/.test(event.key)) { event.preventDefault(); addSecurePinDigit(event.key); }
+      else if (event.key === 'Backspace') { event.preventDefault(); removeSecurePinDigit(); }
+      else if (event.key === 'Enter') { event.preventDefault(); submitSecureStudent(); }
     });
     view.querySelector('#lr-student-enter').addEventListener('click', () => refreshCatalog().catch(error => showMessage('secure-student-message', messageFor(error))));
     await refreshCatalog();
